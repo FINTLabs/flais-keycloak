@@ -1,0 +1,3 @@
+no.fintlabs.authenticator.OrgSelectorAuthenticatorFactory
+no.fintlabs.authenticator.OrgRedirectorAuthenticatorFactory
+no.fintlabs.authenticator.OrgIdpSelectorAuthenticatorFactory
