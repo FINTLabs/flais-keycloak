@@ -7,15 +7,13 @@ It extends [Keycloak](https://www.keycloak.org/) with custom functionality, them
 
 ```
 flais-keycloak/
-├── apps/
-│ ├── flais-demo # Demo application to test authentication
-│ └── local-dev # Local development setup (docker-compose, configs, etc.)
+├── keycloak/     # Application
+│   ├── flais-demo       # Demo application to test authentication
+│   └── libs/
+│       ├── flais-provider   # Custom Keycloak SPI provider
+│       └── flais-theme      # Flais Keycloak login theme
 │
-├── libs/
-│ ├── flais-provider # Custom Keycloak SPI provider
-│ └── flais-theme # Novari Keycloak login theme
-│
-└── README.md # Project documentation
+└── README.md     # Project documentation
 ```
 
 ## 🛠️ Development
@@ -29,10 +27,10 @@ flais-keycloak/
 
 ### Running Locally
 
-1. Run the docker compose (apps/local-dev) for initial setup
+1. Run the docker compose (keycloak) for initial setup
 
    ```bash
-   cd apps/local-dev
+   cd keycloak
    docker-compose up
    ```
 

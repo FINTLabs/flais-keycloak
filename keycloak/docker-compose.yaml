@@ -1,6 +1,8 @@
 services:
   keycloak:
-    image: quay.io/keycloak/keycloak:26.3.1
+    build:
+      context: .
+      dockerfile: Dockerfile
     command: start-dev --log-level="INFO,org.keycloak.authentication.authenticators:DEBUG,no.fintlabs.authenticator:DEBUG"
     environment:
       KC_HTTP_ENABLED: true
@@ -22,8 +24,6 @@ services:
         condition: service_healthy
     networks:
       - keycloak_db
-    volumes:
-      - ./providers:/opt/keycloak/providers
   keycloak-pg:
     image: postgres:17.5
     volumes:
