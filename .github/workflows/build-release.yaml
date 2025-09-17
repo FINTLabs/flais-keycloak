@@ -1,0 +1,43 @@
+name: Build and release
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Select environment'
+        required: true
+        default: 'test'
+        type: choice
+        options:
+          - test
+          - prod
+  push:
+    branches:
+      - prod
+
+permissions:
+  contents: write
+  packages: write
+
+jobs:
+  build-publish-test:
+    if: github.ref == 'refs/heads/main' || (github.event_name == 'workflow_dispatch' && inputs.environment == 'test')
+    uses: ./.github/workflows/.build-publish-docker.yaml
+    secrets: inherit
+    with:
+      environment: test
+
+  build-publish-prod:
+    if: github.ref == 'refs/heads/prod' || (github.event_name == 'workflow_dispatch' && inputs.environment == 'prod')
+    uses: ./.github/workflows/.build-publish-docker.yaml
+    secrets: inherit
+    with:
+      environment: prod
+
+  create-release:
+    if: github.ref == 'refs/heads/prod'
+    uses: ./.github/workflows/.create-release.yaml
+    needs: build-publish-prod
+    secrets: inherit
+    with:
+      image-tags: ${{ needs.build-publish-prod.outputs.image-tags }}
