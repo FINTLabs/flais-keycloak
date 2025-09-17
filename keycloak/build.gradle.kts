@@ -6,7 +6,7 @@ plugins {
 tasks {
     register("deployDev") {
         group = "docker"
-        description = "Compose up with rebuild and recreate"
+        description = "Deploy local dev with compose"
 
         doLast {
             dockerCompose.dockerExecutor.execute("compose", "up", "-d", "--build", "keycloak")
@@ -14,7 +14,7 @@ tasks {
         }
     }
 
-    register("r") {
+    register("restart") {
         group = "docker"
         description = "Rebuild the keycloak image and recreate the container"
 
