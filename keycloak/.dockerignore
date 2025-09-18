@@ -1,0 +1,12 @@
+.git
+**/.git
+**/.idea
+**/.vscode
+**/build
+**/dist
+**/.gradle
+**/node_modules
+**/.npm
+**/.m2
+Dockerfile
+tmp*
