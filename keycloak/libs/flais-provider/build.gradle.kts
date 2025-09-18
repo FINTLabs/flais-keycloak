@@ -16,7 +16,7 @@ java {
     targetCompatibility = JavaVersion.VERSION_21
 }
 
-val keycloakVersion = "26.3.1"
+val keycloakVersion = "26.3.4"
 
 repositories {
     mavenCentral()
