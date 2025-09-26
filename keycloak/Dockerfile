@@ -1,7 +1,7 @@
 ARG KEYCLOAK_VERSION=26.3.1
 
 # Flais provider builder
-FROM gradle:9.0.0-jdk21 AS flais-provider-builder
+FROM gradle:9.1.0-jdk21 AS flais-provider-builder
 WORKDIR /flais-provider
 
 COPY ./libs/flais-provider/build.gradle.kts \
