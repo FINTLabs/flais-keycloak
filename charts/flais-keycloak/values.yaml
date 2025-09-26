@@ -1,0 +1,152 @@
+# Default values for flais-keycloak.
+# This is a YAML-formatted file.
+
+fullnameOverride: ""
+nameOverride: ""
+
+imagePullSecrets: []
+image:
+  repository: ghcr.io/fintlabs/flais-keycloak
+  tag: ""
+  digest: ""
+  pullPolicy: IfNotPresent
+
+replicas: 1
+
+podManagementPolicy: OrderedReady
+updateStrategy: RollingUpdate
+restartPolicy: Always
+
+podSecurityContext:
+  fsGroup: 1000
+securityContext:
+  runAsUser: 1000
+  runAsNonRoot: true
+
+terminationGracePeriodSeconds: 60
+
+clusterDomain: cluster.local
+
+command: []
+
+args: []
+
+env: []
+
+hostname: ""
+
+affinity: |
+  podAntiAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      - labelSelector:
+          matchLabels:
+            {{- include "keycloak.selectorLabels" . | nindent 10 }}
+          matchExpressions:
+            - key: app.kubernetes.io/component
+              operator: NotIn
+              values:
+                - test
+        topologyKey: kubernetes.io/hostname
+    preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 100
+        podAffinityTerm:
+          labelSelector:
+            matchLabels:
+              {{- include "keycloak.selectorLabels" . | nindent 12 }}
+            matchExpressions:
+              - key: app.kubernetes.io/component
+                operator: NotIn
+                values:
+                  - test
+          topologyKey: topology.kubernetes.io/zone
+
+nodeSelector: {}
+
+tolerations: []
+
+podLabels: {}
+
+podAnnotations: {}
+
+livenessProbe: |
+  httpGet:
+    path: '/health/live'
+    port: '{{ .Values.http.internalPort }}'
+    scheme: '{{ .Values.http.internalScheme }}'
+  initialDelaySeconds: 0
+  timeoutSeconds: 5
+
+readinessProbe: |
+  httpGet:
+    path: '/health/ready'
+    port: '{{ .Values.http.internalPort }}'
+    scheme: '{{ .Values.http.internalScheme }}'
+  initialDelaySeconds: 10
+  timeoutSeconds: 1
+
+startupProbe: |
+  httpGet:
+    path: '/health'
+    port: '{{ .Values.http.internalPort }}'
+    scheme: '{{ .Values.http.internalScheme }}'
+  initialDelaySeconds: 15
+  timeoutSeconds: 1
+  failureThreshold: 60
+  periodSeconds: 5
+
+resources:
+  requests:
+    memory: "1024Mi"
+  limits:
+    memory: "1024Mi"
+
+service:
+  annotations: {}
+  labels: {}
+  type: ClusterIP
+  loadBalancerIP: ""
+  httpPort: 80
+  httpNodePort: null
+  httpsPort: 8443
+  httpsNodePort: null
+  extraPorts: []
+  loadBalancerSourceRanges: []
+  externalTrafficPolicy: "Cluster"
+  sessionAffinity: ""
+  sessionAffinityConfig: {}
+
+dbchecker:
+  enabled: false
+  image:
+    repository: docker.io/busybox
+    tag: "1.37"
+    pullPolicy: Always
+  securityContext:
+    allowPrivilegeEscalation: false
+    runAsUser: 1000
+    runAsGroup: 1000
+    runAsNonRoot: true
+  resources:
+    requests:
+      cpu: "20m"
+      memory: "32Mi"
+    limits:
+      cpu: "20m"
+      memory: "32Mi"
+
+database:
+  hostname:
+  port:
+  database:
+  username:
+  password:
+
+http:
+  internalPort: http-internal
+  internalScheme: HTTP
+
+proxy:
+  enabled: true
+  mode: forwarded
+  http:
+    enabled: true

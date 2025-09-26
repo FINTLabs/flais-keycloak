@@ -1,0 +1,7 @@
+apiVersion: v2
+name: flais-keycloak
+version: 0.1.0
+appVersion: 26.3.3
+description: Flais Keycloak
+sources:
+  - https://github.com/FINTLabs/flais-keycloak
