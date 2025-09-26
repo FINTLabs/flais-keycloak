@@ -5,7 +5,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 plugins {
     kotlin("jvm") version "2.2.20"
     `java-library`
-    id("com.gradleup.shadow") version "8.3.6"
+    id("com.gradleup.shadow") version "9.1.0"
 }
 
 group = "no.fintlabs"
