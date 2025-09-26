@@ -5,6 +5,11 @@ updates:
     schedule:
       interval: "weekly"
       day: "sunday"
+    groups:
+      all-npm:
+        patterns:
+          - "*"
+        update-types: ["minor", "patch"]
 
   - package-ecosystem: "gradle"
     directory: "/keycloak/libs/flais-provider/"
