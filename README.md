@@ -39,5 +39,5 @@ Prerequisites:
 
 3. Run task "restart" to restart Keycloak for changes
    ```bash
-   gradle deployDev
+   gradle restart
    ```
