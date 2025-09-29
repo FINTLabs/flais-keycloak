@@ -42,7 +42,7 @@ jobs:
     needs: build-publish-prod
     uses: ./.github/workflows/.chart-publish.yaml
     with:
-      app-version: ${{ needs.build-publish-prod.outputs.image-tags }}
+      image-tags: ${{ needs.build-publish-prod.outputs.image-tags }}
       chart-name: ${{ github.event.repository.name }}
     secrets: inherit
 
