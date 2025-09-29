@@ -290,7 +290,7 @@
         "enabled": {
           "type": "boolean"
         },
-        "mode": {
+        "headers": {
           "type": "string"
         }
       }

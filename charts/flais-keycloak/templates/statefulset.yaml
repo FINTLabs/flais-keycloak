@@ -63,10 +63,8 @@ spec:
           {{- end }}
           env:
             {{- if .Values.proxy.enabled }}
-            - name: KC_PROXY
-              value: "edge"
             - name: KC_PROXY_HEADERS
-              value: {{ .Values.proxy.mode }}
+              value: {{ .Values.proxy.headers }}
             {{- end }}
             {{- if .Values.proxy.http.enabled }}
             - name: KC_HTTP_ENABLED

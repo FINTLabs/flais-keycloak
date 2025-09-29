@@ -146,6 +146,6 @@ http:
 
 proxy:
   enabled: true
-  mode: forwarded
+  headers: forwarded
   http:
     enabled: true
