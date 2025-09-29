@@ -1,7 +1,7 @@
 apiVersion: v2
 name: flais-keycloak
-version: 0.1.0
-appVersion: 26.3.3
-description: Flais Keycloak
+version: invalid
+appVersion: invalid
+description: Flais Keycloak is the user authentication system for Novari IKS, designed to orchestrate multiple identity providers into a unified platform.
 sources:
   - https://github.com/FINTLabs/flais-keycloak

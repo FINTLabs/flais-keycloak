@@ -8,7 +8,6 @@ imagePullSecrets: []
 image:
   repository: ghcr.io/fintlabs/flais-keycloak
   tag: ""
-  digest: ""
   pullPolicy: IfNotPresent
 
 replicas: 1

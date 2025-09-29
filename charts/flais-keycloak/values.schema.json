@@ -5,7 +5,7 @@
   "definitions": {
     "image": {
       "type": "object",
-      "required": ["repository", "tag"],
+      "required": ["repository"],
       "properties": {
         "pullPolicy": {
           "type": "string",
@@ -15,9 +15,6 @@
           "type": "string"
         },
         "tag": {
-          "type": ["string", "integer"]
-        },
-        "digest": {
           "type": "string"
         }
       }
