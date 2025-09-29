@@ -4,12 +4,12 @@ on:
   workflow_call:
     inputs:
       environment:
-        description: 'Environment'
+        description: "Environment"
         required: true
         type: string
     outputs:
       image-tags:
-        description: 'Docker image with tag'
+        description: "Docker image with tag"
         value: ${{ jobs.publish.outputs.image-tags }}
 
 env:
@@ -41,7 +41,7 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
-            type=sha,prefix={{date 'YYYY.MM.DD-HH.mm'}}${{ steps.tag_suffix.outputs.tag_suffix }}-,priority=9002
+            type=sha,prefix={{date 'YYYYMMDD'}}${{ steps.tag_suffix.outputs.tag_suffix }}-,priority=9002
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v6.18.0
@@ -50,6 +50,5 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-
       - name: Set output
         run: echo "Docker image ${{ steps.meta.outputs.tags }}" >> $GITHUB_STEP_SUMMARY
