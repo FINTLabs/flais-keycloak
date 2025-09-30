@@ -1,4 +1,4 @@
-name: Build, publish and release
+name: Flais Keycloak - Build, publish and release
 
 on:
   workflow_dispatch:
@@ -21,23 +21,27 @@ permissions:
 
 jobs:
   build-publish-test:
-    name: Build and Publish App - Test
+    name: Build and Publish Flais Keycloak - Test
     if: github.ref == 'refs/heads/main' || (github.event_name == 'workflow_dispatch' && inputs.environment == 'test')
     uses: ./.github/workflows/.build-publish-docker.yaml
     secrets: inherit
     with:
+      image_name: ${{ github.repository }}
+      context: ./keycloak
       environment: test
 
   build-publish-prod:
-    name: Build and Publish App - Prod
+    name: Build and Publish Flais Keycloak - Prod
     if: github.ref == 'refs/heads/prod' || (github.event_name == 'workflow_dispatch' && inputs.environment == 'prod')
     uses: ./.github/workflows/.build-publish-docker.yaml
     secrets: inherit
     with:
+      image_name: ${{ github.repository }}
+      context: ./keycloak
       environment: prod
 
   publish-chart:
-    name: Publish Helm Chart ${{ github.event.repository.name }}
+    name: Publish Flais Keycloak Helm Chart
     if: github.ref == 'refs/heads/prod' || (github.event_name == 'workflow_dispatch' && inputs.environment == 'prod')
     needs: build-publish-prod
     uses: ./.github/workflows/.chart-publish.yaml
@@ -47,7 +51,7 @@ jobs:
     secrets: inherit
 
   create-release:
-    name: Create release for version ${{ needs.build-publish-prod.outputs.image-tags }}
+    name: Create release for Flais Keycloak
     if: github.ref == 'refs/heads/prod'
     uses: ./.github/workflows/.create-release.yaml
     needs:
