@@ -7,6 +7,10 @@ on:
         description: "Environment"
         required: true
         type: string
+      path:
+        description: "Path to the application folder"
+        required: true
+        type: string
       image-tags:
         description: "Docker image with tag"
         required: true
@@ -25,7 +29,7 @@ jobs:
         uses: azure/k8s-bake@v3
         with:
           renderEngine: "kustomize"
-          kustomizationPath: "kustomize/overlays/${{ inputs.environment }}"
+          kustomizationPath: "${{ inputs.path }}/kustomize/overlays/${{ inputs.environment }}"
 
       - uses: azure/login@v2
         with:

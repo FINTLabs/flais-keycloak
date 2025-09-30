@@ -35,4 +35,5 @@ jobs:
     secrets: inherit
     with:
       environment: ${{ inputs.environment }}
+      path: ./apps/flais-keycloak-demo
       image-tags: ${{ needs.build-publish-flais-keycloak-demo.outputs.image-tags }}
