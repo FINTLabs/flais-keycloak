@@ -1,0 +1,83 @@
+{
+  "realm": "external",
+  "enabled": true,
+  "registrationAllowed": false,
+  "loginWithEmailAllowed": true,
+  "clients": [
+    {
+      "clientId": "flais-keycloak-demo",
+      "enabled": true,
+      "publicClient": false,
+      "protocol": "openid-connect",
+      "directAccessGrantsEnabled": true,
+      "serviceAccountsEnabled": true,
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "attributes": {},
+      "redirectUris": ["http://localhost*"],
+      "webOrigins": ["+"]
+    }
+  ],
+  "identityProviders": [
+    {
+      "alias": "entra-telemark",
+      "displayName": "Entra telemark (Dex)",
+      "providerId": "oidc",
+      "enabled": true,
+      "firstBrokerLoginFlowAlias": "first broker login",
+      "storeToken": true,
+      "trustEmail": true,
+      "authenticateByDefault": false,
+      "linkOnly": false,
+      "config": {
+        "clientId": "test-app",
+        "clientSecret": "test-secret",
+        "authorizationUrl": "http://localhost:5556/dex/auth",
+        "issuer": "http://dex-entra-telemark:5556/dex",
+        "tokenUrl": "http://dex-entra-telemark:5556/dex/token",
+        "userinfoUrl": "http://dex-entra-telemark:5556/dex/userinfo",
+        "jwksUrl": "http://dex-entra-telemark:5556/dex/keys",
+        "useJwksUrl": "true",
+        "defaultScope": "openid profile",
+        "validateSignature": "true",
+        "backchannelSupported": "true"
+      }
+    },
+    {
+      "alias": "idporten",
+      "displayName": "ID-porten (Dex)",
+      "providerId": "oidc",
+      "enabled": true,
+      "firstBrokerLoginFlowAlias": "first broker login",
+      "storeToken": true,
+      "trustEmail": true,
+      "authenticateByDefault": false,
+      "linkOnly": false,
+      "config": {
+        "clientId": "test-app",
+        "clientSecret": "test-secret",
+        "authorizationUrl": "http://localhost:5558/dex/auth",
+        "issuer": "http://dex-idporten:5556/dex",
+        "tokenUrl": "http://dex-idporten:5556/dex/token",
+        "userinfoUrl": "http://dex-idporten:5556/dex/userinfo",
+        "jwksUrl": "http://dex-idporten:5556/dex/keys",
+        "useJwksUrl": "true",
+        "defaultScope": "openid profile",
+        "validateSignature": "true",
+        "backchannelSupported": "true"
+      }
+    }
+  ],
+  "identityProviderMappers": [
+    {
+      "name": "pid-from-preferred_username",
+      "identityProviderAlias": "idporten",
+      "identityProviderMapper": "oidc-user-attribute-idp-mapper",
+      "config": {
+        "claim": "preferred_username",
+        "user.attribute": "pid",
+        "syncMode": "IMPORT"
+      }
+    }
+  ]
+}

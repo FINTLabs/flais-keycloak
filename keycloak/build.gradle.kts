@@ -3,7 +3,33 @@ import java.util.Date
 
 plugins {
     base
+    kotlin("jvm") version "2.2.20"
     id("com.avast.gradle.docker-compose") version "0.17.12"
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testImplementation(platform("org.junit:junit-bom:5.10.2"))
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+    testImplementation("org.junit.jupiter:junit-jupiter")
+    testImplementation("org.testcontainers:testcontainers:1.21.3")
+    testImplementation("org.testcontainers:junit-jupiter:1.21.3")
+    testImplementation("com.github.dasniko:testcontainers-keycloak:3.8.0")
+}
+
+val keycloakTestImageTag = "flais-keycloak:test"
+tasks.register<Exec>("keycloakTestImage") {
+    group = "docker"
+    description = "Build the local Keycloak image used by tests"
+    commandLine("docker", "build", "-t", keycloakTestImageTag, ".")
+}
+tasks.withType<Test>().configureEach {
+    dependsOn("keycloakTestImage")
+    useJUnitPlatform()
+    systemProperty("keycloak.image", keycloakTestImageTag)
 }
 
 tasks {

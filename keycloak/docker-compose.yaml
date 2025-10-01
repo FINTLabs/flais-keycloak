@@ -1,9 +1,14 @@
+version: "3.8"
+
 services:
+  # ----------------------
+  # Keycloak and its Postgres database
+  # ----------------------
   keycloak:
     build:
       context: .
       dockerfile: Dockerfile
-    command: start-dev --log-level="INFO,org.keycloak.authentication.authenticators:DEBUG,no.fintlabs.authenticator:DEBUG"
+    command: start-dev --import-realm --log-level="INFO,org.keycloak.authentication.authenticators:DEBUG,no.fintlabs.authenticator:DEBUG"
     environment:
       KC_HTTP_ENABLED: true
       KC_HEALTH_ENABLED: true
@@ -18,12 +23,28 @@ services:
       KC_BOOTSTRAP_ADMIN_USERNAME: admin
       KC_BOOTSTRAP_ADMIN_PASSWORD: admin
     ports:
-      - '8890:8080'
+      - "8890:8080"
+    volumes:
+      - ./config/kc:/opt/keycloak/data/import:ro
     depends_on:
       keycloak-pg:
         condition: service_healthy
+      dex-entra-telemark-wait:
+        condition: service_healthy
+      dex-entra-novari-wait:
+        condition: service_healthy
+      dex-idporten-wait:
+        condition: service_healthy
+    healthcheck:
+      test:
+        ["CMD-SHELL", "curl -fsS http://localhost:8080/health/ready || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 20s
     networks:
-      - keycloak_db
+      - keycloak
+
   keycloak-pg:
     image: postgres:17.5
     volumes:
@@ -33,13 +54,140 @@ services:
       POSTGRES_USER: keycloak
       POSTGRES_PASSWORD: password
     ports:
-      - '5432:5432'
+      - "5432:5432"
     healthcheck:
-      test: ['CMD-SHELL', "sh -c 'pg_isready -U keycloak -d keycloak'"]
+      test: ["CMD-SHELL", "sh -c 'pg_isready -U keycloak -d keycloak'"]
       interval: 10s
       timeout: 3s
-      retries: 3
+      retries: 5
     networks:
-      - keycloak_db
+      - keycloak
+
+  # ----------------------
+  # Dex providers
+  # ----------------------
+  dex-entra-telemark:
+    image: ghcr.io/dexidp/dex:latest
+    container_name: dex-entra-telemark
+    command: ["dex", "serve", "/etc/dex/config.yaml"]
+    ports: ["5556:5556"]
+    volumes:
+      - ./config/dex/entra-telemark.yaml:/etc/dex/config.yaml:ro
+    restart: unless-stopped
+    networks:
+      - keycloak
+
+  dex-entra-novari:
+    image: ghcr.io/dexidp/dex:latest
+    container_name: dex-entra-novari
+    command: ["dex", "serve", "/etc/dex/config.yaml"]
+    ports: ["5557:5556"]
+    volumes:
+      - ./config/dex/entra-novari.yaml:/etc/dex/config.yaml:ro
+    restart: unless-stopped
+    networks:
+      - keycloak
+
+  dex-idporten:
+    image: ghcr.io/dexidp/dex:latest
+    container_name: dex-idporten
+    command: ["dex", "serve", "/etc/dex/config.yaml"]
+    ports: ["5558:5556"]
+    volumes:
+      - ./config/dex/idporten.yaml:/etc/dex/config.yaml:ro
+    restart: unless-stopped
+    networks:
+      - keycloak
+
+  # ----------------------
+  # Tiny waiter sidecars for heatlchecks
+  # ----------------------
+  dex-entra-telemark-wait:
+    image: alpine:3.20
+    depends_on:
+      - dex-entra-telemark
+    command:
+      - /bin/sh
+      - -lc
+      - |
+        apk add --no-cache curl >/dev/null
+        echo "Waiting for dex-entra-telemark..."
+        until curl -fsS http://dex-entra-telemark:5556/dex/.well-known/openid-configuration >/dev/null; do
+          sleep 2
+        done
+        echo "dex-entra-telemark is ready."
+        tail -f /dev/null
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "curl -fsS http://dex-entra-telemark:5556/dex/.well-known/openid-configuration >/dev/null || exit 1",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 5s
+    restart: unless-stopped
+    networks:
+      - keycloak
+
+  dex-entra-novari-wait:
+    image: alpine:3.20
+    depends_on:
+      - dex-entra-novari
+    command:
+      - /bin/sh
+      - -lc
+      - |
+        apk add --no-cache curl >/dev/null
+        echo "Waiting for dex-entra-novari..."
+        until curl -fsS http://dex-entra-novari:5556/dex/.well-known/openid-configuration >/dev/null; do
+          sleep 2
+        done
+        echo "dex-entra-novari is ready."
+        tail -f /dev/null
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "curl -fsS http://dex-entra-novari:5556/dex/.well-known/openid-configuration >/dev/null || exit 1",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 5s
+    restart: unless-stopped
+    networks:
+      - keycloak
+
+  dex-idporten-wait:
+    image: alpine:3.20
+    depends_on:
+      - dex-idporten
+    command:
+      - /bin/sh
+      - -lc
+      - |
+        apk add --no-cache curl >/dev/null
+        echo "Waiting for dex-idporten..."
+        until curl -fsS http://dex-idporten:5556/dex/.well-known/openid-configuration >/dev/null; do
+          sleep 2
+        done
+        echo "dex-idporten is ready."
+        tail -f /dev/null
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "curl -fsS http://dex-idporten:5556/dex/.well-known/openid-configuration >/dev/null || exit 1",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 5s
+    restart: unless-stopped
+    networks:
+      - keycloak
+
 networks:
-  keycloak_db:
+  keycloak:

@@ -1,0 +1,30 @@
+issuer: http://dex-entra-novari:5556/dex
+storage:
+  type: sqlite3
+  config:
+    file: /tmp/dex-novari.db
+
+web:
+  http: 0.0.0.0:5556
+
+oauth2:
+  skipApprovalScreen: true
+
+staticClients:
+  - id: test-app
+    name: Keycloak broker (master → entra-novari)
+    secret: test-secret
+    redirectURIs:
+      - http://keycloak:8080/realms/master/broker/entra-novari/endpoint
+      - http://localhost:8890/realms/master/broker/entra-novari/endpoint
+
+enablePasswordDB: true
+staticPasswords:
+  - email: bob.admin@example.com
+    username: bob.admin
+    userID: 33333333-3333-3333-3333-333333333333
+    hash: $2b$10$pECRn7RvUKar9qQjpPUvGO8ZNuK5xezvXZOnX6TaD.SddrZwsMZBK
+  - email: eve.admin@example.com
+    username: eve.admin
+    userID: 44444444-4444-4444-4444-444444444444
+    hash: $2b$10$pECRn7RvUKar9qQjpPUvGO8ZNuK5xezvXZOnX6TaD.SddrZwsMZBK
