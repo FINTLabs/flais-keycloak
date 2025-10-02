@@ -3,9 +3,12 @@ services:
   # Keycloak and its Postgres database
   # ----------------------
   keycloak:
+    hostname: keycloak
     build:
       context: .
       dockerfile: Dockerfile
+      args:
+        KEYCLOAK_VERSION: ${KEYCLOAK_VERSION}
     # command: export --file=/opt/keycloak/data/export/external-realm.json --optimized
     command: >
       start-dev
@@ -26,6 +29,7 @@ services:
       KC_BOOTSTRAP_ADMIN_PASSWORD: admin
     ports:
       - "8890:8080"
+      - "9900:9000"
     volumes:
       - ./config/kc:/opt/keycloak/data/import:ro
       # - ./exports:/opt/keycloak/data/export
@@ -38,13 +42,6 @@ services:
         condition: service_healthy
       dex-idporten:
         condition: service_healthy
-    healthcheck:
-      test:
-        ["CMD-SHELL", "curl -fsS http://localhost:8080/health/ready || exit 1"]
-      interval: 10s
-      timeout: 5s
-      retries: 20
-      start_period: 20s
     networks:
       - keycloak
 
@@ -71,7 +68,7 @@ services:
   # ----------------------
   dex-entra-telemark:
     image: ghcr.io/dexidp/dex:v2.44.0-alpine
-    container_name: dex-entra-telemark
+    hostname: dex-entra-telemark
     command: ["dex", "serve", "/etc/dex/config.yaml"]
     ports: ["5556:5556"]
     volumes:
@@ -91,8 +88,8 @@ services:
 
   dex-entra-novari:
     image: ghcr.io/dexidp/dex:v2.44.0-alpine
-    container_name: dex-entra-novari
-    command: ["dex", "serve", "/etc/dex/config.yaml"]
+    hostname: dex-entra-novari
+    command: [ "dex", "serve", "/etc/dex/config.yaml" ]
     ports: ["5557:5556"]
     volumes:
       - ./config/dex/entra-novari.yaml:/etc/dex/config.yaml:ro
@@ -111,7 +108,7 @@ services:
 
   dex-idporten:
     image: ghcr.io/dexidp/dex:v2.44.0-alpine
-    container_name: dex-idporten
+    hostname: dex-idporten
     command: ["dex", "serve", "/etc/dex/config.yaml"]
     ports: ["5558:5556"]
     volumes:

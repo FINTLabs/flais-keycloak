@@ -1,7 +1,13 @@
 [versions]
 kotlin = "2.2.20"
-keycloak = "26.3.4"
-shadow = "9.1.0"
+keycloak = "26.4.0"
+shadow = "9.2.2"
+
+junit = "6.0.0"
+junit-platform = "6.0.0"
+testcontainers = "1.21.3"
+slf4j = "2.0.16"
+okhttp = "5.1.0"
 
 [libraries]
 kotlin-stdlib = { module = "org.jetbrains.kotlin:kotlin-stdlib", version.ref = "kotlin" }
@@ -10,6 +16,15 @@ keycloak-core             = { module = "org.keycloak:keycloak-core",            
 keycloak-services         = { module = "org.keycloak:keycloak-services",          version.ref = "keycloak" }
 keycloak-server-spi       = { module = "org.keycloak:keycloak-server-spi",        version.ref = "keycloak" }
 keycloak-server-spi-priv  = { module = "org.keycloak:keycloak-server-spi-private",version.ref = "keycloak" }
+
+junit-jupiter            = { module = "org.junit.jupiter:junit-jupiter",            version.ref = "junit" }
+junit-platform-launcher  = { module = "org.junit.platform:junit-platform-launcher", version.ref = "junit-platform" }
+
+testcontainers-core             = { module = "org.testcontainers:testcontainers",     version.ref = "testcontainers" }
+testcontainers-junit-jupiter    = { module = "org.testcontainers:junit-jupiter",     version.ref = "testcontainers" }
+
+slf4j-simple             = { module = "org.slf4j:slf4j-simple",                    version.ref = "slf4j" }
+okhttp                   = { module = "com.squareup.okhttp3:okhttp",               version.ref = "okhttp" }
 
 [plugins]
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }

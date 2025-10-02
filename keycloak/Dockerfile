@@ -1,4 +1,4 @@
-ARG KEYCLOAK_VERSION=26.3.5
+ARG KEYCLOAK_VERSION
 
 # -----------------------------
 # Stage: FLAIS provider builder
