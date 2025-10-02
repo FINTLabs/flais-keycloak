@@ -1,0 +1,16 @@
+[versions]
+kotlin = "2.2.20"
+keycloak = "26.3.4"
+shadow = "9.1.0"
+
+[libraries]
+kotlin-stdlib = { module = "org.jetbrains.kotlin:kotlin-stdlib", version.ref = "kotlin" }
+
+keycloak-core             = { module = "org.keycloak:keycloak-core",              version.ref = "keycloak" }
+keycloak-services         = { module = "org.keycloak:keycloak-services",          version.ref = "keycloak" }
+keycloak-server-spi       = { module = "org.keycloak:keycloak-server-spi",        version.ref = "keycloak" }
+keycloak-server-spi-priv  = { module = "org.keycloak:keycloak-server-spi-private",version.ref = "keycloak" }
+
+[plugins]
+kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+shadow     = { id = "com.gradleup.shadow",      version.ref = "shadow" }

@@ -3,56 +3,40 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    kotlin("jvm") version "2.2.20"
+    alias(libs.plugins.kotlin.jvm)
     `java-library`
-    id("com.gradleup.shadow") version "9.1.0"
+    alias(libs.plugins.shadow)
 }
 
 group = "no.fintlabs"
 version = "1.0"
 
 java {
-    sourceCompatibility = JavaVersion.VERSION_21
-    targetCompatibility = JavaVersion.VERSION_21
-}
-
-val keycloakVersion = "26.3.4"
-
-repositories {
-    mavenCentral()
-    gradlePluginPortal()
+    toolchain { languageVersion.set(JavaLanguageVersion.of(21)) }
 }
 
 dependencies {
-    implementation(kotlin("stdlib"))
+    implementation(libs.kotlin.stdlib)
 
-    compileOnly("org.keycloak:keycloak-core:$keycloakVersion")
-    compileOnly("org.keycloak:keycloak-services:$keycloakVersion")
-    compileOnly("org.keycloak:keycloak-server-spi:$keycloakVersion")
-    compileOnly("org.keycloak:keycloak-server-spi-private:$keycloakVersion")
+    compileOnly(libs.keycloak.core)
+    compileOnly(libs.keycloak.services)
+    compileOnly(libs.keycloak.server.spi)
+    compileOnly(libs.keycloak.server.spi.priv)
 }
 
-tasks {
-    java {
-        toolchain {
-            languageVersion = JavaLanguageVersion.of(21)
-        }
+tasks.withType<KotlinCompile>().configureEach {
+    compilerOptions {
+        jvmTarget.set(JvmTarget.JVM_21)
+        freeCompilerArgs.add("-Xjsr305=strict")
     }
+}
 
-    withType<KotlinCompile> {
-        compilerOptions {
-            jvmTarget = JvmTarget.JVM_21
-            freeCompilerArgs.add("-Xjsr305=strict")
-        }
-    }
+tasks.shadowJar {
+    archiveClassifier.set("")
+    mergeServiceFiles()
+    minimize()
+}
 
-    shadowJar {
-        archiveClassifier.set("")
-        mergeServiceFiles()
-        minimize()
-    }
-
-    build {
-        dependsOn(shadowJar)
-    }
+tasks.build {
+    dependsOn(tasks.shadowJar)
 }
