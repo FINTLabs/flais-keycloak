@@ -1,4 +1,4 @@
-ARG KEYCLOAK_VERSION=26.3.1
+ARG KEYCLOAK_VERSION=26.3.5
 
 # Flais provider builder
 FROM gradle:9.1.0-jdk21 AS flais-provider-builder
@@ -40,6 +40,8 @@ FROM quay.io/keycloak/keycloak:${KEYCLOAK_VERSION} AS keycloak-builder
 WORKDIR /opt/keycloak
 
 ENV KC_DB=postgres
+ENV KC_HEALTH_ENABLED=true
+ENV KC_METRICS_ENABLED=true
 
 COPY --from=flais-provider-builder /flais-provider/build/libs/*.jar /opt/keycloak/providers/
 COPY --from=flais-theme-builder /flais-theme/dist_keycloak/flais-theme.jar /opt/keycloak/providers/

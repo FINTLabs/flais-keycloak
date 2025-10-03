@@ -1,0 +1,20 @@
+name: Flais Keycloak Apps - Build and publish
+
+on:
+  workflow_dispatch:
+
+permissions:
+  actions: read
+  id-token: write
+  contents: write
+  packages: write
+
+jobs:
+  build-publish-flais-keycloak-demo:
+    name: Build and Publish Flais Keycloak Demo
+    uses: ./.github/workflows/.build-publish-docker.yaml
+    secrets: inherit
+    with:
+      environment: prod
+      image_name: ${{ github.repository }}-demo
+      context: ./demo

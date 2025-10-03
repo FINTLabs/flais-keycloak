@@ -3,18 +3,25 @@ name: Build and publish docker image
 on:
   workflow_call:
     inputs:
+      image_name:
+        description: "Image name"
+        required: true
+        type: string
+      context:
+        description: "Build context"
+        required: true
+        type: string
       environment:
-        description: 'Environment'
+        description: "Environment"
         required: true
         type: string
     outputs:
       image-tags:
-        description: 'Docker image with tag'
+        description: "Docker image with tag"
         value: ${{ jobs.publish.outputs.image-tags }}
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}
 
 jobs:
   publish:
@@ -39,17 +46,16 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          images: ${{ env.REGISTRY }}/${{ inputs.image_name }}
           tags: |
-            type=sha,prefix={{date 'YYYY.MM.DD-HH.mm'}}${{ steps.tag_suffix.outputs.tag_suffix }}-,priority=9002
+            type=sha,prefix={{date 'YYYYMMDD'}}${{ steps.tag_suffix.outputs.tag_suffix }}-,priority=9002
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v6.18.0
         with:
-          context: ./keycloak
+          context: ${{ inputs.context }}
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-
       - name: Set output
         run: echo "Docker image ${{ steps.meta.outputs.tags }}" >> $GITHUB_STEP_SUMMARY
