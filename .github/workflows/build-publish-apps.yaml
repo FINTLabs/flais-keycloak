@@ -17,4 +17,4 @@ jobs:
     with:
       environment: prod
       image_name: ${{ github.repository }}-demo
-      context: ./demo
+      context: ./apps/flais-keycloak-demo

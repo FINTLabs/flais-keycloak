@@ -6,7 +6,7 @@ import Keycloak from 'keycloak-js'
 
 // Initialize Keycloak
 const keycloak = new Keycloak({
-  url: 'https://keycloak.test.infra.flais.no',
+  url: 'http://localhost:8890',
   realm: 'external',
   clientId: 'flais-keycloak-demo',
 })

@@ -1,4 +1,14 @@
 rootProject.name = "flais-keycloak"
-include(
-    ":libs:flais-provider",
-)
+
+pluginManagement {
+    repositories {
+        gradlePluginPortal()
+        mavenCentral()
+    }
+}
+
+include(":libs:flais-provider")
+
+if (file("tests").isDirectory) {
+    include(":tests")
+}
