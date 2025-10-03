@@ -7,10 +7,18 @@ It extends [Keycloak](https://www.keycloak.org/) with custom functionality, them
 
 ```
 flais-keycloak/
-├── keycloak/     # Application
-│   └── libs/
-│       ├── flais-provider   # Custom Keycloak SPI provider
-│       └── flais-theme      # Flais Keycloak login theme
+├── keycloak/     # Keycloak
+│   |── config/
+│   |    ├── dex              # Dex configuration files
+│   |    └── kc               # Keycloak configuration for dev/test
+│   |── libs/
+│   |    ├── flais-provider   # Custom Keycloak SPI provider
+│   |    └── flais-theme      # Flais Keycloak login theme
+│   └── tests/                # Tests for Keycloak
+├── apps/         # Applications for Keycloak
+│   └── flais-keycloak-demo/  # Public client to test Keycloak
+├── charts/       # Helm charts
+│   └── flais-keycloak/       # The Keycloak chart for FLAIS
 └── README.md     # Project documentation
 ```
 
