@@ -1,4 +1,4 @@
-package utils.utils.no.fintlabs.utils
+package no.fintlabs.utils
 
 import org.testcontainers.containers.ComposeContainer
 import org.testcontainers.containers.wait.strategy.Wait
@@ -18,7 +18,7 @@ class KeycloakComposeEnvironment(
                 1,
                 9000,
                 Wait.forHttp("/health/ready")
-                    .withStartupTimeout(Duration.ofMinutes(8))
+                    .withStartupTimeout(Duration.ofMinutes(5))
             )
 
             withExposedService("keycloak", 1, 8080)
@@ -28,21 +28,21 @@ class KeycloakComposeEnvironment(
                 5556,
                 Wait.forHttp("/dex/.well-known/openid-configuration")
                     .forPort(5556)
-                    .withStartupTimeout(Duration.ofMinutes(3))
+                    .withStartupTimeout(Duration.ofMinutes(2))
             )
             withExposedService(
                 "dex-entra-novari",
                 5556,
                 Wait.forHttp("/dex/.well-known/openid-configuration")
                     .forPort(5556)
-                    .withStartupTimeout(Duration.ofMinutes(3))
+                    .withStartupTimeout(Duration.ofMinutes(2))
             )
             withExposedService(
                 "dex-idporten",
                 5556,
                 Wait.forHttp("/dex/.well-known/openid-configuration")
                     .forPort(5556)
-                    .withStartupTimeout(Duration.ofMinutes(3))
+                    .withStartupTimeout(Duration.ofMinutes(2))
             )
         }
 
