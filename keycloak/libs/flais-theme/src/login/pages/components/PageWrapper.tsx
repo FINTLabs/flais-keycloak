@@ -1,10 +1,10 @@
-import { ReactNode } from 'react'
+import React, { ReactNode } from 'react'
 
-interface PageWrapperProps {
+export interface PageWrapperProps {
   children: ReactNode
 }
 
-const PageWrapper = ({ children }: PageWrapperProps) => {
+const PageWrapperComponent = ({ children }: PageWrapperProps) => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-cream px-4">
       {children}
@@ -12,4 +12,4 @@ const PageWrapper = ({ children }: PageWrapperProps) => {
   )
 }
 
-export default PageWrapper
+export const PageWrapper = React.memo(PageWrapperComponent)

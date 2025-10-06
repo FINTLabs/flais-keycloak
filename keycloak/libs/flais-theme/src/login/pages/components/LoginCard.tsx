@@ -1,11 +1,11 @@
-import { ReactNode } from 'react'
+import React, { ReactNode } from 'react'
 
-interface LoginCardProps {
+export interface LoginCardProps {
   logo: string
   children: ReactNode
 }
 
-const LoginCard = ({ logo, children }: LoginCardProps) => {
+const LoginCardComponent = ({ logo, children }: LoginCardProps) => {
   return (
     <div className="w-full max-w-md">
       <div className="flex justify-center mb-2">
@@ -20,4 +20,4 @@ const LoginCard = ({ logo, children }: LoginCardProps) => {
   )
 }
 
-export default LoginCard
+export const LoginCard = React.memo(LoginCardComponent)

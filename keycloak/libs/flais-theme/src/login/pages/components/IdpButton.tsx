@@ -1,14 +1,17 @@
-interface IdpButtonProps {
+import React from 'react'
+
+export interface IdpButtonProps {
   alias: string
   name: string
 }
 
-const IdpButton = ({ alias, name }: IdpButtonProps) => (
-  <button
-    type="submit"
-    name="identity_provider"
-    value={alias}
-    className="
+const IdpButtonComponent = ({ alias, name }: IdpButtonProps) => {
+  return (
+    <button
+      type="submit"
+      name="identity_provider"
+      value={alias}
+      className="
         w-full flex items-center justify-between
         px-4 py-3
         bg-white
@@ -19,22 +22,23 @@ const IdpButton = ({ alias, name }: IdpButtonProps) => (
         cursor-pointer
         rounded-none
       "
-  >
-    <span className="text-accent font-medium">{name}</span>
-    <svg
-      className="h-5 w-5 text-gray-400 flex-shrink-0"
-      fill="none"
-      stroke="currentColor"
-      viewBox="0 0 24 24"
     >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth={2}
-        d="M9 5l7 7-7 7"
-      />
-    </svg>
-  </button>
-)
+      <span className="text-accent font-medium">{name}</span>
+      <svg
+        className="h-5 w-5 text-gray-400 flex-shrink-0"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={2}
+          d="M9 5l7 7-7 7"
+        />
+      </svg>
+    </button>
+  )
+}
 
-export default IdpButton
+export const IdpButton = React.memo(IdpButtonComponent)

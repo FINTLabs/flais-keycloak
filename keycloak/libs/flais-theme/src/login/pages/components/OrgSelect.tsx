@@ -1,7 +1,9 @@
-import ImageDropdownInput from './ImageDropdownInput.tsx'
-import { useMemo, useState } from 'react'
+import React, { useMemo, useState } from 'react'
+import { I18n } from '../../i18n.ts'
+import { ImageDropdownInput } from './ImageDropdownInput.tsx'
 
-type OrgSelectProps = {
+export interface OrgSelectProps {
+  i18n: I18n
   organizations: {
     alias: string
     name: string
@@ -9,7 +11,7 @@ type OrgSelectProps = {
   }[]
 }
 
-const OrgSelect = ({ organizations }: OrgSelectProps) => {
+const OrgSelectComponent = ({ i18n, organizations }: OrgSelectProps) => {
   const [selectedIdp, setSelectedIdp] = useState<string>('')
 
   const options = useMemo(
@@ -25,10 +27,11 @@ const OrgSelect = ({ organizations }: OrgSelectProps) => {
   return (
     <div>
       <label htmlFor="org" className="sr-only">
-        Velg tilhørighet
+        {i18n.msgStr('chooseOrg')}
       </label>
 
       <ImageDropdownInput
+        placeholder={i18n.msgStr('chooseOrg')}
         name="selected_org"
         options={options}
         onChange={setSelectedIdp}
@@ -38,4 +41,4 @@ const OrgSelect = ({ organizations }: OrgSelectProps) => {
   )
 }
 
-export default OrgSelect
+export const OrgSelect = React.memo(OrgSelectComponent)

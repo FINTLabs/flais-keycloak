@@ -12,8 +12,7 @@ export interface ImageOption {
   label: string
   imageUrl?: string
 }
-
-interface ImageDropdownInputProps
+export interface ImageDropdownInputProps
   extends Omit<HTMLAttributes<HTMLDivElement>, 'onChange'> {
   name: string
   options: ImageOption[]
@@ -22,7 +21,7 @@ interface ImageDropdownInputProps
   placeholder?: string
 }
 
-const ImageDropdownInput: React.FC<ImageDropdownInputProps> = ({
+const ImageDropdownInputComponent = ({
   name,
   options,
   value,
@@ -30,7 +29,7 @@ const ImageDropdownInput: React.FC<ImageDropdownInputProps> = ({
   placeholder = 'Velg tilhørighet',
   className,
   ...rest
-}) => {
+}: ImageDropdownInputProps) => {
   const [open, setOpen] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
   const itemsRef = useRef<(HTMLButtonElement | null)[]>([])
@@ -172,4 +171,4 @@ const ImageDropdownInput: React.FC<ImageDropdownInputProps> = ({
   )
 }
 
-export default ImageDropdownInput
+export const ImageDropdownInput = React.memo(ImageDropdownInputComponent)

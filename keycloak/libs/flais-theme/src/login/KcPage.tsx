@@ -5,8 +5,8 @@ import type { KcContext } from './KcContext'
 import { useI18n } from './i18n'
 import DefaultPage from 'keycloakify/login/DefaultPage'
 import Template from 'keycloakify/login/Template'
-import FlaisOrgIdpSelector from './pages/FlaisOrgIdpSelector'
-import FlaisOrgSelector from './pages/FlaisOrgSelector'
+import { FlaisOrgSelector } from './pages/FlaisOrgSelector'
+import { FlaisOrgIdpSelector } from './pages/FlaisOrgIdpSelector'
 const UserProfileFormFields = lazy(
   () => import('keycloakify/login/UserProfileFormFields')
 )
@@ -23,9 +23,9 @@ export default function KcPage(props: { kcContext: KcContext }) {
       {(() => {
         switch (kcContext.pageId) {
           case 'flais-org-selector.ftl':
-            return <FlaisOrgSelector kcContext={kcContext} />
+            return <FlaisOrgSelector kcContext={kcContext} i18n={i18n} />
           case 'flais-org-idp-selector.ftl':
-            return <FlaisOrgIdpSelector kcContext={kcContext} />
+            return <FlaisOrgIdpSelector kcContext={kcContext} i18n={i18n} />
           default:
             return (
               <DefaultPage

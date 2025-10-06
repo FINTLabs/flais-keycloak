@@ -1,8 +1,9 @@
-/* eslint-disable react/prop-types */
 import React, { InputHTMLAttributes } from 'react'
 
-type LogoProps = InputHTMLAttributes<HTMLImageElement>
+export interface LogoProps extends InputHTMLAttributes<HTMLImageElement> {}
 
-export const Logo: React.FC<LogoProps> = ({ ...props }) => (
-  <img alt="Novari logo" {...props} />
-)
+const LogoComponent = (props: LogoProps) => {
+  return <img alt="Novari logo" {...props} />
+}
+
+export const Logo = React.memo(LogoComponent)

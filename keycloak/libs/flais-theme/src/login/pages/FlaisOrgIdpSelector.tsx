@@ -1,23 +1,27 @@
-import PageWrapper from './components/PageWrapper.tsx'
-import LoginCard from './components/LoginCard.tsx'
+import React from 'react'
 import logo from '../assets/images/novari_logo.png'
-import LoginHeader from './components/LoginHeader.tsx'
-import { KcContext } from '../KcContext.ts'
-import IdpButton from './components/IdpButton.tsx'
 
-interface FlaisOrgIdpSelectorProps {
+import { KcContext } from '../KcContext.ts'
+import { I18n } from '../i18n.ts'
+import { PageWrapper } from './components/PageWrapper.tsx'
+import { LoginHeader } from './components/LoginHeader.tsx'
+import { LoginCard } from './components/LoginCard.tsx'
+import { IdpButton } from './components/IdpButton.tsx'
+
+export interface FlaisOrgIdpSelectorProps {
   kcContext: Extract<KcContext, { pageId: 'flais-org-idp-selector.ftl' }>
+  i18n: I18n
 }
 
-export default function FlaisOrgSelector(props: FlaisOrgIdpSelectorProps) {
-  const { kcContext } = props
+const FlaisOrgIdpSelectorComponent = (props: FlaisOrgIdpSelectorProps) => {
+  const { kcContext, i18n } = props
   const { providers, url } = kcContext
   return (
     <PageWrapper>
       <LoginCard logo={logo}>
         <LoginHeader
-          title={'Velg identitetsleverandør'}
-          subtitle={'Velg metoden du ønsker å bruke for å logge inn'}
+          title={i18n.msgStr('chooseIdp')}
+          subtitle={i18n.msgStr('chooseIdpSubtitle')}
         />
         <form
           className="space-y-5"
@@ -40,3 +44,5 @@ export default function FlaisOrgSelector(props: FlaisOrgIdpSelectorProps) {
     </PageWrapper>
   )
 }
+
+export const FlaisOrgIdpSelector = React.memo(FlaisOrgIdpSelectorComponent)

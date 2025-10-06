@@ -1,38 +1,43 @@
-import type { KcContext } from '../KcContext'
-
+import React from 'react'
 import logo from '../assets/images/novari_logo.png'
 
-import PageWrapper from './components/PageWrapper.tsx'
-import LoginCard from './components/LoginCard.tsx'
-import OrgSelect from './components/OrgSelect.tsx'
-import RememberMe from './components/RememberMe.tsx'
-import SubmitButton from './components/SubmitButton.tsx'
-import LoginHeader from './components/LoginHeader.tsx'
+import { I18n } from '../i18n.ts'
+import { RememberMe } from './components/RememberMe.tsx'
+import { SubmitButton } from './components/SubmitButton.tsx'
+import { PageWrapper } from './components/PageWrapper.tsx'
+import { OrgSelect } from './components/OrgSelect.tsx'
+import { LoginHeader } from './components/LoginHeader.tsx'
+import { LoginCard } from './components/LoginCard.tsx'
+import { KcContext } from '../KcContext.ts'
 
-interface FlaisOrgSelectorProps {
+export interface FlaisOrgSelectorProps {
   kcContext: Extract<KcContext, { pageId: 'flais-org-selector.ftl' }>
+  i18n: I18n
 }
 
-export default function FlaisOrgSelector(props: FlaisOrgSelectorProps) {
-  const { kcContext } = props
+const FlaisOrgSelectorComponent = (props: FlaisOrgSelectorProps) => {
+  const { kcContext, i18n } = props
   const { organizations, url } = kcContext
+
   return (
     <PageWrapper>
       <LoginCard logo={logo}>
         <LoginHeader
-          title={'Velg tilhøringhet'}
-          subtitle={'Veld hvilken organisasjon du ønsker å logge inn hos'}
+          title={i18n.msgStr('chooseOrg')}
+          subtitle={i18n.msgStr('chooseOrgSubtitle')}
         />
         <form
           className="space-y-5"
           method="POST"
           action={url.registrationAction}
         >
-          <OrgSelect organizations={organizations} />
-          <RememberMe />
-          <SubmitButton />
+          <OrgSelect i18n={i18n} organizations={organizations} />
+          <RememberMe i18n={i18n} />
+          <SubmitButton text={i18n.msgStr('continue').toUpperCase()} />
         </form>
       </LoginCard>
     </PageWrapper>
   )
 }
+
+export const FlaisOrgSelector = React.memo(FlaisOrgSelectorComponent)
