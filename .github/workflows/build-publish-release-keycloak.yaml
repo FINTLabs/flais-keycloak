@@ -11,52 +11,37 @@ on:
         options:
           - test
           - prod
-  push:
-    branches:
-      - prod
 
 permissions:
   contents: write
   packages: write
 
 jobs:
-  build-publish-test:
-    name: Build and Publish Flais Keycloak - Test
-    if: github.ref == 'refs/heads/main' || (github.event_name == 'workflow_dispatch' && inputs.environment == 'test')
+  build-publish:
+    name: Build and Publish Flais Keycloak
     uses: ./.github/workflows/.build-publish-docker.yaml
     secrets: inherit
     with:
       image_name: ${{ github.repository }}
       context: ./keycloak
-      environment: test
-
-  build-publish-prod:
-    name: Build and Publish Flais Keycloak - Prod
-    if: github.ref == 'refs/heads/prod' || (github.event_name == 'workflow_dispatch' && inputs.environment == 'prod')
-    uses: ./.github/workflows/.build-publish-docker.yaml
-    secrets: inherit
-    with:
-      image_name: ${{ github.repository }}
-      context: ./keycloak
-      environment: prod
+      environment: ${{ inputs.environment }}
 
   publish-chart:
     name: Publish Flais Keycloak Helm Chart
-    if: github.ref == 'refs/heads/prod' || (github.event_name == 'workflow_dispatch' && inputs.environment == 'prod')
-    needs: build-publish-prod
+    needs: build-publish
     uses: ./.github/workflows/.chart-publish.yaml
     with:
-      image-tags: ${{ needs.build-publish-prod.outputs.image-tags }}
+      image-tags: ${{ needs.build-publish.outputs.image-tags }}
       chart-name: ${{ github.event.repository.name }}
     secrets: inherit
 
   create-release:
     name: Create release for Flais Keycloak
-    if: github.ref == 'refs/heads/prod'
+    if: inputs.environment == 'prod' && github.ref == 'refs/heads/main'
     uses: ./.github/workflows/.create-release.yaml
     needs:
-      - build-publish-prod
+      - build-publish
       - publish-chart
     secrets: inherit
     with:
-      image-tags: ${{ needs.build-publish-prod.outputs.image-tags }}
+      image-tags: ${{ needs.build-publish.outputs.image-tags }}

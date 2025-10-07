@@ -4,8 +4,6 @@ on:
   workflow_dispatch:
 
 permissions:
-  actions: read
-  id-token: write
   contents: write
   packages: write
 
