@@ -3,8 +3,8 @@ name: Create release
 on:
   workflow_call:
     inputs:
-      image-tags:
-        description: 'Docker image with tag'
+      image_tags:
+        description: "Docker image with tag"
         required: true
         type: string
 
@@ -21,7 +21,7 @@ jobs:
       - name: Extract tag from image reference
         id: version
         run: |
-          full_tag="${{ inputs.image-tags }}"
+          full_tag="${{ inputs.image_tags }}"
           version="${full_tag##*:}"
           echo "Extracted version: $version"
           echo "version=$version" >> $GITHUB_OUTPUT

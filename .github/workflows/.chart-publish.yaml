@@ -3,11 +3,11 @@ name: Publish Chart
 on:
   workflow_call:
     inputs:
-      image-tags:
+      image_tags:
         description: "The image tag of the application"
         type: string
         required: true
-      chart-name:
+      chart_name:
         description: "The name of the chart"
         type: string
         required: true
@@ -31,7 +31,7 @@ jobs:
         run: |
           echo "chart_version=$(date +'%Y%m%d')-${{ steps.commit-hash.outputs.short }}" >> ${GITHUB_OUTPUT}
 
-          full_tag="${{ inputs.image-tags }}"
+          full_tag="${{ inputs.image_tags }}"
           version="${full_tag##*:}"
           echo "Extracted version: $version"
           echo "app_version=$version" >> $GITHUB_OUTPUT
@@ -40,14 +40,14 @@ jobs:
         uses: mikefarah/yq@v4.47.2
         with:
           cmd: |
-            yq e -i '.version = "${{ steps.versions.outputs.chart_version }}"' ./charts/${{ inputs.chart-name }}/Chart.yaml
-            yq e -i '.appVersion = "${{ steps.versions.outputs.app_version }}"' ./charts/${{ inputs.chart-name }}/Chart.yaml
+            yq e -i '.version = "${{ steps.versions.outputs.chart_version }}"' ./charts/${{ inputs.chart_name }}/Chart.yaml
+            yq e -i '.appVersion = "${{ steps.versions.outputs.app_version }}"' ./charts/${{ inputs.chart_name }}/Chart.yaml
 
       - name: Save Chart Meta
         uses: actions/upload-artifact@v4.6.2
         with:
-          name: ${{ inputs.chart-name }}-chart-metadata
-          path: ./charts/${{ inputs.chart-name }}/Chart.yaml
+          name: ${{ inputs.chart_name }}-chart-metadata
+          path: ./charts/${{ inputs.chart_name }}/Chart.yaml
 
   publish-chart:
     name: Publish Helm Chart
@@ -65,8 +65,8 @@ jobs:
       - name: Restore Chart Metadata
         uses: actions/download-artifact@v5.0.0
         with:
-          name: ${{ inputs.chart-name }}-chart-metadata
-          path: ./charts/${{ inputs.chart-name }}
+          name: ${{ inputs.chart_name }}-chart-metadata
+          path: ./charts/${{ inputs.chart_name }}
 
       - uses: azure/setup-helm@v4.3.1
         name: Setup Helm
@@ -76,8 +76,8 @@ jobs:
 
       - name: Build Charts
         run: |
-          helm package ./charts/${{ inputs.chart-name }} -d ./charts/${{ inputs.chart-name }}
+          helm package ./charts/${{ inputs.chart_name }} -d ./charts/${{ inputs.chart_name }}
 
       - name: Push Charts
         run: |
-          helm push ./charts/${{ inputs.chart-name }}/*.tgz oci://${{ vars.FLAIS_HELM_ENDPOINT }}/helm
+          helm push ./charts/${{ inputs.chart_name }}/*.tgz oci://${{ vars.FLAIS_HELM_ENDPOINT }}/helm

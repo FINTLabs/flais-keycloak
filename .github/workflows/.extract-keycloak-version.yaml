@@ -1,0 +1,39 @@
+name: Extract Keycloak version
+
+on:
+  workflow_call:
+    inputs:
+      libs_versions_path:
+        description: "Path to libs.versions.toml"
+        required: true
+        type: string
+    outputs:
+      keycloak_version:
+        description: "Keycloak version from libs.versions.toml"
+        value: ${{ jobs.extract.outputs.keycloak_version }}
+
+jobs:
+  extract:
+    runs-on: ubuntu-latest
+    outputs:
+      keycloak_version: ${{ steps.parse.outputs.keycloak_version }}
+    steps:
+      - uses: actions/checkout@v5
+
+      - id: parse
+        name: Read keycloak version from TOML
+        env:
+          LIBS_VERSIONS_PATH: ${{ inputs.libs_versions_path }}
+        run: |
+          python - <<'PY'
+          import os, tomllib
+          path = os.environ.get("LIBS_VERSIONS_PATH", "libs.versions.toml")
+          with open(path, "rb") as f:
+              data = tomllib.load(f)
+          v = data["versions"]["keycloak"]
+          with open(os.environ["GITHUB_OUTPUT"], "a") as out:
+              out.write(f"keycloak_version={v}\n")
+          PY
+
+      - name: Show extracted version
+        run: echo "Extracted KEYCLOAK_VERSION=${{ steps.parse.outputs.keycloak_version }}"
