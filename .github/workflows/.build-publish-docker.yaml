@@ -15,10 +15,14 @@ on:
         description: "Environment"
         required: true
         type: string
+      keycloak_version:
+        description: "Keycloak version for Docker ARG"
+        required: false
+        type: string
     outputs:
-      image-tags:
+      image_tags:
         description: "Docker image with tag"
-        value: ${{ jobs.publish.outputs.image-tags }}
+        value: ${{ jobs.publish.outputs.image_tags }}
 
 env:
   REGISTRY: ghcr.io
@@ -27,7 +31,7 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     outputs:
-      image-tags: ${{ steps.meta.outputs.tags }}
+      image_tags: ${{ steps.meta.outputs.tags }}
     steps:
       - uses: actions/checkout@v5
 
@@ -50,6 +54,15 @@ jobs:
           tags: |
             type=sha,prefix={{date 'YYYYMMDD'}}${{ steps.tag_suffix.outputs.tag_suffix }}-,priority=9002
 
+      - name: Set build args
+        id: build_args
+        run: |
+          if [ -n "${{ inputs.keycloak_version }}" ]; then
+            echo "args=KEYCLOAK_VERSION=${{ inputs.keycloak_version }}" >> $GITHUB_OUTPUT
+          else
+            echo "args=" >> $GITHUB_OUTPUT
+          fi
+
       - name: Build and push Docker image
         uses: docker/build-push-action@v6.18.0
         with:
@@ -57,5 +70,7 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          build-args: ${{ steps.build_args.outputs.args }}
+
       - name: Set output
         run: echo "Docker image ${{ steps.meta.outputs.tags }}" >> $GITHUB_STEP_SUMMARY
