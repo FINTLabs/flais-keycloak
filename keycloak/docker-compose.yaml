@@ -1,14 +1,23 @@
 services:
+  # ----------------------
+  # Keycloak and its Postgres database
+  # ----------------------
   keycloak:
+    hostname: keycloak
     build:
       context: .
       dockerfile: Dockerfile
-    command: start-dev --log-level="INFO,org.keycloak.authentication.authenticators:DEBUG,no.fintlabs.authenticator:DEBUG"
+      args:
+        KEYCLOAK_VERSION: ${KEYCLOAK_VERSION}
+    command: >
+      start-dev
+      --import-realm
+      --log-level="INFO,org.keycloak.authentication.authenticators:DEBUG,no.fintlabs.authenticator:DEBUG"
     environment:
-      KC_HTTP_ENABLED: true
-      KC_HEALTH_ENABLED: true
-      KC_HOSTNAME_STRICT_HTTPS: false
-      KC_HOSTNAME_STRICT: false
+      KC_HTTP_ENABLED: "true"
+      KC_HEALTH_ENABLED: "true"
+      KC_HOSTNAME_STRICT_HTTPS: "false"
+      KC_HOSTNAME_STRICT: "false"
       KC_DB: postgres
       KC_DB_URL_HOST: keycloak-pg
       KC_DB_URL_DATABASE: keycloak
@@ -18,12 +27,22 @@ services:
       KC_BOOTSTRAP_ADMIN_USERNAME: admin
       KC_BOOTSTRAP_ADMIN_PASSWORD: admin
     ports:
-      - '8890:8080'
+      - "8890:8080"
+      - "9900:9000"
+    volumes:
+      - ./config/kc:/opt/keycloak/data/import:ro
     depends_on:
       keycloak-pg:
         condition: service_healthy
+      dex-entra-telemark:
+        condition: service_healthy
+      dex-entra-novari:
+        condition: service_healthy
+      dex-idporten:
+        condition: service_healthy
     networks:
-      - keycloak_db
+      - keycloak
+
   keycloak-pg:
     image: postgres:17.5
     volumes:
@@ -33,13 +52,77 @@ services:
       POSTGRES_USER: keycloak
       POSTGRES_PASSWORD: password
     ports:
-      - '5432:5432'
+      - "5432:5432"
     healthcheck:
-      test: ['CMD-SHELL', "sh -c 'pg_isready -U keycloak -d keycloak'"]
+      test: ["CMD-SHELL", "sh -c 'pg_isready -U keycloak -d keycloak'"]
       interval: 10s
       timeout: 3s
-      retries: 3
+      retries: 5
     networks:
-      - keycloak_db
+      - keycloak
+
+  # ----------------------
+  # Dex providers
+  # ----------------------
+  dex-entra-telemark:
+    image: ghcr.io/dexidp/dex:v2.44.0-alpine
+    hostname: dex-entra-telemark
+    command: ["dex", "serve", "/etc/dex/config.yaml"]
+    ports: ["5556:5556"]
+    volumes:
+      - ./config/dex/entra-telemark.yaml:/etc/dex/config.yaml:ro
+    restart: unless-stopped
+    networks: [keycloak]
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "wget -q -O - http://localhost:5556/dex/.well-known/openid-configuration >/dev/null 2>&1 || exit 1",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 5s
+
+  dex-entra-novari:
+    image: ghcr.io/dexidp/dex:v2.44.0-alpine
+    hostname: dex-entra-novari
+    command: ["dex", "serve", "/etc/dex/config.yaml"]
+    ports: ["5557:5556"]
+    volumes:
+      - ./config/dex/entra-novari.yaml:/etc/dex/config.yaml:ro
+    restart: unless-stopped
+    networks: [keycloak]
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "wget -q -O - http://localhost:5556/dex/.well-known/openid-configuration >/dev/null 2>&1 || exit 1",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 5s
+
+  dex-idporten:
+    image: ghcr.io/dexidp/dex:v2.44.0-alpine
+    hostname: dex-idporten
+    command: ["dex", "serve", "/etc/dex/config.yaml"]
+    ports: ["5558:5556"]
+    volumes:
+      - ./config/dex/idporten.yaml:/etc/dex/config.yaml:ro
+    restart: unless-stopped
+    networks: [keycloak]
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "wget -q -O - http://localhost:5556/dex/.well-known/openid-configuration >/dev/null 2>&1 || exit 1",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 5s
+
 networks:
-  keycloak_db:
+  keycloak:
