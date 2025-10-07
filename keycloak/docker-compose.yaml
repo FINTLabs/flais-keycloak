@@ -9,7 +9,6 @@ services:
       dockerfile: Dockerfile
       args:
         KEYCLOAK_VERSION: ${KEYCLOAK_VERSION}
-    # command: export --file=/opt/keycloak/data/export/external-realm.json --optimized
     command: >
       start-dev
       --import-realm
@@ -32,7 +31,6 @@ services:
       - "9900:9000"
     volumes:
       - ./config/kc:/opt/keycloak/data/import:ro
-      # - ./exports:/opt/keycloak/data/export
     depends_on:
       keycloak-pg:
         condition: service_healthy
@@ -89,7 +87,7 @@ services:
   dex-entra-novari:
     image: ghcr.io/dexidp/dex:v2.44.0-alpine
     hostname: dex-entra-novari
-    command: [ "dex", "serve", "/etc/dex/config.yaml" ]
+    command: ["dex", "serve", "/etc/dex/config.yaml"]
     ports: ["5557:5556"]
     volumes:
       - ./config/dex/entra-novari.yaml:/etc/dex/config.yaml:ro
