@@ -24,14 +24,14 @@
     {
       "id": "11e52313-46c4-4454-9c93-d3a0b186b7f0",
       "name": "ID-Porten",
-      "alias": "ID-Porten",
+      "alias": "idporten",
       "enabled": true,
       "description": "",
       "attributes": {},
       "domains": [
         {
-          "name": "idporten.no",
-          "verified": false
+          "name": "id-porten.no",
+          "verified": true
         }
       ],
       "identityProviders": [
@@ -50,21 +50,48 @@
       ]
     },
     {
+      "id": "e44362dc-b31c-4f54-9bf7-26945dd29716",
+      "name": "Innlandet",
+      "alias": "innlandet",
+      "enabled": true,
+      "description": "",
+      "attributes": {},
+      "domains": [
+        {
+          "name": "innlandet.no",
+          "verified": true
+        }
+      ],
+      "identityProviders": []
+    },
+    {
       "id": "d46586ca-9cbb-46c8-924c-061aaef9925e",
       "name": "Telemark",
-      "alias": "Telemark",
+      "alias": "telemark",
       "enabled": true,
       "description": "",
       "attributes": {},
       "domains": [
         {
           "name": "telemark.no",
-          "verified": false
+          "verified": true
         }
       ],
       "identityProviders": [
         {
           "alias": "entra-telemark",
+          "enabled": true,
+          "updateProfileFirstLoginMode": "on",
+          "trustEmail": false,
+          "storeToken": false,
+          "addReadTokenRoleOnCreate": false,
+          "authenticateByDefault": false,
+          "linkOnly": false,
+          "hideOnLogin": false,
+          "config": {}
+        },
+        {
+          "alias": "entra-telemark-alt",
           "enabled": true,
           "updateProfileFirstLoginMode": "on",
           "trustEmail": false,
@@ -112,6 +139,30 @@
         "tokenUrl": "http://dex-entra-telemark:5556/dex/token",
         "userinfoUrl": "http://dex-entra-telemark:5556/dex/userinfo",
         "jwksUrl": "http://dex-entra-telemark:5556/dex/keys",
+        "useJwksUrl": "true",
+        "defaultScope": "openid profile",
+        "validateSignature": "true",
+        "backchannelSupported": "true"
+      }
+    },
+    {
+      "alias": "entra-telemark-alt",
+      "displayName": "Entra telemark Alt (Dex)",
+      "providerId": "oidc",
+      "enabled": true,
+      "firstBrokerLoginFlowAlias": "first broker login",
+      "storeToken": true,
+      "trustEmail": true,
+      "authenticateByDefault": false,
+      "linkOnly": false,
+      "config": {
+        "clientId": "test-app",
+        "clientSecret": "test-secret",
+        "authorizationUrl": "http://localhost:5556/dex/auth",
+        "issuer": "http://dex-entra-telemark-alt:5556/dex",
+        "tokenUrl": "http://dex-entra-telemark-alt:5556/dex/token",
+        "userinfoUrl": "http://dex-entra-telemark-alt:5556/dex/userinfo",
+        "jwksUrl": "http://dex-entra-telemark-alt:5556/dex/keys",
         "useJwksUrl": "true",
         "defaultScope": "openid profile",
         "validateSignature": "true",

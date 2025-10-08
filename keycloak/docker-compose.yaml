@@ -36,6 +36,8 @@ services:
         condition: service_healthy
       dex-entra-telemark:
         condition: service_healthy
+      dex-entra-telemark-alt:
+        condition: service_healthy
       dex-entra-novari:
         condition: service_healthy
       dex-idporten:
@@ -71,6 +73,26 @@ services:
     ports: ["5556:5556"]
     volumes:
       - ./config/dex/entra-telemark.yaml:/etc/dex/config.yaml:ro
+    restart: unless-stopped
+    networks: [keycloak]
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "wget -q -O - http://localhost:5556/dex/.well-known/openid-configuration >/dev/null 2>&1 || exit 1",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 5s
+
+  dex-entra-telemark-alt:
+    image: ghcr.io/dexidp/dex:v2.44.0-alpine
+    hostname: dex-entra-telemark-alt
+    command: ["dex", "serve", "/etc/dex/config.yaml"]
+    ports: ["5559:5556"]
+    volumes:
+      - ./config/dex/entra-telemark-alt.yaml:/etc/dex/config.yaml:ro
     restart: unless-stopped
     networks: [keycloak]
     healthcheck:
