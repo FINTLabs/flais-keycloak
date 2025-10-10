@@ -16,8 +16,8 @@ services:
     environment:
       KC_HTTP_ENABLED: "true"
       KC_HEALTH_ENABLED: "true"
-      KC_HOSTNAME_STRICT_HTTPS: "false"
-      KC_HOSTNAME_STRICT: "false"
+      KC_HOSTNAME: "http://localhost:8890"
+      KC_HOSTNAME_STRICT: "true"
       KC_DB: postgres
       KC_DB_URL_HOST: keycloak-pg
       KC_DB_URL_DATABASE: keycloak
@@ -42,6 +42,8 @@ services:
         condition: service_healthy
       dex-idporten:
         condition: service_healthy
+      dex-entra-rogaland:
+        condition: service_healthy
     networks:
       - keycloak
 
@@ -56,7 +58,7 @@ services:
     ports:
       - "5432:5432"
     healthcheck:
-      test: ["CMD-SHELL", "sh -c 'pg_isready -U keycloak -d keycloak'"]
+      test: [ "CMD-SHELL", "sh -c 'pg_isready -U keycloak -d keycloak'" ]
       interval: 10s
       timeout: 3s
       retries: 5
@@ -69,32 +71,12 @@ services:
   dex-entra-telemark:
     image: ghcr.io/dexidp/dex:v2.44.0-alpine
     hostname: dex-entra-telemark
-    command: ["dex", "serve", "/etc/dex/config.yaml"]
-    ports: ["5556:5556"]
+    command: [ "dex", "serve", "/etc/dex/config.yaml" ]
+    ports: [ "5556:5556" ]
     volumes:
       - ./config/dex/entra-telemark.yaml:/etc/dex/config.yaml:ro
     restart: unless-stopped
-    networks: [keycloak]
-    healthcheck:
-      test:
-        [
-          "CMD-SHELL",
-          "wget -q -O - http://localhost:5556/dex/.well-known/openid-configuration >/dev/null 2>&1 || exit 1",
-        ]
-      interval: 10s
-      timeout: 5s
-      retries: 12
-      start_period: 5s
-
-  dex-entra-telemark-alt:
-    image: ghcr.io/dexidp/dex:v2.44.0-alpine
-    hostname: dex-entra-telemark-alt
-    command: ["dex", "serve", "/etc/dex/config.yaml"]
-    ports: ["5559:5556"]
-    volumes:
-      - ./config/dex/entra-telemark-alt.yaml:/etc/dex/config.yaml:ro
-    restart: unless-stopped
-    networks: [keycloak]
+    networks: [ keycloak ]
     healthcheck:
       test:
         [
@@ -109,12 +91,12 @@ services:
   dex-entra-novari:
     image: ghcr.io/dexidp/dex:v2.44.0-alpine
     hostname: dex-entra-novari
-    command: ["dex", "serve", "/etc/dex/config.yaml"]
-    ports: ["5557:5556"]
+    command: [ "dex", "serve", "/etc/dex/config.yaml" ]
+    ports: [ "5557:5556" ]
     volumes:
       - ./config/dex/entra-novari.yaml:/etc/dex/config.yaml:ro
     restart: unless-stopped
-    networks: [keycloak]
+    networks: [ keycloak ]
     healthcheck:
       test:
         [
@@ -129,12 +111,52 @@ services:
   dex-idporten:
     image: ghcr.io/dexidp/dex:v2.44.0-alpine
     hostname: dex-idporten
-    command: ["dex", "serve", "/etc/dex/config.yaml"]
-    ports: ["5558:5556"]
+    command: [ "dex", "serve", "/etc/dex/config.yaml" ]
+    ports: [ "5558:5556" ]
     volumes:
       - ./config/dex/idporten.yaml:/etc/dex/config.yaml:ro
     restart: unless-stopped
-    networks: [keycloak]
+    networks: [ keycloak ]
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "wget -q -O - http://localhost:5556/dex/.well-known/openid-configuration >/dev/null 2>&1 || exit 1",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 5s
+
+  dex-entra-telemark-alt:
+    image: ghcr.io/dexidp/dex:v2.44.0-alpine
+    hostname: dex-entra-telemark-alt
+    command: [ "dex", "serve", "/etc/dex/config.yaml" ]
+    ports: [ "5559:5556" ]
+    volumes:
+      - ./config/dex/entra-telemark-alt.yaml:/etc/dex/config.yaml:ro
+    restart: unless-stopped
+    networks: [ keycloak ]
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "wget -q -O - http://localhost:5556/dex/.well-known/openid-configuration >/dev/null 2>&1 || exit 1",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 5s
+
+  dex-entra-rogaland:
+    image: ghcr.io/dexidp/dex:v2.44.0-alpine
+    hostname: dex-entra-novari
+    command: [ "dex", "serve", "/etc/dex/config.yaml" ]
+    ports: [ "5560:5556" ]
+    volumes:
+      - ./config/dex/entra-rogaland.yaml:/etc/dex/config.yaml:ro
+    restart: unless-stopped
+    networks: [ keycloak ]
     healthcheck:
       test:
         [
