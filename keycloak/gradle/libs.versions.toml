@@ -1,6 +1,7 @@
 [versions]
 kotlin = "2.2.20"
 keycloak = "26.4.0"
+kc-admin = "26.0.7"
 shadow = "9.2.2"
 
 junit = "6.0.0"
@@ -17,6 +18,8 @@ keycloak-core = { module = "org.keycloak:keycloak-core", version.ref = "keycloak
 keycloak-services = { module = "org.keycloak:keycloak-services", version.ref = "keycloak" }
 keycloak-server-spi = { module = "org.keycloak:keycloak-server-spi", version.ref = "keycloak" }
 keycloak-server-spi-priv = { module = "org.keycloak:keycloak-server-spi-private", version.ref = "keycloak" }
+
+keycloak-admin-client = { module = "org.keycloak:keycloak-admin-client", version.ref = "kc-admin" }
 
 junit-jupiter = { module = "org.junit.jupiter:junit-jupiter", version.ref = "junit" }
 junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher", version.ref = "junit-platform" }

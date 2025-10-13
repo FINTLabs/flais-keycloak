@@ -14,6 +14,8 @@ dependencies {
     testRuntimeOnly(libs.junit.platform.launcher)
     testRuntimeOnly(libs.slf4j.simple)
 
+    testImplementation(libs.keycloak.admin.client)
+
     testImplementation(libs.junit.jupiter)
     testImplementation(libs.testcontainers.core)
     testImplementation(libs.testcontainers.junit.jupiter)
