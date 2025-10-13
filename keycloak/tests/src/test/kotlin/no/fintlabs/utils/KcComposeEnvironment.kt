@@ -24,13 +24,15 @@ class KcComposeEnvironment(
     private val compose: ComposeContainer =
         ComposeContainer(composeFile).apply {
             withBuild(true)
+
+            withEnv("COMPOSE_PROFILES", "test")
             withEnv("KEYCLOAK_VERSION", System.getenv("KEYCLOAK_VERSION"))
 
-            withExposedService("keycloak", 1, 9000)
-            withExposedService("keycloak", 1, 8080)
+            withExposedService("keycloak-test", 1, 9000)
+            withExposedService("keycloak-test", 1, 8080)
 
             waitingFor(
-                "keycloak",
+                "keycloak-test",
                 WaitAllStrategy()
                     .withStrategy(
                         Wait.forHttp("/health/ready")
@@ -79,14 +81,14 @@ class KcComposeEnvironment(
     val keycloakAdminPassword: String = "admin"
 
     fun keycloakServiceUrl(): String {
-        val host = compose.getServiceHost("keycloak", 8080)
-        val port = compose.getServicePort("keycloak", 8080)
+        val host = compose.getServiceHost("keycloak-test", 8080)
+        val port = compose.getServicePort("keycloak-test", 8080)
         return "http://$host:$port"
     }
 
     fun keycloakManagementUrl(): String {
-        val host = compose.getServiceHost("keycloak", 9000)
-        val port = compose.getServicePort("keycloak", 9000)
+        val host = compose.getServiceHost("keycloak-test", 9000)
+        val port = compose.getServicePort("keycloak-test", 9000)
         return "http://$host:$port"
     }
 

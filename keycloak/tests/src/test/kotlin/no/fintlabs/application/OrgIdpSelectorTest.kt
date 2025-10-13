@@ -16,7 +16,7 @@ class OrgIdpSelectorTest {
     @Test
     fun `org (telemark) login with unlinked idp returns error`(env: KcComposeEnvironment) {
         val client = KcHttpClient.create()
-        selectOrgAndContinueToIdpSelector(env, "telemark", client).use { resp ->
+        selectOrgAndContinueToIdpSelector(env, "flais-keycloak-demo", "telemark", client).use { resp ->
             assertEquals(200, resp.code)
 
             val html = resp.body.string()
@@ -37,9 +37,9 @@ class OrgIdpSelectorTest {
     }
 
     @Test
-    fun `org (telemark) login with wrong non existing idp returns error`(env: KcComposeEnvironment) {
+    fun `org (telemark) login with non existing idp returns error`(env: KcComposeEnvironment) {
         val client = KcHttpClient.create()
-        selectOrgAndContinueToIdpSelector(env, "telemark", client).use { resp ->
+        selectOrgAndContinueToIdpSelector(env, "flais-keycloak-demo", "telemark", client).use { resp ->
             assertEquals(200, resp.code)
 
             val html = resp.body.string()
@@ -58,7 +58,7 @@ class OrgIdpSelectorTest {
 
     @Test
     fun `org (innlandet) with no IDPs returns error`(env: KcComposeEnvironment) {
-        selectOrgAndContinueToIdpSelector(env, "innlandet").use { resp ->
+        selectOrgAndContinueToIdpSelector(env, "flais-keycloak-demo", "innlandet").use { resp ->
             assertEquals(200, resp.code)
 
             val html = resp.body.string()
@@ -75,7 +75,7 @@ class OrgIdpSelectorTest {
 
     @Test
     fun `org (idporten) with one IDP redirects to provider`(env: KcComposeEnvironment) {
-        selectOrgAndContinueToIdpSelector(env, "idporten").use { resp ->
+        selectOrgAndContinueToIdpSelector(env, "flais-keycloak-demo", "idporten").use { resp ->
             assertEquals(303, resp.code)
 
             val loc1 = resp.header("Location").orEmpty()
@@ -87,7 +87,7 @@ class OrgIdpSelectorTest {
 
     @Test
     fun `org (telemark) with multiple IDPs returns IDPs`(env: KcComposeEnvironment) {
-        selectOrgAndContinueToIdpSelector(env, "telemark").use { resp ->
+        selectOrgAndContinueToIdpSelector(env, "flais-keycloak-demo", "telemark").use { resp ->
             assertEquals(200, resp.code)
 
             val html = resp.body.string()
@@ -107,7 +107,7 @@ class OrgIdpSelectorTest {
 
     @Test
     fun `org (telemark) returns page flais-org-idp-selector`(env: KcComposeEnvironment) {
-        selectOrgAndContinueToIdpSelector(env, "telemark").use { resp ->
+        selectOrgAndContinueToIdpSelector(env, "flais-keycloak-demo", "telemark").use { resp ->
             assertEquals(200, resp.code)
 
             val html = resp.body.string()

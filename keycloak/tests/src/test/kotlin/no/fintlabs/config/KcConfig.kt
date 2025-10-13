@@ -7,10 +7,9 @@ import java.nio.file.Path
 
 
 /**
- * Loads a Keycloak realm export (like the one you pasted) and exposes
- * convenience lookups for tests. Uses kotlinx.serialization.
+ * Loads a Keycloak realm export that is used in tests
  */
-class KcTestConfig private constructor(
+class KcConfig private constructor(
     private val realm: RealmExport
 ) {
 
@@ -60,8 +59,10 @@ class KcTestConfig private constructor(
     @Serializable
     data class Client(
         val clientId: String,
+        val protocol: String,
         val enabled: Boolean = true,
-        val publicClient: Boolean? = null,
+        val publicClient: Boolean,
+        val standardFlowEnabled: Boolean,
         val redirectUris: List<String> = emptyList(),
         val webOrigins: List<String> = emptyList(),
         val attributes: Map<String, String> = emptyMap()
@@ -70,28 +71,21 @@ class KcTestConfig private constructor(
     companion object {
         private val json = Json { ignoreUnknownKeys = true }
 
-        fun fromString(raw: String): KcTestConfig =
-            KcTestConfig(json.decodeFromString(RealmExport.serializer(), raw))
+        fun fromString(raw: String): KcConfig =
+            KcConfig(json.decodeFromString(RealmExport.serializer(), raw))
 
-        fun fromResource(path: String): KcTestConfig =
-            fromString(object {}.javaClass.getResourceAsStream(path)!!.readBytes().decodeToString())
-
-        fun fromFile(path: Path): KcTestConfig =
+        fun fromFile(path: Path): KcConfig =
             fromString(Files.readString(path))
     }
 
     val realmName: String get() = realm.realm
 
-    /** All organization aliases, e.g. ["idporten", "innlandet", "telemark"] */
     fun orgAliases(): Set<String> = realm.organizations.map { it.alias }.toSet()
 
-    /** All identity provider aliases declared at realm level */
     fun idpAliases(): Set<String> = realm.identityProviders.map { it.alias }.toSet()
 
-    /** All clientIds */
     fun clientIds(): Set<String> = realm.clients.map { it.clientId }.toSet()
 
-    /** IDP aliases that are linked to the given organization (enabled ones first). */
     fun idpAliasesForOrg(orgAlias: String): List<String> {
         val org = requireOrg(orgAlias)
         return org.identityProviders
@@ -99,27 +93,14 @@ class KcTestConfig private constructor(
             .map { it.alias }
     }
 
-    /** Get org, or throw useful assertion-friendly error */
     fun requireOrg(orgAlias: String): Organization =
         realm.organizations.find { it.alias == orgAlias }
             ?: error("Organization with alias '$orgAlias' not found. Known orgs: ${orgAliases().sorted()}")
 
-    /** Get IDP, or throw useful assertion-friendly error */
-    fun requireIdp(idpAlias: String): IdentityProvider =
-        realm.identityProviders.find { it.alias == idpAlias }
-            ?: error("Identity provider '$idpAlias' not found. Known IDPs: ${idpAliases().sorted()}")
-
-    /** Get client, or throw useful assertion-friendly error */
     fun requireClient(clientId: String): Client =
         realm.clients.find { it.clientId == clientId }
             ?: error("Client '$clientId' not found. Known clients: ${clientIds().sorted()}")
 
-    /** True if the org is allowed to use the given IDP (linked at org level). */
     fun orgHasIdp(orgAlias: String, idpAlias: String): Boolean =
         requireOrg(orgAlias).identityProviders.any { it.alias == idpAlias }
-
-    /** Convenience for tests where an org has exactly one IDP and should redirect */
-    fun singleIdpForOrg(orgAlias: String): String =
-        idpAliasesForOrg(orgAlias).singleOrNull()
-            ?: error("Expected a single IDP for '$orgAlias' but found ${idpAliasesForOrg(orgAlias)}")
 }

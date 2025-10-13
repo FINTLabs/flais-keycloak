@@ -47,6 +47,12 @@ object KcContextParser {
     )
 
     @Serializable
+    data class Organization(
+        val name: String,
+        val alias: String,
+    )
+
+    @Serializable
     data class Url(
         @Serializable(with = HttpUrlAsStringSerializer::class)
         val loginAction: HttpUrl? = null,
@@ -67,6 +73,7 @@ object KcContextParser {
         val url: Url,
         val message: Message? = null,
         val providers: List<Provider>? = null,
+        val organizations: List<Organization>? = null,
     )
 
     fun parseKcContext(html: String): KcContext {

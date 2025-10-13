@@ -1,6 +1,6 @@
 package no.fintlabs.extensions
 
-import no.fintlabs.config.KcTestConfig
+import no.fintlabs.config.KcConfig
 import no.fintlabs.utils.KcComposeEnvironment
 import org.junit.jupiter.api.extension.AfterAllCallback
 import org.junit.jupiter.api.extension.BeforeAllCallback
@@ -30,7 +30,7 @@ import java.nio.file.Paths
  * Notes:
  * - The environment is created once per test class, not per test method.
  *
- * This extension is intended only for local/integration testing against a fixed dev environment.
+ * This extension is intended only for local/integration testing against a fixed environment.
  */
 class KcEnvExtension :
     BeforeAllCallback,
@@ -43,16 +43,14 @@ class KcEnvExtension :
         val env = KcComposeEnvironment().also { it.start() }
         store.put(ENV_KEY, env)
 
-        // Resolve realm file path once per class
         val requested = "config/kc/external-realm.json"
-        val resolved = resolveRealmPath(requested)
+        val resolved = resolveConfigPath(requested)
             ?: throw ExtensionConfigurationException(
-                "Could not find realm JSON. Tried '$requested' from various roots. " +
-                        "Tip: pass -Dproject.rootDir=<root> or ensure the file exists."
+                "Could not find config. Tried '$requested' from various roots."
             )
 
         val cfg = try {
-            KcTestConfig.fromFile(resolved)
+            KcConfig.fromFile(resolved)
         } catch (t: Throwable) {
             throw ExtensionConfigurationException("Failed to load Keycloak config from '$resolved'", t)
         }
@@ -61,13 +59,13 @@ class KcEnvExtension :
 
     override fun afterAll(context: ExtensionContext) {
         val store = store(context)
-        store.get(CFG_KEY, KcTestConfig::class.java)?.let { store.remove(CFG_KEY) }
+        store.get(CFG_KEY, KcConfig::class.java)?.let { store.remove(CFG_KEY) }
         store.get(ENV_KEY, KcComposeEnvironment::class.java)?.let { it.close(); store.remove(ENV_KEY) }
     }
 
     override fun supportsParameter(pc: ParameterContext, ec: ExtensionContext): Boolean {
         val t = pc.parameter.type
-        return t == KcComposeEnvironment::class.java || t == KcTestConfig::class.java
+        return t == KcComposeEnvironment::class.java || t == KcConfig::class.java
     }
 
     override fun resolveParameter(pc: ParameterContext, ec: ExtensionContext): Any {
@@ -78,15 +76,15 @@ class KcEnvExtension :
                 s.get(ENV_KEY, KcComposeEnvironment::class.java)
                     ?: throw ExtensionConfigurationException("KcComposeEnvironment not initialized")
 
-            KcTestConfig::class.java ->
-                s.get(CFG_KEY, KcTestConfig::class.java)
+            KcConfig::class.java ->
+                s.get(CFG_KEY, KcConfig::class.java)
                     ?: throw ExtensionConfigurationException("KcTestConfig not initialized")
 
             else -> throw ParameterResolutionException("Unsupported parameter: $t")
         }
     }
 
-    private fun resolveRealmPath(requested: String): Path? {
+    private fun resolveConfigPath(requested: String): Path? {
         val p = Paths.get(requested)
         if (p.isAbsolute && Files.isRegularFile(p)) return p
 
@@ -97,7 +95,6 @@ class KcEnvExtension :
 
         return null
     }
-
 
     private fun store(context: ExtensionContext): ExtensionContext.Store {
         val ns = ExtensionContext.Namespace.create(

@@ -5,15 +5,15 @@ import okhttp3.*
 /**
  * OkHttp client for local Keycloak tests.
  *
- * - Disables redirects (so you can assert Location headers).
+ * - Disables redirects by default (to assert Location headers).
  * - Keeps cookies in memory for the life of the client.
  * - Always strips `Secure` so cookies set by Keycloak work on http://localhost.
  */
 object KcHttpClient {
-    fun create(): OkHttpClient =
+    fun create(followRedirects: Boolean = false, followSslRedirects: Boolean = false): OkHttpClient =
         OkHttpClient.Builder()
-            .followRedirects(false)
-            .followSslRedirects(false)
+            .followRedirects(followRedirects)
+            .followSslRedirects(followSslRedirects)
             .cookieJar(object : CookieJar {
                 private val store = mutableListOf<Cookie>()
 
