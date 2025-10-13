@@ -145,8 +145,12 @@
       "standardFlowEnabled": true,
       "implicitFlowEnabled": false,
       "attributes": {},
-      "redirectUris": ["http://localhost:3000/*"],
-      "webOrigins": ["+"]
+      "redirectUris": [
+        "http://localhost:3000/*"
+      ],
+      "webOrigins": [
+        "+"
+      ]
     },
     {
       "clientId": "flais-keycloak-demo-telemark",
@@ -160,8 +164,12 @@
       "attributes": {
         "permission.whitelisted.organizations": "telemark"
       },
-      "redirectUris": ["http://localhost:3000/*"],
-      "webOrigins": ["+"]
+      "redirectUris": [
+        "http://localhost:3000/*"
+      ],
+      "webOrigins": [
+        "+"
+      ]
     },
     {
       "clientId": "flais-keycloak-demo-idporten",
@@ -175,8 +183,12 @@
       "attributes": {
         "permission.whitelisted.organizations": "idporten"
       },
-      "redirectUris": ["http://localhost:3000/*"],
-      "webOrigins": ["+"]
+      "redirectUris": [
+        "http://localhost:3000/*"
+      ],
+      "webOrigins": [
+        "+"
+      ]
     },
     {
       "clientId": "flais-keycloak-demo-entra",
@@ -190,8 +202,12 @@
       "attributes": {
         "permission.blacklisted.organizations": "idporten"
       },
-      "redirectUris": ["http://localhost:3000/*"],
-      "webOrigins": ["+"]
+      "redirectUris": [
+        "http://localhost:3000/*"
+      ],
+      "webOrigins": [
+        "+"
+      ]
     },
     {
       "clientId": "flais-keycloak-demo-invalid",
@@ -205,8 +221,12 @@
       "attributes": {
         "permission.whitelisted.organizations": "invalid-org"
       },
-      "redirectUris": ["http://localhost:3000/*"],
-      "webOrigins": ["+"]
+      "redirectUris": [
+        "http://localhost:3000/*"
+      ],
+      "webOrigins": [
+        "+"
+      ]
     }
   ],
   "identityProviders": [
@@ -228,7 +248,7 @@
         "userinfoUrl": "http://dex-entra-telemark:5556/dex/userinfo",
         "jwksUrl": "http://dex-entra-telemark:5556/dex/keys",
         "useJwksUrl": "true",
-        "defaultScope": "openid profile",
+        "defaultScope": "openid email profile",
         "validateSignature": "true",
         "backchannelSupported": "true"
       }
@@ -251,7 +271,7 @@
         "userinfoUrl": "http://dex-entra-telemark-alt:5556/dex/userinfo",
         "jwksUrl": "http://dex-entra-telemark-alt:5556/dex/keys",
         "useJwksUrl": "true",
-        "defaultScope": "openid profile",
+        "defaultScope": "openid email profile",
         "validateSignature": "true",
         "backchannelSupported": "true"
       }
@@ -274,7 +294,7 @@
         "userinfoUrl": "http://dex-entra-rogaland:5556/dex/userinfo",
         "jwksUrl": "http://dex-entra-rogaland:5556/dex/keys",
         "useJwksUrl": "true",
-        "defaultScope": "openid profile",
+        "defaultScope": "openid email profile",
         "validateSignature": "true",
         "backchannelSupported": "true"
       }
@@ -297,7 +317,7 @@
         "userinfoUrl": "http://dex-idporten:5556/dex/userinfo",
         "jwksUrl": "http://dex-idporten:5556/dex/keys",
         "useJwksUrl": "true",
-        "defaultScope": "openid profile",
+        "defaultScope": "openid email profile",
         "validateSignature": "true",
         "backchannelSupported": "true"
       }
