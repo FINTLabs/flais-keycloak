@@ -1,6 +1,7 @@
 plugins {
     alias(libs.plugins.kotlin.jvm)
     alias(libs.plugins.kotlin.serialization)
+    alias(libs.plugins.ktlint)
 }
 
 group = "no.fintlabs"
@@ -15,13 +16,10 @@ dependencies {
     testRuntimeOnly(libs.slf4j.simple)
 
     testImplementation(libs.keycloak.admin.client)
-
     testImplementation(libs.junit.jupiter)
     testImplementation(libs.testcontainers.core)
     testImplementation(libs.testcontainers.junit.jupiter)
-
     testImplementation(libs.kotlinx.serialization.json)
-
     testImplementation(libs.okhttp)
 }
 
