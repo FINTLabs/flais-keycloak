@@ -9,7 +9,9 @@ import org.keycloak.models.KeycloakSession
 import org.keycloak.models.KeycloakSessionFactory
 import org.keycloak.provider.ProviderConfigProperty
 
-class OrgRedirectorAuthenticatorFactory : AuthenticatorFactory, ConfigurableAuthenticatorFactory {
+class OrgRedirectorAuthenticatorFactory :
+    AuthenticatorFactory,
+    ConfigurableAuthenticatorFactory {
     private val providerId: String = "org-redirector-authenticator"
     private val orgRedirectorAuthenticator = OrgRedirectorAuthenticator()
 
@@ -36,7 +38,7 @@ class OrgRedirectorAuthenticatorFactory : AuthenticatorFactory, ConfigurableAuth
     override fun isConfigurable(): Boolean = false
 
     override fun getRequirementChoices(): Array<out AuthenticationExecutionModel.Requirement> =
-            arrayOf(AuthenticationExecutionModel.Requirement.REQUIRED)
+        arrayOf(AuthenticationExecutionModel.Requirement.REQUIRED)
 
     override fun isUserSetupAllowed(): Boolean = false
 

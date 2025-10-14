@@ -12,7 +12,6 @@ import kotlin.collections.emptyMap
 
 @ExtendWith(KcEnvExtension::class)
 class KcConfigTest {
-
     private val commonRedirectUris = listOf("http://localhost:3000/*")
     private val commonWebOrigins = listOf("+")
 
@@ -35,16 +34,18 @@ class KcConfigTest {
     @Test
     fun `org aliases should include expected orgs`(kcConfig: KcConfig) {
         assertTrue(
-            kcConfig.orgAliases()
-                .containsAll(listOf("idporten", "innlandet", "telemark", "rogaland"))
+            kcConfig
+                .orgAliases()
+                .containsAll(listOf("idporten", "innlandet", "telemark", "rogaland")),
         )
     }
 
     @Test
     fun `idp aliases should include expected idps`(kcConfig: KcConfig) {
         assertTrue(
-            kcConfig.idpAliases()
-                .containsAll(listOf("entra-telemark", "entra-telemark-alt", "idporten", "entra-rogaland"))
+            kcConfig
+                .idpAliases()
+                .containsAll(listOf("entra-telemark", "entra-telemark-alt", "idporten", "entra-rogaland")),
         )
     }
 
@@ -78,9 +79,9 @@ class KcConfigTest {
                     "flais-keycloak-demo-telemark",
                     "flais-keycloak-demo-idporten",
                     "flais-keycloak-demo-invalid",
-                    "flais-keycloak-demo-entra"
-                )
-            )
+                    "flais-keycloak-demo-entra",
+                ),
+            ),
         )
     }
 
@@ -101,7 +102,7 @@ class KcConfigTest {
             assertEquals(
                 mapOf("permission.whitelisted.organizations" to "telemark"),
                 c.attributes,
-                "attributes for ${c.clientId}"
+                "attributes for ${c.clientId}",
             )
         }
     }
@@ -113,7 +114,7 @@ class KcConfigTest {
             assertEquals(
                 mapOf("permission.whitelisted.organizations" to "idporten"),
                 c.attributes,
-                "attributes for ${c.clientId}"
+                "attributes for ${c.clientId}",
             )
         }
     }
@@ -125,7 +126,7 @@ class KcConfigTest {
             assertEquals(
                 mapOf("permission.blacklisted.organizations" to "idporten"),
                 c.attributes,
-                "attributes for ${c.clientId}"
+                "attributes for ${c.clientId}",
             )
         }
     }
@@ -137,7 +138,7 @@ class KcConfigTest {
             assertEquals(
                 mapOf("permission.whitelisted.organizations" to "invalid-org"),
                 c.attributes,
-                "attributes for ${c.clientId}"
+                "attributes for ${c.clientId}",
             )
         }
     }

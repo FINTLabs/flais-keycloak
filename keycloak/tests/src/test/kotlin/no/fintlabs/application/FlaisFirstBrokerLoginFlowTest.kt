@@ -35,7 +35,7 @@ class FlaisFirstBrokerLoginFlowTest {
                 assertTrue(links.any { it.identityProvider == idpAlias })
                 assertEquals(
                     1,
-                    links.count { it.identityProvider == idpAlias }
+                    links.count { it.identityProvider == idpAlias },
                 )
             }
         }

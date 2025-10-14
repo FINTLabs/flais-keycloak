@@ -1,6 +1,7 @@
 package no.fintlabs.utils
 
-import kotlinx.serialization.*
+import kotlinx.serialization.KSerializer
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.descriptors.PrimitiveKind
 import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
 import kotlinx.serialization.descriptors.SerialDescriptor
@@ -29,7 +30,10 @@ object KcContextParser {
         override val descriptor: SerialDescriptor =
             PrimitiveSerialDescriptor("HttpUrl", PrimitiveKind.STRING)
 
-        override fun serialize(encoder: Encoder, value: HttpUrl) {
+        override fun serialize(
+            encoder: Encoder,
+            value: HttpUrl,
+        ) {
             encoder.encodeString(value.toString())
         }
 
@@ -64,7 +68,7 @@ object KcContextParser {
         val type: String,
         val error: Boolean,
         val success: Boolean,
-        val warning: Boolean
+        val warning: Boolean,
     )
 
     @Serializable
@@ -78,12 +82,14 @@ object KcContextParser {
 
     fun parseKcContext(html: String): KcContext {
         val regex = Regex("""const\s+kcContext\s*=\s*(\{.*?});""", RegexOption.DOT_MATCHES_ALL)
-        val rawJsonLike = regex.find(html)?.groupValues?.get(1)
-            ?: error("Could not extract kcContext from HTML")
+        val rawJsonLike =
+            regex.find(html)?.groupValues?.get(1)
+                ?: error("Could not extract kcContext from HTML")
 
-        val cleaned = rawJsonLike
-            .replace(Regex(""",\s*([}\]])"""), "$1")
-            .replace(Regex("""\bfunction\b[^{]+"""), "\"\"")
+        val cleaned =
+            rawJsonLike
+                .replace(Regex(""",\s*([}\]])"""), "$1")
+                .replace(Regex("""\bfunction\b[^{]+"""), "\"\"")
 
         val json = Json { ignoreUnknownKeys = true }
         return json.decodeFromString(cleaned)

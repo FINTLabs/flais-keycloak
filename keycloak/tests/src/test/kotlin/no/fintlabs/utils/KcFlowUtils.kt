@@ -1,6 +1,10 @@
 package no.fintlabs.utils
 
-import okhttp3.*
+import okhttp3.FormBody
+import okhttp3.HttpUrl
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.Response
 
 /**
  * Utility functions for driving simplified Keycloak login flows in integration tests.
@@ -9,39 +13,60 @@ import okhttp3.*
  * mimicking what a browser would do in the flais-org-selector page.
  */
 object KcFlowUtils {
-
-    fun openOrgSelector(env: KcComposeEnvironment, clientId: String, httpClient: OkHttpClient? = null): Response {
+    fun openOrgSelector(
+        env: KcComposeEnvironment,
+        clientId: String,
+        httpClient: OkHttpClient? = null,
+    ): Response {
         val client = httpClient ?: KcHttpClient.create()
-        val startReq = Request.Builder()
-            .url(KcUrlUtils.authStartUrl(env, clientId))
-            .build()
+        val startReq =
+            Request
+                .Builder()
+                .url(KcUrlUtils.authStartUrl(env, clientId))
+                .build()
         return client.newCall(startReq).execute()
     }
 
-    fun continueFromOrgSelector(url: HttpUrl, orgAlias: String, httpClient: OkHttpClient? = null): Response {
+    fun continueFromOrgSelector(
+        url: HttpUrl,
+        orgAlias: String,
+        httpClient: OkHttpClient? = null,
+    ): Response {
         val client = httpClient ?: KcHttpClient.create()
-        val body = FormBody.Builder()
-            .add("selected_org", orgAlias)
-            .build()
+        val body =
+            FormBody
+                .Builder()
+                .add("selected_org", orgAlias)
+                .build()
 
-        val postReq = Request.Builder()
-            .url(url)
-            .post(body)
-            .build()
+        val postReq =
+            Request
+                .Builder()
+                .url(url)
+                .post(body)
+                .build()
 
         return client.newCall(postReq).execute()
     }
 
-    fun continueFromIdpSelector(url: HttpUrl, idpAlias: String, httpClient: OkHttpClient? = null): Response {
+    fun continueFromIdpSelector(
+        url: HttpUrl,
+        idpAlias: String,
+        httpClient: OkHttpClient? = null,
+    ): Response {
         val client = httpClient ?: KcHttpClient.create()
-        val body = FormBody.Builder()
-            .add("identity_provider", idpAlias)
-            .build()
+        val body =
+            FormBody
+                .Builder()
+                .add("identity_provider", idpAlias)
+                .build()
 
-        val postReq = Request.Builder()
-            .url(url)
-            .post(body)
-            .build()
+        val postReq =
+            Request
+                .Builder()
+                .url(url)
+                .post(body)
+                .build()
 
         return client.newCall(postReq).execute()
     }
@@ -50,18 +75,22 @@ object KcFlowUtils {
         url: HttpUrl,
         username: String,
         password: String,
-        httpClient: OkHttpClient? = null
+        httpClient: OkHttpClient? = null,
     ): Response {
         val client = httpClient ?: KcHttpClient.create()
-        val body = FormBody.Builder()
-            .add("login", username)
-            .add("password", password)
-            .build()
+        val body =
+            FormBody
+                .Builder()
+                .add("login", username)
+                .add("password", password)
+                .build()
 
-        val postReq = Request.Builder()
-            .url(url)
-            .post(body)
-            .build()
+        val postReq =
+            Request
+                .Builder()
+                .url(url)
+                .post(body)
+                .build()
 
         return client.newCall(postReq).execute()
     }
@@ -70,7 +99,7 @@ object KcFlowUtils {
         env: KcComposeEnvironment,
         clientId: String,
         orgAlias: String,
-        httpClient: OkHttpClient? = null
+        httpClient: OkHttpClient? = null,
     ): Response {
         val client = httpClient ?: KcHttpClient.create()
         openOrgSelector(env, clientId, client).use { resp ->
@@ -87,7 +116,7 @@ object KcFlowUtils {
         idpAlias: String,
         username: String,
         password: String,
-        httpClient: OkHttpClient? = null
+        httpClient: OkHttpClient? = null,
     ): Response {
         val client = httpClient ?: KcHttpClient.create(followRedirects = true)
         selectOrgAndContinueToIdpSelector(env, clientId, orgAlias, client).use { resp ->

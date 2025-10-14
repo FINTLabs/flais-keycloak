@@ -19,7 +19,7 @@ import java.time.Duration
  *  - Use the service URL getters (e.g. [keycloakServiceUrl], [dexTelemarkUrl]) inside tests.
  */
 class KcComposeEnvironment(
-    composeFile: File = File("../docker-compose.yaml")
+    composeFile: File = File("../docker-compose.yaml"),
 ) : AutoCloseable {
     private val compose: ComposeContainer =
         ComposeContainer(composeFile).apply {
@@ -35,37 +35,41 @@ class KcComposeEnvironment(
                 "keycloak-test",
                 WaitAllStrategy()
                     .withStrategy(
-                        Wait.forHttp("/health/ready")
+                        Wait
+                            .forHttp("/health/ready")
                             .forPort(9000)
-                            .withStartupTimeout(Duration.ofMinutes(2))
-                    )
-                    .withStrategy(
-                        Wait.forHttp("/")
+                            .withStartupTimeout(Duration.ofMinutes(2)),
+                    ).withStrategy(
+                        Wait
+                            .forHttp("/")
                             .forPort(8080)
-                            .withStartupTimeout(Duration.ofMinutes(2))
-                    )
+                            .withStartupTimeout(Duration.ofMinutes(2)),
+                    ),
             )
 
             withExposedService(
                 "dex-entra-telemark",
                 5556,
-                Wait.forHttp("/dex/.well-known/openid-configuration")
+                Wait
+                    .forHttp("/dex/.well-known/openid-configuration")
                     .forPort(5556)
-                    .withStartupTimeout(Duration.ofMinutes(1))
+                    .withStartupTimeout(Duration.ofMinutes(1)),
             )
             withExposedService(
                 "dex-entra-novari",
                 5556,
-                Wait.forHttp("/dex/.well-known/openid-configuration")
+                Wait
+                    .forHttp("/dex/.well-known/openid-configuration")
                     .forPort(5556)
-                    .withStartupTimeout(Duration.ofMinutes(1))
+                    .withStartupTimeout(Duration.ofMinutes(1)),
             )
             withExposedService(
                 "dex-idporten",
                 5556,
-                Wait.forHttp("/dex/.well-known/openid-configuration")
+                Wait
+                    .forHttp("/dex/.well-known/openid-configuration")
                     .forPort(5556)
-                    .withStartupTimeout(Duration.ofMinutes(1))
+                    .withStartupTimeout(Duration.ofMinutes(1)),
             )
         }
 

@@ -7,27 +7,44 @@ import org.keycloak.representations.idm.FederatedIdentityRepresentation
 import org.keycloak.representations.idm.UserRepresentation
 
 object KcAdminClient {
-    private const val adminRealm = "master"
-    private const val adminClientId = "admin-cli"
+    private const val ADMIN_REALM = "master"
+    private const val ADMIN_CLIENT_ID = "admin-cli"
 
-    fun connect(env: KcComposeEnvironment, realm: String): Pair<Keycloak, RealmResource> {
-        val kc = KeycloakBuilder.builder()
-            .serverUrl(env.keycloakServiceUrl())
-            .realm(adminRealm)
-            .clientId(adminClientId)
-            .username(env.keycloakAdminUser)
-            .password(env.keycloakAdminPassword)
-            .build()
+    fun connect(
+        env: KcComposeEnvironment,
+        realm: String,
+    ): Pair<Keycloak, RealmResource> {
+        val kc =
+            KeycloakBuilder
+                .builder()
+                .serverUrl(env.keycloakServiceUrl())
+                .realm(ADMIN_REALM)
+                .clientId(ADMIN_CLIENT_ID)
+                .username(env.keycloakAdminUser)
+                .password(env.keycloakAdminPassword)
+                .build()
         return kc to kc.realm(realm)
     }
 
-    fun findUserByEmail(realm: RealmResource, email: String): UserRepresentation? =
-        realm.users().searchByEmail(email, true).firstOrNull()
+    fun findUserByEmail(
+        realm: RealmResource,
+        email: String,
+    ): UserRepresentation? = realm.users().searchByEmail(email, true).firstOrNull()
 
-    fun deleteUser(realm: RealmResource, userId: String) {
+    fun deleteUser(
+        realm: RealmResource,
+        userId: String,
+    ) {
         realm.users().delete(userId)
     }
 
-    fun getFederatedIdentities(realm: RealmResource, userId: String): List<FederatedIdentityRepresentation> =
-        realm.users().get(userId).federatedIdentity.toList()
+    fun getFederatedIdentities(
+        realm: RealmResource,
+        userId: String,
+    ): List<FederatedIdentityRepresentation> =
+        realm
+            .users()
+            .get(userId)
+            .federatedIdentity
+            .toList()
 }

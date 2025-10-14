@@ -13,7 +13,6 @@ import org.junit.jupiter.api.extension.ExtendWith
 
 @ExtendWith(KcEnvExtension::class)
 class OrgSelectorTest {
-
     @Test
     fun `client (flais-keycloak-demo) returns page flais-org-selector`(env: KcComposeEnvironment) {
         openOrgSelector(env, "flais-keycloak-demo").use { resp ->
@@ -45,7 +44,7 @@ class OrgSelectorTest {
                 assertEquals("error", kc.message!!.type)
                 assertEquals(
                     "Selected organization does not have permission to login to this application",
-                    kc.message.summary
+                    kc.message.summary,
                 )
             }
         }
@@ -72,7 +71,9 @@ class OrgSelectorTest {
     }
 
     @Test
-    fun `client (flais-keycloak-demo-telemark) with 1 org directly to flais-org-idp-selector`(env: KcComposeEnvironment) {
+    fun `client (flais-keycloak-demo-telemark) with 1 org directly to flais-org-idp-selector`(
+        env: KcComposeEnvironment,
+    ) {
         openOrgSelector(env, "flais-keycloak-demo-telemark").use { resp ->
             assertEquals(200, resp.code)
 

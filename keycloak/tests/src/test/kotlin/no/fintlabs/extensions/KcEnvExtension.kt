@@ -36,39 +36,48 @@ class KcEnvExtension :
     BeforeAllCallback,
     AfterAllCallback,
     ParameterResolver {
-
     override fun beforeAll(context: ExtensionContext) {
-
         val store = store(context)
         val env = KcComposeEnvironment().also { it.start() }
         store.put(ENV_KEY, env)
 
         val requested = "config/kc/external-realm.json"
-        val resolved = resolveConfigPath(requested)
-            ?: throw ExtensionConfigurationException(
-                "Could not find config. Tried '$requested' from various roots."
-            )
+        val resolved =
+            resolveConfigPath(requested)
+                ?: throw ExtensionConfigurationException(
+                    "Could not find config. Tried '$requested' from various roots.",
+                )
 
-        val cfg = try {
-            KcConfig.fromFile(resolved)
-        } catch (t: Throwable) {
-            throw ExtensionConfigurationException("Failed to load Keycloak config from '$resolved'", t)
-        }
+        val cfg =
+            try {
+                KcConfig.fromFile(resolved)
+            } catch (t: Throwable) {
+                throw ExtensionConfigurationException("Failed to load Keycloak config from '$resolved'", t)
+            }
         store.put(CFG_KEY, cfg)
     }
 
     override fun afterAll(context: ExtensionContext) {
         val store = store(context)
         store.get(CFG_KEY, KcConfig::class.java)?.let { store.remove(CFG_KEY) }
-        store.get(ENV_KEY, KcComposeEnvironment::class.java)?.let { it.close(); store.remove(ENV_KEY) }
+        store.get(ENV_KEY, KcComposeEnvironment::class.java)?.let {
+            it.close()
+            store.remove(ENV_KEY)
+        }
     }
 
-    override fun supportsParameter(pc: ParameterContext, ec: ExtensionContext): Boolean {
+    override fun supportsParameter(
+        pc: ParameterContext,
+        ec: ExtensionContext,
+    ): Boolean {
         val t = pc.parameter.type
         return t == KcComposeEnvironment::class.java || t == KcConfig::class.java
     }
 
-    override fun resolveParameter(pc: ParameterContext, ec: ExtensionContext): Any {
+    override fun resolveParameter(
+        pc: ParameterContext,
+        ec: ExtensionContext,
+    ): Any {
         val t = pc.parameter.type
         val s = store(ec)
         return when (t) {
@@ -97,10 +106,11 @@ class KcEnvExtension :
     }
 
     private fun store(context: ExtensionContext): ExtensionContext.Store {
-        val ns = ExtensionContext.Namespace.create(
-            KcEnvExtension::class.java,
-            context.requiredTestClass
-        )
+        val ns =
+            ExtensionContext.Namespace.create(
+                KcEnvExtension::class.java,
+                context.requiredTestClass,
+            )
         return context.getStore(ns)
     }
 

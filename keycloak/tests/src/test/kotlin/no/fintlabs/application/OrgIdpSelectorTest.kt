@@ -1,18 +1,19 @@
 package no.fintlabs.application
 
 import no.fintlabs.extensions.KcEnvExtension
-import no.fintlabs.utils.KcContextParser
 import no.fintlabs.utils.KcComposeEnvironment
-import no.fintlabs.utils.KcFlowUtils.selectOrgAndContinueToIdpSelector
+import no.fintlabs.utils.KcContextParser
 import no.fintlabs.utils.KcFlowUtils.continueFromIdpSelector
+import no.fintlabs.utils.KcFlowUtils.selectOrgAndContinueToIdpSelector
 import no.fintlabs.utils.KcHttpClient
-import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNotNull
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 
 @ExtendWith(KcEnvExtension::class)
 class OrgIdpSelectorTest {
-
     @Test
     fun `org (telemark) login with unlinked idp returns error`(env: KcComposeEnvironment) {
         val client = KcHttpClient.create()
@@ -30,7 +31,7 @@ class OrgIdpSelectorTest {
                 assertEquals("error", responseKc.message!!.type)
                 assertEquals(
                     "The selected identity provider is not registered to the selected organization",
-                    responseKc.message.summary
+                    responseKc.message.summary,
                 )
             }
         }
@@ -97,10 +98,10 @@ class OrgIdpSelectorTest {
             assertNotNull(kc.providers)
             assertTrue(kc.providers?.size!! > 1)
             assertTrue(
-                kc.providers.stream().anyMatch { p: KcContextParser.Provider? -> "entra-telemark" == p!!.alias }
+                kc.providers.stream().anyMatch { p: KcContextParser.Provider? -> "entra-telemark" == p!!.alias },
             )
             assertTrue(
-                kc.providers.stream().anyMatch { p: KcContextParser.Provider? -> "entra-telemark" == p!!.alias }
+                kc.providers.stream().anyMatch { p: KcContextParser.Provider? -> "entra-telemark" == p!!.alias },
             )
         }
     }

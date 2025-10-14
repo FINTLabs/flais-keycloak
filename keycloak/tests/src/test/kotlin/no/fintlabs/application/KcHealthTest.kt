@@ -1,7 +1,7 @@
 package no.fintlabs.application
 
-import no.fintlabs.utils.KcComposeEnvironment
 import no.fintlabs.extensions.KcEnvExtension
+import no.fintlabs.utils.KcComposeEnvironment
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -10,7 +10,6 @@ import org.junit.jupiter.api.extension.ExtendWith
 
 @ExtendWith(KcEnvExtension::class)
 class KcHealthTest {
-
     private val client = OkHttpClient()
 
     @Test

@@ -5,20 +5,18 @@ import kotlinx.serialization.json.Json
 import java.nio.file.Files
 import java.nio.file.Path
 
-
 /**
  * Loads a Keycloak realm export that is used in tests
  */
 class KcConfig private constructor(
-    private val realm: RealmExport
+    private val realm: RealmExport,
 ) {
-
     @Serializable
     data class RealmExport(
         val realm: String,
         val organizations: List<Organization> = emptyList(),
         val clients: List<Client> = emptyList(),
-        val identityProviders: List<IdentityProvider> = emptyList()
+        val identityProviders: List<IdentityProvider> = emptyList(),
     )
 
     @Serializable
@@ -30,20 +28,20 @@ class KcConfig private constructor(
         val description: String? = null,
         val attributes: Map<String, String> = emptyMap(),
         val domains: List<Domain> = emptyList(),
-        val identityProviders: List<OrgIdentityProviderRef> = emptyList()
+        val identityProviders: List<OrgIdentityProviderRef> = emptyList(),
     )
 
     @Serializable
     data class Domain(
         val name: String,
-        val verified: Boolean = false
+        val verified: Boolean = false,
     )
 
     @Serializable
     data class OrgIdentityProviderRef(
         val alias: String,
         val enabled: Boolean = true,
-        val config: Map<String, String> = emptyMap()
+        val config: Map<String, String> = emptyMap(),
     )
 
     @Serializable
@@ -53,7 +51,7 @@ class KcConfig private constructor(
         val providerId: String,
         val enabled: Boolean = true,
         val linkOnly: Boolean = false,
-        val config: Map<String, String> = emptyMap()
+        val config: Map<String, String> = emptyMap(),
     )
 
     @Serializable
@@ -65,17 +63,15 @@ class KcConfig private constructor(
         val standardFlowEnabled: Boolean,
         val redirectUris: List<String> = emptyList(),
         val webOrigins: List<String> = emptyList(),
-        val attributes: Map<String, String> = emptyMap()
+        val attributes: Map<String, String> = emptyMap(),
     )
 
     companion object {
         private val json = Json { ignoreUnknownKeys = true }
 
-        fun fromString(raw: String): KcConfig =
-            KcConfig(json.decodeFromString(RealmExport.serializer(), raw))
+        fun fromString(raw: String): KcConfig = KcConfig(json.decodeFromString(RealmExport.serializer(), raw))
 
-        fun fromFile(path: Path): KcConfig =
-            fromString(Files.readString(path))
+        fun fromFile(path: Path): KcConfig = fromString(Files.readString(path))
     }
 
     val realmName: String get() = realm.realm
@@ -101,6 +97,8 @@ class KcConfig private constructor(
         realm.clients.find { it.clientId == clientId }
             ?: error("Client '$clientId' not found. Known clients: ${clientIds().sorted()}")
 
-    fun orgHasIdp(orgAlias: String, idpAlias: String): Boolean =
-        requireOrg(orgAlias).identityProviders.any { it.alias == idpAlias }
+    fun orgHasIdp(
+        orgAlias: String,
+        idpAlias: String,
+    ): Boolean = requireOrg(orgAlias).identityProviders.any { it.alias == idpAlias }
 }

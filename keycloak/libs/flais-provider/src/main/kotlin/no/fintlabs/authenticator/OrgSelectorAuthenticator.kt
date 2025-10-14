@@ -1,6 +1,5 @@
 package no.fintlabs.authenticator
 
-import kotlin.collections.first
 import no.fintlabs.dtos.OrgDto
 import no.fintlabs.helpers.ClientHelper.CLIENT_BLACKLIST_ORGANIZATIONS_ATTRIBUTE
 import no.fintlabs.helpers.ClientHelper.CLIENT_WHITELIST_ORGANIZATIONS_ATTRIBUTE
@@ -14,6 +13,7 @@ import org.keycloak.models.KeycloakSession
 import org.keycloak.models.OrganizationModel
 import org.keycloak.models.RealmModel
 import org.keycloak.models.UserModel
+import kotlin.collections.first
 
 class OrgSelectorAuthenticator : Authenticator {
     private val logger: Logger = Logger.getLogger(OrgSelectorAuthenticator::class.java)
@@ -32,8 +32,8 @@ class OrgSelectorAuthenticator : Authenticator {
 
         if (organizations.count() == 1) {
             logger.debugf(
-                    "Only one org configured, continuing with org: %s",
-                    organizations.first().alias
+                "Only one org configured, continuing with org: %s",
+                organizations.first().alias,
             )
             context.authenticationSession.setAuthNote(Details.ORG_ID, organizations.first().id)
             context.success()
@@ -52,9 +52,9 @@ class OrgSelectorAuthenticator : Authenticator {
         val organizations = getOrganizations(context)
         if (selectedOrg.isNullOrEmpty()) {
             createOrgSelectForm(
-                    context,
-                    organizations,
-                    "You must select a organization to continue"
+                context,
+                organizations,
+                "You must select a organization to continue",
             )
             return
         }
@@ -71,70 +71,69 @@ class OrgSelectorAuthenticator : Authenticator {
         }
 
         context.failure(
-                "Selected organization does not have permission to login to this application"
+            "Selected organization does not have permission to login to this application",
         )
     }
 
     private fun createOrgSelectForm(
-            context: AuthenticationFlowContext,
-            organizations: List<OrganizationModel>,
-            error: String? = null,
+        context: AuthenticationFlowContext,
+        organizations: List<OrganizationModel>,
+        error: String? = null,
     ) {
         val form =
-                context.form()
-                        .apply {
-                            if (!error.isNullOrEmpty()) {
-                                setError(error)
-                            }
-                            val orgDto =
-                                    organizations.map { org ->
-                                        val logo =
-                                                org.attributes[OrgHelper.ORG_LOGO_ATTRIBUTE]
-                                                        ?.first()
-                                        OrgDto(org.alias, org.name, logo)
-                                    }
-                            setAttribute("organizations", orgDto)
+            context
+                .form()
+                .apply {
+                    if (!error.isNullOrEmpty()) {
+                        setError(error)
+                    }
+                    val orgDto =
+                        organizations.map { org ->
+                            val logo =
+                                org.attributes[OrgHelper.ORG_LOGO_ATTRIBUTE]
+                                    ?.first()
+                            OrgDto(org.alias, org.name, logo)
                         }
-                        .createForm("flais-org-selector.ftl")
+                    setAttribute("organizations", orgDto)
+                }.createForm("flais-org-selector.ftl")
         context.challenge(form)
     }
 
     private fun getOrganizations(context: AuthenticationFlowContext): List<OrganizationModel> {
         val clientAttributes = context.authenticationSession.client.attributes
         val whitelisted =
-                clientAttributes[CLIENT_WHITELIST_ORGANIZATIONS_ATTRIBUTE]?.split(",")
-                        ?: emptyList()
+            clientAttributes[CLIENT_WHITELIST_ORGANIZATIONS_ATTRIBUTE]?.split(",")
+                ?: emptyList()
         val blacklisted =
-                clientAttributes[CLIENT_BLACKLIST_ORGANIZATIONS_ATTRIBUTE]?.split(",")
-                        ?: emptyList()
+            clientAttributes[CLIENT_BLACKLIST_ORGANIZATIONS_ATTRIBUTE]?.split(",")
+                ?: emptyList()
 
         val orgProvider =
-                context.session.getProvider(
-                        org.keycloak.organization.OrganizationProvider::class.java,
-                )
+            context.session.getProvider(
+                org.keycloak.organization.OrganizationProvider::class.java,
+            )
 
         return orgProvider
-                .allStream
-                .filter {
-                    (whitelisted.isEmpty() || whitelisted.contains(it.alias)) &&
-                            (blacklisted.isEmpty() || !blacklisted.contains(it.alias)) &&
-                            it.identityProviders.filter { idp -> idp.isEnabled }.count() > 0
-                }
-                .toList()
+            .allStream
+            .filter {
+                (whitelisted.isEmpty() || whitelisted.contains(it.alias)) &&
+                    (blacklisted.isEmpty() || !blacklisted.contains(it.alias)) &&
+                    it.identityProviders.filter { idp -> idp.isEnabled }.count() > 0
+            }.toList()
     }
 
     override fun requiresUser(): Boolean = false
 
     override fun configuredFor(
-            session: KeycloakSession,
-            realm: RealmModel,
-            user: UserModel,
+        session: KeycloakSession,
+        realm: RealmModel,
+        user: UserModel,
     ): Boolean = true
 
     override fun setRequiredActions(
-            session: KeycloakSession,
-            realm: RealmModel,
-            user: UserModel,
+        session: KeycloakSession,
+        realm: RealmModel,
+        user: UserModel,
     ) {
         // No required actions needed
     }

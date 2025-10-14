@@ -18,7 +18,6 @@ class FlaisBrowserFlowTest {
     private val orgAlias = "telemark"
     private val idpAlias = "entra-telemark"
 
-
     @Test
     fun `flow returns code after login`(env: KcComposeEnvironment) {
         loginWithUser(env, clientId, orgAlias, idpAlias, email, password).use { resp ->
