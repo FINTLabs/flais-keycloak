@@ -28,4 +28,6 @@ tasks.test {
     systemProperty("org.slf4j.simpleLogger.defaultLogLevel", "warn")
     systemProperty("project.rootDir", rootProject.projectDir.absolutePath)
     environment("KEYCLOAK_VERSION", libs.versions.keycloak.get())
+
+    dependsOn("ktlintCheck")
 }

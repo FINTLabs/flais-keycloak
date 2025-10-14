@@ -1,12 +1,11 @@
-package no.fintlabs.application
+package no.fintlabs.application.flows
 
 import no.fintlabs.extensions.KcEnvExtension
 import no.fintlabs.utils.KcComposeEnvironment
-import no.fintlabs.utils.KcFlowUtils.loginWithUser
-import no.fintlabs.utils.KcFlowUtils.openOrgSelector
+import no.fintlabs.utils.KcFlow.loginWithUser
+import no.fintlabs.utils.KcFlow.openAuthUrl
 import no.fintlabs.utils.KcHttpClient
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertNotNull
+import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 
@@ -21,9 +20,9 @@ class FlaisBrowserFlowTest {
     @Test
     fun `flow returns code after login`(env: KcComposeEnvironment) {
         loginWithUser(env, clientId, orgAlias, idpAlias, email, password).use { resp ->
-            assertEquals(200, resp.code)
+            Assertions.assertEquals(200, resp.code)
 
-            assertNotNull(resp.request.url.queryParameter("code"))
+            Assertions.assertNotNull(resp.request.url.queryParameter("code"))
         }
     }
 
@@ -32,12 +31,12 @@ class FlaisBrowserFlowTest {
         val client = KcHttpClient.create(followRedirects = true)
 
         loginWithUser(env, clientId, orgAlias, idpAlias, email, password, client).use { resp ->
-            assertEquals(200, resp.code)
+            Assertions.assertEquals(200, resp.code)
 
-            openOrgSelector(env, clientId, client).use { resp ->
-                assertEquals(200, resp.code)
+            openAuthUrl(env = env, clientId = clientId, httpClient = client).use { resp ->
+                Assertions.assertEquals(200, resp.code)
 
-                assertNotNull(resp.request.url.queryParameter("code"))
+                Assertions.assertNotNull(resp.request.url.queryParameter("code"))
             }
         }
     }

@@ -1,11 +1,10 @@
-package no.fintlabs.application
+package no.fintlabs.application.flows
 
 import no.fintlabs.extensions.KcEnvExtension
 import no.fintlabs.utils.KcAdminClient
 import no.fintlabs.utils.KcComposeEnvironment
-import no.fintlabs.utils.KcFlowUtils.loginWithUser
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertTrue
+import no.fintlabs.utils.KcFlow.loginWithUser
+import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertNotNull
 import org.junit.jupiter.api.extension.ExtendWith
@@ -26,14 +25,14 @@ class FlaisFirstBrokerLoginFlowTest {
             KcAdminClient.findUserByEmail(realmRes, email)?.let { KcAdminClient.deleteUser(realmRes, it.id) }
 
             loginWithUser(env, clientId, orgAlias, idpAlias, email, password).use { resp ->
-                assertEquals(200, resp.code)
+                Assertions.assertEquals(200, resp.code)
 
                 val user = KcAdminClient.findUserByEmail(realmRes, email)
                 assertNotNull(user)
 
                 val links = KcAdminClient.getFederatedIdentities(realmRes, user.id)
-                assertTrue(links.any { it.identityProvider == idpAlias })
-                assertEquals(
+                Assertions.assertTrue(links.any { it.identityProvider == idpAlias })
+                Assertions.assertEquals(
                     1,
                     links.count { it.identityProvider == idpAlias },
                 )
