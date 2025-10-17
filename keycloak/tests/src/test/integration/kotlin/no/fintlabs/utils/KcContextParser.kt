@@ -16,14 +16,8 @@ import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
  *
  * Keycloak themes embed a JavaScript variable `kcContext` into the rendered HTML.
  * This object contains information about the page (e.g. error state, IDP providers,
- * form actions). Tests can use it to assert that the correct Keycloak page was shown
+ * form actions). Tests use it to assert that the correct Keycloak page was shown
  * without needing to simulate a full browser.
- *
- * Workflow:
- * - Uses a regex to find `const kcContext = { ... };` inside the HTML.
- * - Cleans up the snippet to ensure it's valid JSON (e.g. removes trailing commas,
- *   replaces inline function references).
- * - Deserializes it into the [KcContext] data class using kotlinx.serialization.
  */
 object KcContextParser {
     object HttpUrlAsStringSerializer : KSerializer<HttpUrl> {

@@ -7,7 +7,7 @@ import okhttp3.Request
 import okhttp3.Response
 
 /**
- * Utility functions for simplified Keycloak login flows in integration tests.
+ * Utility functions to simplify Keycloak login flows in integration tests.
  */
 object KcFlow {
     private fun resolveClient(httpClient: OkHttpClient?) = httpClient ?: KcHttpClient.create()

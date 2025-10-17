@@ -9,14 +9,7 @@ import java.time.Duration
 /**
  * Testcontainers-based environment for running Keycloak and related providers in integration tests.
  *
- * This class wraps a Docker Compose file that brings up:
- *  - A Keycloak instance (with both management and service ports exposed).
- *  - PG database for the Keycloak instance.
- *  - Multiple Dex identity provider containers for simulating external IDPs.
- *
- * Usage:
- *  - Call [start] to bring up the Docker Compose environment.
- *  - Use the service URL getters (e.g. [keycloakServiceUrl], [dexTelemarkUrl]) inside tests.
+ * Simplifies the process of setting up the environment in tests.
  */
 class KcComposeEnvironment(
     composeFile: File = File("../docker-compose.yaml"),

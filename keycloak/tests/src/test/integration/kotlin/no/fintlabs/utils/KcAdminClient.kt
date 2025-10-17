@@ -6,6 +6,13 @@ import org.keycloak.admin.client.resource.RealmResource
 import org.keycloak.representations.idm.FederatedIdentityRepresentation
 import org.keycloak.representations.idm.UserRepresentation
 
+/**
+ * Utility object for interacting with a Keycloak instance using the Keycloak Admin Client.
+ *
+ * This object provides helper functions for connecting to a Keycloak server,
+ * performing common administrative operations such as finding and deleting users,
+ * and retrieving federated identity information.
+ */
 object KcAdminClient {
     private const val ADMIN_REALM = "master"
     private const val ADMIN_CLIENT_ID = "admin-cli"

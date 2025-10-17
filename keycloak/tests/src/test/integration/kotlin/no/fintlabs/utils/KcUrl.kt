@@ -10,7 +10,7 @@ import java.util.Base64
  * Utility functions for constructing Keycloak-related URLs in integration tests.
  *
  * These helpers generate URLs for starting standard OpenID Connect flows
- * against the Keycloak instance running in [KcComposeEnvironment].
+ * against the Keycloak instance.
  *
  * Notes:
  * - The values are fixed for the dev/test environment (client_id, redirect_uri, etc.).
