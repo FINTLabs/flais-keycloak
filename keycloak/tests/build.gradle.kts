@@ -23,6 +23,17 @@ dependencies {
     testImplementation(libs.okhttp)
 }
 
+sourceSets {
+    @Suppress("UNUSED_VARIABLE")
+    val test by getting {
+        java.setSrcDirs(
+            listOf(
+                "src/test/integration/kotlin",
+            ),
+        )
+        resources.srcDir("src/test/resources")
+    }
+}
 tasks.test {
     useJUnitPlatform()
     systemProperty("org.slf4j.simpleLogger.defaultLogLevel", "warn")
