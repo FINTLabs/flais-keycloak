@@ -1,5 +1,7 @@
 plugins {
-    kotlin("jvm")
+    alias(libs.plugins.kotlin.jvm)
+    alias(libs.plugins.kotlin.serialization)
+    alias(libs.plugins.ktlint)
 }
 
 group = "no.fintlabs"
@@ -13,15 +15,30 @@ dependencies {
     testRuntimeOnly(libs.junit.platform.launcher)
     testRuntimeOnly(libs.slf4j.simple)
 
+    testImplementation(libs.keycloak.admin.client)
     testImplementation(libs.junit.jupiter)
     testImplementation(libs.testcontainers.core)
     testImplementation(libs.testcontainers.junit.jupiter)
-
+    testImplementation(libs.kotlinx.serialization.json)
     testImplementation(libs.okhttp)
 }
 
+sourceSets {
+    @Suppress("UNUSED_VARIABLE")
+    val test by getting {
+        java.setSrcDirs(
+            listOf(
+                "src/test/integration/kotlin",
+            ),
+        )
+        resources.srcDir("src/test/resources")
+    }
+}
 tasks.test {
     useJUnitPlatform()
     systemProperty("org.slf4j.simpleLogger.defaultLogLevel", "warn")
+    systemProperty("project.rootDir", rootProject.projectDir.absolutePath)
     environment("KEYCLOAK_VERSION", libs.versions.keycloak.get())
+
+    dependsOn("ktlintCheck")
 }

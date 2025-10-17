@@ -8,9 +8,9 @@ import org.keycloak.models.RoleModel
 
 object ClientHelper {
     const val CLIENT_BLACKLIST_ORGANIZATIONS_ATTRIBUTE: String =
-            "attributes.permission.blacklisted.organizations"
+        "permission.blacklisted.organizations"
     const val CLIENT_WHITELIST_ORGANIZATIONS_ATTRIBUTE: String =
-            "attributes.permission.whitelisted.organizations"
+        "permission.whitelisted.organizations"
 
     private val logger: Logger = Logger.getLogger(ClientHelper::class.java)
 
@@ -18,12 +18,12 @@ object ClientHelper {
         val client = context.authenticationSession.client
 
         return client.getRole("organizations")
-                ?: run { throw NotFoundException("client missing required role 'organizations'") }
+            ?: run { throw NotFoundException("client missing required role 'organizations'") }
     }
 
     fun hasAccessToIdp(
-            context: AuthenticationFlowContext,
-            idp: IdentityProviderModel,
+        context: AuthenticationFlowContext,
+        idp: IdentityProviderModel,
     ): Boolean {
         try {
             val client = context.authenticationSession.client

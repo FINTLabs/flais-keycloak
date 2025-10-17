@@ -21,30 +21,32 @@ class OrgIdpSelectorAuthenticator : Authenticator {
         }
 
         val idps =
-                context.session
-                        .identityProviders()
-                        .allStream
-                        .filter { idp -> idp.isEnabled && idp.organizationId == selectedOrg }
-                        .toList()
+            context.session
+                .identityProviders()
+                .allStream
+                .filter { idp -> idp.isEnabled && idp.organizationId == selectedOrg }
+                .toList()
         when (idps.size) {
             0 -> context.failure("The selected organization does not have any login options")
             1 -> {
                 logger.debugf(
-                        "Only one identity provider available, continuing with provider: %s",
-                        idps.first().alias
+                    "Only one identity provider available, continuing with provider: %s",
+                    idps.first().alias,
                 )
                 context.authenticationSession.setAuthNote(
-                        Details.IDENTITY_PROVIDER,
-                        idps.first().internalId
+                    Details.IDENTITY_PROVIDER,
+                    idps.first().internalId,
                 )
                 context.success()
             }
+
             else -> {
                 val idpsDto = idps.map { IdpDto(it.alias, it.displayName) }
                 val form =
-                        context.form()
-                                .setAttribute("providers", idpsDto)
-                                .createForm("flais-org-idp-selector.ftl")
+                    context
+                        .form()
+                        .setAttribute("providers", idpsDto)
+                        .createForm("flais-org-idp-selector.ftl")
                 context.challenge(form)
             }
         }
@@ -67,9 +69,10 @@ class OrgIdpSelectorAuthenticator : Authenticator {
             !idp.isEnabled -> context.failure("The selected identity provider is not enabled")
             idp.organizationId != selectedOrg -> {
                 context.failure(
-                        "The selected identity provider is not registered to the selected organization"
+                    "The selected identity provider is not registered to the selected organization",
                 )
             }
+
             else -> {
                 context.authenticationSession.setAuthNote(Details.IDENTITY_PROVIDER, idp.internalId)
                 context.success()
@@ -80,15 +83,15 @@ class OrgIdpSelectorAuthenticator : Authenticator {
     override fun requiresUser(): Boolean = false
 
     override fun configuredFor(
-            session: KeycloakSession,
-            realm: RealmModel,
-            user: UserModel,
+        session: KeycloakSession,
+        realm: RealmModel,
+        user: UserModel,
     ): Boolean = true
 
     override fun setRequiredActions(
-            session: KeycloakSession,
-            realm: RealmModel,
-            user: UserModel,
+        session: KeycloakSession,
+        realm: RealmModel,
+        user: UserModel,
     ) = Unit
 
     override fun close() = Unit

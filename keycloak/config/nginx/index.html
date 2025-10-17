@@ -1,0 +1,15 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>flais-keycloak-demo</title></head>
+<body>
+<h1>flais-keycloak-demo</h1>
+<pre id="out"></pre>
+<script>
+  const params = new URLSearchParams(window.location.search)
+  document.getElementById('out').textContent =
+    JSON.stringify(Object.fromEntries(params.entries()), null, 2)
+</script>
+</body>
+</html>
