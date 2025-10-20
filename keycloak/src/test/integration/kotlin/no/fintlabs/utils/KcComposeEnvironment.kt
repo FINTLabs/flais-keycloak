@@ -12,7 +12,7 @@ import java.time.Duration
  * Simplifies the process of setting up the environment in tests.
  */
 class KcComposeEnvironment(
-    composeFile: File = File("../docker-compose.yaml"),
+    composeFile: File = File("./docker-compose.yaml"),
 ) : AutoCloseable {
     private val compose: ComposeContainer =
         ComposeContainer(composeFile).apply {

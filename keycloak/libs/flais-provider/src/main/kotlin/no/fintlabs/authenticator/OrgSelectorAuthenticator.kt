@@ -1,10 +1,10 @@
 package no.fintlabs.authenticator
 
+import no.fintlabs.access.ClientAccess.CLIENT_BLACKLIST_ORGANIZATIONS_ATTRIBUTE
+import no.fintlabs.access.ClientAccess.CLIENT_WHITELIST_ORGANIZATIONS_ATTRIBUTE
+import no.fintlabs.access.OrgAccess
 import no.fintlabs.dtos.OrgDto
-import no.fintlabs.helpers.ClientHelper.CLIENT_BLACKLIST_ORGANIZATIONS_ATTRIBUTE
-import no.fintlabs.helpers.ClientHelper.CLIENT_WHITELIST_ORGANIZATIONS_ATTRIBUTE
-import no.fintlabs.helpers.FailureHelper.failure
-import no.fintlabs.helpers.OrgHelper
+import no.fintlabs.flow.AuthenticationErrorHandler.failure
 import org.jboss.logging.Logger
 import org.keycloak.authentication.AuthenticationFlowContext
 import org.keycloak.authentication.Authenticator
@@ -90,7 +90,7 @@ class OrgSelectorAuthenticator : Authenticator {
                     val orgDto =
                         organizations.map { org ->
                             val logo =
-                                org.attributes[OrgHelper.ORG_LOGO_ATTRIBUTE]
+                                org.attributes[OrgAccess.ORG_LOGO_ATTRIBUTE]
                                     ?.first()
                             OrgDto(org.alias, org.name, logo)
                         }

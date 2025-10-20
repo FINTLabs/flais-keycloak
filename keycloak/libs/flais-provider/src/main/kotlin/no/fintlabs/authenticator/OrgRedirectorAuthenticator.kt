@@ -1,6 +1,6 @@
 package no.fintlabs.authenticator
 
-import no.fintlabs.helpers.FailureHelper.failure
+import no.fintlabs.flow.AuthenticationErrorHandler.failure
 import org.jboss.logging.Logger
 import org.keycloak.authentication.AuthenticationFlowContext
 import org.keycloak.authentication.authenticators.browser.IdentityProviderAuthenticator
