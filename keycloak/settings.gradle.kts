@@ -8,7 +8,3 @@ pluginManagement {
 }
 
 include(":libs:flais-provider")
-
-if (file("tests").isDirectory) {
-    include(":tests")
-}

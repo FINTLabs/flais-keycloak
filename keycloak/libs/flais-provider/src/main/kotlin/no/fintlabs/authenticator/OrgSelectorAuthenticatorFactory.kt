@@ -9,7 +9,9 @@ import org.keycloak.models.KeycloakSession
 import org.keycloak.models.KeycloakSessionFactory
 import org.keycloak.provider.ProviderConfigProperty
 
-class OrgSelectorAuthenticatorFactory : AuthenticatorFactory, ConfigurableAuthenticatorFactory {
+class OrgSelectorAuthenticatorFactory :
+    AuthenticatorFactory,
+    ConfigurableAuthenticatorFactory {
     private val providerId: String = "org-selector-authenticator"
     private val orgSelectorAuthenticator: OrgSelectorAuthenticator = OrgSelectorAuthenticator()
 
@@ -36,15 +38,14 @@ class OrgSelectorAuthenticatorFactory : AuthenticatorFactory, ConfigurableAuthen
     override fun isConfigurable(): Boolean = true
 
     override fun getRequirementChoices(): Array<out AuthenticationExecutionModel.Requirement> =
-            arrayOf(
-                    AuthenticationExecutionModel.Requirement.REQUIRED,
-                    AuthenticationExecutionModel.Requirement.ALTERNATIVE
-            )
+        arrayOf(
+            AuthenticationExecutionModel.Requirement.REQUIRED,
+            AuthenticationExecutionModel.Requirement.ALTERNATIVE,
+        )
 
     override fun isUserSetupAllowed(): Boolean = true
 
-    override fun getHelpText(): String =
-            "Allows selecting an organization that user should log in with"
+    override fun getHelpText(): String = "Allows selecting an organization that user should log in with"
 
     override fun getConfigProperties(): List<ProviderConfigProperty> = mutableListOf()
 }

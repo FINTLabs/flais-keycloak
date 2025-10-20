@@ -3,9 +3,10 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    alias(libs.plugins.kotlin.jvm)
     `java-library`
+    alias(libs.plugins.kotlin.jvm)
     alias(libs.plugins.shadow)
+    alias(libs.plugins.ktlint)
 }
 
 group = "no.fintlabs"

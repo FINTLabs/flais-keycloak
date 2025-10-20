@@ -5,6 +5,7 @@
   "loginWithEmailAllowed": false,
   "organizationsEnabled": true,
   "browserFlow": "flais-browser",
+  "firstBrokerLoginFlow": "flais-first-broker-login",
   "loginTheme": "flais-theme",
   "components": {
     "org.keycloak.userprofile.UserProfileProvider": [
@@ -24,14 +25,14 @@
     {
       "id": "11e52313-46c4-4454-9c93-d3a0b186b7f0",
       "name": "ID-Porten",
-      "alias": "ID-Porten",
+      "alias": "idporten",
       "enabled": true,
       "description": "",
       "attributes": {},
       "domains": [
         {
-          "name": "idporten.no",
-          "verified": false
+          "name": "id-porten.no",
+          "verified": true
         }
       ],
       "identityProviders": [
@@ -50,21 +51,76 @@
       ]
     },
     {
+      "id": "1985b29e-f1b0-43c7-8e4e-ef61bccfbefc",
+      "name": "Rogaland",
+      "alias": "rogaland",
+      "enabled": true,
+      "description": "",
+      "attributes": {},
+      "domains": [
+        {
+          "name": "rogaland.no",
+          "verified": true
+        }
+      ],
+      "identityProviders": [
+        {
+          "alias": "entra-rogaland",
+          "enabled": true,
+          "updateProfileFirstLoginMode": "on",
+          "trustEmail": false,
+          "storeToken": false,
+          "addReadTokenRoleOnCreate": false,
+          "authenticateByDefault": false,
+          "linkOnly": false,
+          "hideOnLogin": false,
+          "config": {}
+        }
+      ]
+    },
+    {
+      "id": "e44362dc-b31c-4f54-9bf7-26945dd29716",
+      "name": "Innlandet",
+      "alias": "innlandet",
+      "enabled": true,
+      "description": "",
+      "attributes": {},
+      "domains": [
+        {
+          "name": "innlandet.no",
+          "verified": true
+        }
+      ],
+      "identityProviders": []
+    },
+    {
       "id": "d46586ca-9cbb-46c8-924c-061aaef9925e",
       "name": "Telemark",
-      "alias": "Telemark",
+      "alias": "telemark",
       "enabled": true,
       "description": "",
       "attributes": {},
       "domains": [
         {
           "name": "telemark.no",
-          "verified": false
+          "verified": true
         }
       ],
       "identityProviders": [
         {
           "alias": "entra-telemark",
+          "enabled": true,
+          "updateProfileFirstLoginMode": "on",
+          "trustEmail": false,
+          "storeToken": false,
+          "addReadTokenRoleOnCreate": false,
+          "authenticateByDefault": false,
+          "linkOnly": false,
+          "hideOnLogin": false,
+          "config": {}
+        },
+        {
+          "alias": "entra-telemark-alt",
           "enabled": true,
           "updateProfileFirstLoginMode": "on",
           "trustEmail": false,
@@ -89,8 +145,88 @@
       "standardFlowEnabled": true,
       "implicitFlowEnabled": false,
       "attributes": {},
-      "redirectUris": ["http://localhost:3000/*"],
-      "webOrigins": ["+"]
+      "redirectUris": [
+        "http://localhost:3000/*"
+      ],
+      "webOrigins": [
+        "+"
+      ]
+    },
+    {
+      "clientId": "flais-keycloak-demo-telemark",
+      "enabled": true,
+      "publicClient": true,
+      "protocol": "openid-connect",
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false,
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "attributes": {
+        "permission.whitelisted.organizations": "telemark"
+      },
+      "redirectUris": [
+        "http://localhost:3000/*"
+      ],
+      "webOrigins": [
+        "+"
+      ]
+    },
+    {
+      "clientId": "flais-keycloak-demo-idporten",
+      "enabled": true,
+      "publicClient": true,
+      "protocol": "openid-connect",
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false,
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "attributes": {
+        "permission.whitelisted.organizations": "idporten"
+      },
+      "redirectUris": [
+        "http://localhost:3000/*"
+      ],
+      "webOrigins": [
+        "+"
+      ]
+    },
+    {
+      "clientId": "flais-keycloak-demo-entra",
+      "enabled": true,
+      "publicClient": true,
+      "protocol": "openid-connect",
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false,
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "attributes": {
+        "permission.blacklisted.organizations": "idporten"
+      },
+      "redirectUris": [
+        "http://localhost:3000/*"
+      ],
+      "webOrigins": [
+        "+"
+      ]
+    },
+    {
+      "clientId": "flais-keycloak-demo-invalid",
+      "enabled": true,
+      "publicClient": true,
+      "protocol": "openid-connect",
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false,
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "attributes": {
+        "permission.whitelisted.organizations": "invalid-org"
+      },
+      "redirectUris": [
+        "http://localhost:3000/*"
+      ],
+      "webOrigins": [
+        "+"
+      ]
     }
   ],
   "identityProviders": [
@@ -99,7 +235,6 @@
       "displayName": "Entra telemark (Dex)",
       "providerId": "oidc",
       "enabled": true,
-      "firstBrokerLoginFlowAlias": "first broker login",
       "storeToken": true,
       "trustEmail": true,
       "authenticateByDefault": false,
@@ -113,7 +248,53 @@
         "userinfoUrl": "http://dex-entra-telemark:5556/dex/userinfo",
         "jwksUrl": "http://dex-entra-telemark:5556/dex/keys",
         "useJwksUrl": "true",
-        "defaultScope": "openid profile",
+        "defaultScope": "openid email profile",
+        "validateSignature": "true",
+        "backchannelSupported": "true"
+      }
+    },
+    {
+      "alias": "entra-telemark-alt",
+      "displayName": "Entra telemark Alt (Dex)",
+      "providerId": "oidc",
+      "enabled": true,
+      "storeToken": true,
+      "trustEmail": true,
+      "authenticateByDefault": false,
+      "linkOnly": false,
+      "config": {
+        "clientId": "test-app",
+        "clientSecret": "test-secret",
+        "authorizationUrl": "http://localhost:5556/dex/auth",
+        "issuer": "http://dex-entra-telemark-alt:5556/dex",
+        "tokenUrl": "http://dex-entra-telemark-alt:5556/dex/token",
+        "userinfoUrl": "http://dex-entra-telemark-alt:5556/dex/userinfo",
+        "jwksUrl": "http://dex-entra-telemark-alt:5556/dex/keys",
+        "useJwksUrl": "true",
+        "defaultScope": "openid email profile",
+        "validateSignature": "true",
+        "backchannelSupported": "true"
+      }
+    },
+    {
+      "alias": "entra-rogaland",
+      "displayName": "Entra Rogaland (Dex)",
+      "providerId": "oidc",
+      "enabled": true,
+      "storeToken": true,
+      "trustEmail": true,
+      "authenticateByDefault": false,
+      "linkOnly": false,
+      "config": {
+        "clientId": "test-app",
+        "clientSecret": "test-secret",
+        "authorizationUrl": "http://localhost:5556/dex/auth",
+        "issuer": "http://dex-entra-rogaland:5556/dex",
+        "tokenUrl": "http://dex-entra-rogaland:5556/dex/token",
+        "userinfoUrl": "http://dex-entra-rogaland:5556/dex/userinfo",
+        "jwksUrl": "http://dex-entra-rogaland:5556/dex/keys",
+        "useJwksUrl": "true",
+        "defaultScope": "openid email profile",
         "validateSignature": "true",
         "backchannelSupported": "true"
       }
@@ -123,7 +304,6 @@
       "displayName": "ID-porten (Dex)",
       "providerId": "oidc",
       "enabled": true,
-      "firstBrokerLoginFlowAlias": "first broker login",
       "storeToken": true,
       "trustEmail": true,
       "authenticateByDefault": false,
@@ -137,7 +317,7 @@
         "userinfoUrl": "http://dex-idporten:5556/dex/userinfo",
         "jwksUrl": "http://dex-idporten:5556/dex/keys",
         "useJwksUrl": "true",
-        "defaultScope": "openid profile",
+        "defaultScope": "openid email profile",
         "validateSignature": "true",
         "backchannelSupported": "true"
       }
@@ -147,7 +327,7 @@
   "authenticationFlows": [
     {
       "id": "9df3ddef-b8d6-4c18-9c83-e3bf506b22d9",
-      "alias": "flais-first-broker-login ",
+      "alias": "flais-first-broker-login",
       "description": "Actions taken after first broker login with identity provider account, which is not yet linked to any Keycloak account",
       "providerId": "basic-flow",
       "topLevel": true,
@@ -166,14 +346,14 @@
           "requirement": "CONDITIONAL",
           "priority": 51,
           "autheticatorFlow": true,
-          "flowAlias": "flais-first-broker-login  First Broker Login - Conditional Organization",
+          "flowAlias": "flais-first-broker-login First Broker Login - Conditional Organization",
           "userSetupAllowed": false
         }
       ]
     },
     {
       "id": "df273fa6-79d5-4085-bf89-54c598b5a724",
-      "alias": "flais-first-broker-login  First Broker Login - Conditional Organization",
+      "alias": "flais-first-broker-login First Broker Login - Conditional Organization",
       "description": "Flow to determine if the authenticator that adds organization members is to be used",
       "providerId": "basic-flow",
       "topLevel": false,

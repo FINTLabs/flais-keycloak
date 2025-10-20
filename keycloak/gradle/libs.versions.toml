@@ -1,31 +1,44 @@
 [versions]
 kotlin = "2.2.20"
 keycloak = "26.4.0"
+kc-admin = "26.0.7"
 shadow = "9.2.2"
+ktlint = "13.1.0"
+gradle-versions = "0.53.0"
+docker-compose = "0.17.13"
 
 junit = "6.0.0"
 junit-platform = "6.0.0"
 testcontainers = "1.21.3"
+kotlinx-serialization-json = "1.9.0"
 slf4j = "2.0.16"
 okhttp = "5.1.0"
 
 [libraries]
 kotlin-stdlib = { module = "org.jetbrains.kotlin:kotlin-stdlib", version.ref = "kotlin" }
 
-keycloak-core             = { module = "org.keycloak:keycloak-core",              version.ref = "keycloak" }
-keycloak-services         = { module = "org.keycloak:keycloak-services",          version.ref = "keycloak" }
-keycloak-server-spi       = { module = "org.keycloak:keycloak-server-spi",        version.ref = "keycloak" }
-keycloak-server-spi-priv  = { module = "org.keycloak:keycloak-server-spi-private",version.ref = "keycloak" }
+keycloak-core = { module = "org.keycloak:keycloak-core", version.ref = "keycloak" }
+keycloak-services = { module = "org.keycloak:keycloak-services", version.ref = "keycloak" }
+keycloak-server-spi = { module = "org.keycloak:keycloak-server-spi", version.ref = "keycloak" }
+keycloak-server-spi-priv = { module = "org.keycloak:keycloak-server-spi-private", version.ref = "keycloak" }
 
-junit-jupiter            = { module = "org.junit.jupiter:junit-jupiter",            version.ref = "junit" }
-junit-platform-launcher  = { module = "org.junit.platform:junit-platform-launcher", version.ref = "junit-platform" }
+keycloak-admin-client = { module = "org.keycloak:keycloak-admin-client", version.ref = "kc-admin" }
 
-testcontainers-core             = { module = "org.testcontainers:testcontainers",     version.ref = "testcontainers" }
-testcontainers-junit-jupiter    = { module = "org.testcontainers:junit-jupiter",     version.ref = "testcontainers" }
+junit-jupiter = { module = "org.junit.jupiter:junit-jupiter", version.ref = "junit" }
+junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher", version.ref = "junit-platform" }
 
-slf4j-simple             = { module = "org.slf4j:slf4j-simple",                    version.ref = "slf4j" }
-okhttp                   = { module = "com.squareup.okhttp3:okhttp",               version.ref = "okhttp" }
+testcontainers-core = { module = "org.testcontainers:testcontainers", version.ref = "testcontainers" }
+testcontainers-junit-jupiter = { module = "org.testcontainers:junit-jupiter", version.ref = "testcontainers" }
+
+kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinx-serialization-json" }
+
+slf4j-simple = { module = "org.slf4j:slf4j-simple", version.ref = "slf4j" }
+okhttp = { module = "com.squareup.okhttp3:okhttp", version.ref = "okhttp" }
 
 [plugins]
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
-shadow     = { id = "com.gradleup.shadow",      version.ref = "shadow" }
+kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
+shadow = { id = "com.gradleup.shadow", version.ref = "shadow" }
+ktlint = { id = "org.jlleitschuh.gradle.ktlint", version.ref = "ktlint" }
+gradle-versions = { id = "com.github.ben-manes.versions", version.ref = "gradle-versions" }
+docker-compose = { id = "com.avast.gradle.docker-compose", version.ref = "docker-compose" }
