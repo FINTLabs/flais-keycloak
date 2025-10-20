@@ -85,6 +85,31 @@ class OrgIdpSelectorTest {
     }
 
     @Test
+    fun `org (telemark) login with idp from org (rogaland) returns error`(env: KcComposeEnvironment) {
+        val client = KcHttpClient.create()
+        selectOrgAndContinueToIdpSelector(env, "flais-keycloak-demo", "telemark", client).use { resp ->
+            Assertions.assertEquals(200, resp.code)
+
+            val html = resp.body.string()
+            val kc = KcContextParser.parseKcContext(html)
+
+            continueFromIdpSelector(kc.url.loginAction!!, "entra-rogaland", client).use { idpResponse ->
+                Assertions.assertEquals(200, idpResponse.code)
+
+                val responseHtml = idpResponse.body.string()
+                val responseKc = KcContextParser.parseKcContext(responseHtml)
+
+                Assertions.assertEquals("error", responseKc.pageId)
+                Assertions.assertEquals("error", responseKc.message!!.type)
+                Assertions.assertEquals(
+                    "The selected identity provider is not registered to the selected organization",
+                    responseKc.message.summary,
+                )
+            }
+        }
+    }
+
+    @Test
     fun `org (telemark) with multiple IDPs returns IDPs`(env: KcComposeEnvironment) {
         selectOrgAndContinueToIdpSelector(env, "flais-keycloak-demo", "telemark").use { resp ->
             Assertions.assertEquals(200, resp.code)
