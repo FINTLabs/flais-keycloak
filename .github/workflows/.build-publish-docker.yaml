@@ -30,6 +30,9 @@ env:
 jobs:
   publish:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
     outputs:
       image_tags: ${{ steps.meta.outputs.tags }}
     steps:
