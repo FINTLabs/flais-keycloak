@@ -13,17 +13,17 @@ COPY gradlew gradlew
 COPY gradlew.bat gradlew.bat
 
 RUN --mount=type=cache,target=/home/gradle/.gradle \
-    ./gradlew --no-daemon --version
+    ./gradlew --no-daemon -PskipScimServer=true --version
 
 COPY libs/flais-provider/build.gradle.kts libs/flais-provider/
 
 RUN --mount=type=cache,target=/home/gradle/.gradle \
-    ./gradlew --no-daemon :libs:flais-provider:dependencies
+    ./gradlew --no-daemon -PskipScimServer=true :libs:flais-provider:dependencies
 
 COPY libs/flais-provider/src libs/flais-provider/src
 
 RUN --mount=type=cache,target=/home/gradle/.gradle \
-    gradle --no-daemon --configuration-cache build
+    gradle --no-daemon -PskipScimServer=true --configuration-cache build
 
 # ---------------------------
 # Stage: FLAIS theme builder
@@ -55,6 +55,7 @@ ENV KC_METRICS_ENABLED=true
 
 COPY --from=flais-provider-builder /flais-provider/libs/flais-provider/build/libs/*.jar /opt/keycloak/providers/
 COPY --from=flais-theme-builder /flais-theme/dist_keycloak/flais-theme.jar /opt/keycloak/providers/
+COPY libs/scim-server/*.jar /opt/keycloak/providers/
 
 RUN /opt/keycloak/bin/kc.sh build
 
