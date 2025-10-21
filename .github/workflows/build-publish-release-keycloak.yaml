@@ -1,56 +1,58 @@
 name: Flais Keycloak - Build, publish and release
 
 on:
-  workflow_dispatch:
-    inputs:
-      environment:
-        description: "Select environment"
-        required: true
-        default: "test"
-        type: choice
-        options:
-          - test
-          - prod
+    workflow_dispatch:
+        inputs:
+            environment:
+                description: "Select environment"
+                required: true
+                default: "test"
+                type: choice
+                options:
+                    - test
+                    - prod
 
 permissions:
-  contents: write
-  packages: write
+    contents: write
+    packages: write
 
 jobs:
-  keycloak-version:
-    name: Read Keycloak version
-    uses: ./.github/workflows/.extract-keycloak-version.yaml
-    with:
-      libs_versions_path: ./keycloak/gradle/libs.versions.toml
-    secrets: inherit
+    keycloak-version:
+        name: Read Keycloak version
+        uses: ./.github/workflows/.extract-version.yaml
+        with:
+            libs_versions_path: ./keycloak/gradle/libs.versions.toml
+            lib_name: "keycloak"
+        secrets: inherit
 
-  build-publish:
-    name: Build and Publish Flais Keycloak
-    uses: ./.github/workflows/.build-publish-docker.yaml
-    needs: keycloak-version
-    secrets: inherit
-    with:
-      image_name: ${{ github.repository }}
-      context: ./keycloak
-      environment: ${{ inputs.environment }}
-      keycloak_version: ${{ needs.keycloak-version.outputs.keycloak_version }}
+    build-publish:
+        name: Build and Publish Flais Keycloak
+        uses: ./.github/workflows/.build-publish-docker.yaml
+        needs:
+            - keycloak-version
+        secrets: inherit
+        with:
+            image_name: ${{ github.repository }}
+            context: ./keycloak
+            environment: ${{ inputs.environment }}
+            keycloak_version: ${{ needs.keycloak-version.outputs.version }}
 
-  publish-chart:
-    name: Publish Flais Keycloak Helm Chart
-    needs: build-publish
-    uses: ./.github/workflows/.chart-publish.yaml
-    with:
-      image_tags: ${{ needs.build-publish.outputs.image_tags }}
-      chart_name: ${{ github.event.repository.name }}
-    secrets: inherit
+    publish-chart:
+        name: Publish Flais Keycloak Helm Chart
+        needs: build-publish
+        uses: ./.github/workflows/.chart-publish.yaml
+        with:
+            image_tags: ${{ needs.build-publish.outputs.image_tags }}
+            chart_name: ${{ github.event.repository.name }}
+        secrets: inherit
 
-  create-release:
-    name: Create release for Flais Keycloak
-    if: inputs.environment == 'prod' && github.ref == 'refs/heads/main'
-    uses: ./.github/workflows/.create-release.yaml
-    needs:
-      - build-publish
-      - publish-chart
-    secrets: inherit
-    with:
-      image_tags: ${{ needs.build-publish.outputs.image_tags }}
+    create-release:
+        name: Create release for Flais Keycloak
+        if: inputs.environment == 'prod' && github.ref == 'refs/heads/main'
+        uses: ./.github/workflows/.create-release.yaml
+        needs:
+            - build-publish
+            - publish-chart
+        secrets: inherit
+        with:
+            image_tags: ${{ needs.build-publish.outputs.image_tags }}
