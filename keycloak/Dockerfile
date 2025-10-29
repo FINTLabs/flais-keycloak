@@ -28,7 +28,7 @@ RUN --mount=type=cache,target=/home/gradle/.gradle \
 # ---------------------------
 # Stage: FLAIS theme builder
 # ---------------------------
-FROM node:24-alpine AS flais-theme-builder
+FROM node:25-alpine AS flais-theme-builder
 WORKDIR /flais-theme
 
 RUN apk add --no-cache maven openjdk21-jdk
