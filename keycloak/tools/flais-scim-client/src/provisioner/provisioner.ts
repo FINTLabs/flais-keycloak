@@ -34,6 +34,12 @@ export class Provisioner {
             async (req: Request, res: Response) => {
                 const { orgId } = req.params;
 
+                if (!/^[a-zA-Z0-9_-]+$/.test(orgId)) {
+                    return res.status(400).json({
+                        message: "Invalid orgId.",
+                    });
+                }
+
                 try {
                     if (!Array.isArray(req.body)) {
                         return res.status(400).json({
