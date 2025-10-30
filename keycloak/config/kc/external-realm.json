@@ -1,441 +1,458 @@
 {
-  "realm": "external",
-  "enabled": true,
-  "registrationAllowed": false,
-  "loginWithEmailAllowed": false,
-  "organizationsEnabled": true,
-  "browserFlow": "flais-browser",
-  "firstBrokerLoginFlow": "flais-first-broker-login",
-  "loginTheme": "flais-theme",
-  "components": {
-    "org.keycloak.userprofile.UserProfileProvider": [
-      {
-        "id": "cc585e02-9ed8-40a2-a82d-a7c9570cd133",
-        "providerId": "declarative-user-profile",
-        "subComponents": {},
-        "config": {
-          "kc.user.profile.config": [
-            "{\"attributes\":[{\"name\":\"username\",\"displayName\":\"${username}\",\"validations\":{\"length\":{\"min\":3,\"max\":255},\"username-prohibited-characters\":{},\"up-username-not-idn-homograph\":{}},\"permissions\":{\"view\":[\"admin\",\"user\"],\"edit\":[\"admin\",\"user\"]},\"multivalued\":false},{\"name\":\"email\",\"displayName\":\"${email}\",\"validations\":{\"email\":{},\"length\":{\"max\":255}},\"permissions\":{\"view\":[\"admin\",\"user\"],\"edit\":[\"admin\",\"user\"]},\"multivalued\":false},{\"name\":\"firstName\",\"displayName\":\"${firstName}\",\"validations\":{\"length\":{\"max\":255},\"person-name-prohibited-characters\":{}},\"permissions\":{\"view\":[\"admin\",\"user\"],\"edit\":[\"admin\",\"user\"]},\"multivalued\":false},{\"name\":\"lastName\",\"displayName\":\"${lastName}\",\"validations\":{\"length\":{\"max\":255},\"person-name-prohibited-characters\":{}},\"permissions\":{\"view\":[\"admin\",\"user\"],\"edit\":[\"admin\",\"user\"]},\"multivalued\":false}],\"groups\":[{\"name\":\"user-metadata\",\"displayHeader\":\"User metadata\",\"displayDescription\":\"Attributes, which refer to user metadata\"}]}"
-          ]
+    "realm": "external",
+    "enabled": true,
+    "registrationAllowed": false,
+    "loginWithEmailAllowed": false,
+    "organizationsEnabled": true,
+    "browserFlow": "flais-browser",
+    "firstBrokerLoginFlow": "flais-first-broker-login",
+    "loginTheme": "flais-theme",
+    "roles": {
+        "realm": [
+            {
+                "id": "96ff6a14-560c-4675-a1db-8ca7c7eca48c",
+                "name": "scim-managed",
+                "description": "",
+                "composite": false,
+                "clientRole": false,
+                "containerId": "b82e65d7-70e5-46c5-8b7b-e9e15aa64eaf",
+                "attributes": {}
+            }
+        ]
+    },
+    "components": {
+        "org.keycloak.userprofile.UserProfileProvider": [
+            {
+                "id": "cc585e02-9ed8-40a2-a82d-a7c9570cd133",
+                "providerId": "declarative-user-profile",
+                "subComponents": {},
+                "config": {
+                    "kc.user.profile.config": [
+                        "{\"attributes\":[{\"name\":\"username\",\"displayName\":\"${username}\",\"validations\":{\"length\":{\"min\":3,\"max\":255},\"username-prohibited-characters\":{},\"up-username-not-idn-homograph\":{}},\"permissions\":{\"view\":[\"admin\",\"user\"],\"edit\":[\"admin\",\"user\"]},\"multivalued\":false},{\"name\":\"email\",\"displayName\":\"${email}\",\"validations\":{\"email\":{},\"length\":{\"max\":255}},\"permissions\":{\"view\":[\"admin\",\"user\"],\"edit\":[\"admin\",\"user\"]},\"multivalued\":false},{\"name\":\"firstName\",\"displayName\":\"${firstName}\",\"validations\":{\"length\":{\"max\":255},\"person-name-prohibited-characters\":{}},\"permissions\":{\"view\":[\"admin\",\"user\"],\"edit\":[\"admin\",\"user\"]},\"multivalued\":false},{\"name\":\"lastName\",\"displayName\":\"${lastName}\",\"validations\":{\"length\":{\"max\":255},\"person-name-prohibited-characters\":{}},\"permissions\":{\"view\":[\"admin\",\"user\"],\"edit\":[\"admin\",\"user\"]},\"multivalued\":false}],\"groups\":[{\"name\":\"user-metadata\",\"displayHeader\":\"User metadata\",\"displayDescription\":\"Attributes, which refer to user metadata\"}]}"
+                    ]
+                }
+            }
+        ]
+    },
+    "organizations": [
+        {
+            "id": "11e52313-46c4-4454-9c93-d3a0b186b7f0",
+            "name": "ID-Porten",
+            "alias": "idporten",
+            "enabled": true,
+            "description": "",
+            "attributes": {},
+            "domains": [
+                {
+                    "name": "id-porten.no",
+                    "verified": true
+                }
+            ],
+            "identityProviders": [
+                {
+                    "alias": "idporten",
+                    "enabled": true,
+                    "updateProfileFirstLoginMode": "on",
+                    "trustEmail": false,
+                    "storeToken": false,
+                    "addReadTokenRoleOnCreate": false,
+                    "authenticateByDefault": false,
+                    "linkOnly": false,
+                    "hideOnLogin": false,
+                    "config": {}
+                }
+            ]
+        },
+        {
+            "id": "1985b29e-f1b0-43c7-8e4e-ef61bccfbefc",
+            "name": "Rogaland",
+            "alias": "rogaland",
+            "enabled": true,
+            "description": "",
+            "attributes": {
+                "SCIM_LINK_IDP": ["true"],
+                "SCIM_EXTERNAL_JWKS_URI": [
+                    "http://flais-scim-client-rogaland:9090/discovery/v2.0/keys"
+                ],
+                "SCIM_EXTERNAL_ISSUER": [
+                    "http://localhost:9090/tenant/22222222-2222-2222-2222-222222222222/"
+                ],
+                "SCIM_EXTERNAL_AUDIENCE": [
+                    "4b51e5de-09c4-4f29-9d67-37b01f2c28f1"
+                ],
+                "SCIM_AUTHENTICATION_MODE": ["EXTERNAL"]
+            },
+            "domains": [
+                {
+                    "name": "rogaland.no",
+                    "verified": true
+                }
+            ],
+            "identityProviders": [
+                {
+                    "alias": "entra-rogaland",
+                    "enabled": true,
+                    "updateProfileFirstLoginMode": "on",
+                    "trustEmail": false,
+                    "storeToken": false,
+                    "addReadTokenRoleOnCreate": false,
+                    "authenticateByDefault": false,
+                    "linkOnly": false,
+                    "hideOnLogin": false,
+                    "config": {}
+                }
+            ]
+        },
+        {
+            "id": "e44362dc-b31c-4f54-9bf7-26945dd29716",
+            "name": "Innlandet",
+            "alias": "innlandet",
+            "enabled": true,
+            "description": "",
+            "attributes": {},
+            "domains": [
+                {
+                    "name": "innlandet.no",
+                    "verified": true
+                }
+            ],
+            "identityProviders": []
+        },
+        {
+            "id": "d46586ca-9cbb-46c8-924c-061aaef9925e",
+            "name": "Telemark",
+            "alias": "telemark",
+            "enabled": true,
+            "description": "",
+            "attributes": {
+                "SCIM_LINK_IDP": ["true"],
+                "SCIM_EXTERNAL_JWKS_URI": [
+                    "http://flais-scim-client-telemark:9090/discovery/v2.0/keys"
+                ],
+                "SCIM_EXTERNAL_ISSUER": [
+                    "http://localhost:9090/tenant/11111111-1111-1111-1111-111111111111/"
+                ],
+                "SCIM_EXTERNAL_AUDIENCE": [
+                    "8adf8e6e-67b2-4cf2-a259-e3dc5476c621"
+                ],
+                "SCIM_AUTHENTICATION_MODE": ["EXTERNAL"]
+            },
+            "domains": [
+                {
+                    "name": "telemark.no",
+                    "verified": true
+                }
+            ],
+            "identityProviders": [
+                {
+                    "alias": "entra-telemark",
+                    "enabled": true,
+                    "updateProfileFirstLoginMode": "on",
+                    "trustEmail": false,
+                    "storeToken": false,
+                    "addReadTokenRoleOnCreate": false,
+                    "authenticateByDefault": false,
+                    "linkOnly": false,
+                    "hideOnLogin": false,
+                    "config": {}
+                },
+                {
+                    "alias": "entra-telemark-alt",
+                    "enabled": true,
+                    "updateProfileFirstLoginMode": "on",
+                    "trustEmail": false,
+                    "storeToken": false,
+                    "addReadTokenRoleOnCreate": false,
+                    "authenticateByDefault": false,
+                    "linkOnly": false,
+                    "hideOnLogin": false,
+                    "config": {}
+                }
+            ]
         }
-      }
+    ],
+    "clients": [
+        {
+            "clientId": "flais-keycloak-demo",
+            "enabled": true,
+            "publicClient": true,
+            "protocol": "openid-connect",
+            "directAccessGrantsEnabled": false,
+            "serviceAccountsEnabled": false,
+            "standardFlowEnabled": true,
+            "implicitFlowEnabled": false,
+            "attributes": {},
+            "redirectUris": ["http://localhost:3000/*"],
+            "webOrigins": ["+"]
+        },
+        {
+            "clientId": "flais-keycloak-demo-telemark",
+            "enabled": true,
+            "publicClient": true,
+            "protocol": "openid-connect",
+            "directAccessGrantsEnabled": false,
+            "serviceAccountsEnabled": false,
+            "standardFlowEnabled": true,
+            "implicitFlowEnabled": false,
+            "attributes": {
+                "permission.whitelisted.organizations": "telemark"
+            },
+            "redirectUris": ["http://localhost:3000/*"],
+            "webOrigins": ["+"]
+        },
+        {
+            "clientId": "flais-keycloak-demo-idporten",
+            "enabled": true,
+            "publicClient": true,
+            "protocol": "openid-connect",
+            "directAccessGrantsEnabled": false,
+            "serviceAccountsEnabled": false,
+            "standardFlowEnabled": true,
+            "implicitFlowEnabled": false,
+            "attributes": {
+                "permission.whitelisted.organizations": "idporten"
+            },
+            "redirectUris": ["http://localhost:3000/*"],
+            "webOrigins": ["+"]
+        },
+        {
+            "clientId": "flais-keycloak-demo-entra",
+            "enabled": true,
+            "publicClient": true,
+            "protocol": "openid-connect",
+            "directAccessGrantsEnabled": false,
+            "serviceAccountsEnabled": false,
+            "standardFlowEnabled": true,
+            "implicitFlowEnabled": false,
+            "attributes": {
+                "permission.blacklisted.organizations": "idporten"
+            },
+            "redirectUris": ["http://localhost:3000/*"],
+            "webOrigins": ["+"]
+        },
+        {
+            "clientId": "flais-keycloak-demo-invalid",
+            "enabled": true,
+            "publicClient": true,
+            "protocol": "openid-connect",
+            "directAccessGrantsEnabled": false,
+            "serviceAccountsEnabled": false,
+            "standardFlowEnabled": true,
+            "implicitFlowEnabled": false,
+            "attributes": {
+                "permission.whitelisted.organizations": "invalid-org"
+            },
+            "redirectUris": ["http://localhost:3000/*"],
+            "webOrigins": ["+"]
+        }
+    ],
+    "identityProviders": [
+        {
+            "alias": "entra-telemark",
+            "displayName": "Entra telemark (Dex)",
+            "providerId": "oidc",
+            "enabled": true,
+            "storeToken": true,
+            "trustEmail": true,
+            "authenticateByDefault": false,
+            "linkOnly": false,
+            "config": {
+                "clientId": "test-app",
+                "clientSecret": "test-secret",
+                "authorizationUrl": "http://localhost:5556/dex/auth",
+                "issuer": "http://dex-entra-telemark:5556/dex",
+                "tokenUrl": "http://dex-entra-telemark:5556/dex/token",
+                "userinfoUrl": "http://dex-entra-telemark:5556/dex/userinfo",
+                "jwksUrl": "http://dex-entra-telemark:5556/dex/keys",
+                "useJwksUrl": "true",
+                "defaultScope": "openid email profile",
+                "validateSignature": "true",
+                "backchannelSupported": "true"
+            }
+        },
+        {
+            "alias": "entra-telemark-alt",
+            "displayName": "Entra telemark Alt (Dex)",
+            "providerId": "oidc",
+            "enabled": true,
+            "storeToken": true,
+            "trustEmail": true,
+            "authenticateByDefault": false,
+            "linkOnly": false,
+            "config": {
+                "clientId": "test-app",
+                "clientSecret": "test-secret",
+                "authorizationUrl": "http://localhost:5556/dex/auth",
+                "issuer": "http://dex-entra-telemark-alt:5556/dex",
+                "tokenUrl": "http://dex-entra-telemark-alt:5556/dex/token",
+                "userinfoUrl": "http://dex-entra-telemark-alt:5556/dex/userinfo",
+                "jwksUrl": "http://dex-entra-telemark-alt:5556/dex/keys",
+                "useJwksUrl": "true",
+                "defaultScope": "openid email profile",
+                "validateSignature": "true",
+                "backchannelSupported": "true"
+            }
+        },
+        {
+            "alias": "entra-rogaland",
+            "displayName": "Entra Rogaland (Dex)",
+            "providerId": "oidc",
+            "enabled": true,
+            "storeToken": true,
+            "trustEmail": true,
+            "authenticateByDefault": false,
+            "linkOnly": false,
+            "config": {
+                "clientId": "test-app",
+                "clientSecret": "test-secret",
+                "authorizationUrl": "http://localhost:5556/dex/auth",
+                "issuer": "http://dex-entra-rogaland:5556/dex",
+                "tokenUrl": "http://dex-entra-rogaland:5556/dex/token",
+                "userinfoUrl": "http://dex-entra-rogaland:5556/dex/userinfo",
+                "jwksUrl": "http://dex-entra-rogaland:5556/dex/keys",
+                "useJwksUrl": "true",
+                "defaultScope": "openid email profile",
+                "validateSignature": "true",
+                "backchannelSupported": "true"
+            }
+        },
+        {
+            "alias": "idporten",
+            "displayName": "ID-porten (Dex)",
+            "providerId": "oidc",
+            "enabled": true,
+            "storeToken": true,
+            "trustEmail": true,
+            "authenticateByDefault": false,
+            "linkOnly": false,
+            "config": {
+                "clientId": "test-app",
+                "clientSecret": "test-secret",
+                "authorizationUrl": "http://localhost:5558/dex/auth",
+                "issuer": "http://dex-idporten:5556/dex",
+                "tokenUrl": "http://dex-idporten:5556/dex/token",
+                "userinfoUrl": "http://dex-idporten:5556/dex/userinfo",
+                "jwksUrl": "http://dex-idporten:5556/dex/keys",
+                "useJwksUrl": "true",
+                "defaultScope": "openid email profile",
+                "validateSignature": "true",
+                "backchannelSupported": "true"
+            }
+        }
+    ],
+    "identityProviderMappers": [],
+    "authenticationFlows": [
+        {
+            "id": "9df3ddef-b8d6-4c18-9c83-e3bf506b22d9",
+            "alias": "flais-first-broker-login",
+            "description": "Actions taken after first broker login with identity provider account, which is not yet linked to any Keycloak account",
+            "providerId": "basic-flow",
+            "topLevel": true,
+            "builtIn": false,
+            "authenticationExecutions": [
+                {
+                    "authenticator": "idp-create-user-if-unique",
+                    "authenticatorFlow": false,
+                    "requirement": "REQUIRED",
+                    "priority": 50,
+                    "autheticatorFlow": false,
+                    "userSetupAllowed": false
+                },
+                {
+                    "authenticatorFlow": true,
+                    "requirement": "CONDITIONAL",
+                    "priority": 51,
+                    "autheticatorFlow": true,
+                    "flowAlias": "flais-first-broker-login First Broker Login - Conditional Organization",
+                    "userSetupAllowed": false
+                }
+            ]
+        },
+        {
+            "id": "df273fa6-79d5-4085-bf89-54c598b5a724",
+            "alias": "flais-first-broker-login First Broker Login - Conditional Organization",
+            "description": "Flow to determine if the authenticator that adds organization members is to be used",
+            "providerId": "basic-flow",
+            "topLevel": false,
+            "builtIn": false,
+            "authenticationExecutions": [
+                {
+                    "authenticator": "conditional-user-configured",
+                    "authenticatorFlow": false,
+                    "requirement": "REQUIRED",
+                    "priority": 10,
+                    "autheticatorFlow": false,
+                    "userSetupAllowed": false
+                },
+                {
+                    "authenticator": "idp-add-organization-member",
+                    "authenticatorFlow": false,
+                    "requirement": "REQUIRED",
+                    "priority": 20,
+                    "autheticatorFlow": false,
+                    "userSetupAllowed": false
+                }
+            ]
+        },
+        {
+            "id": "c0807a62-5222-426a-9630-f8c2c452e752",
+            "alias": "flais-browser",
+            "description": "Browser based authentication",
+            "providerId": "basic-flow",
+            "topLevel": true,
+            "builtIn": false,
+            "authenticationExecutions": [
+                {
+                    "authenticator": "auth-cookie",
+                    "authenticatorFlow": false,
+                    "requirement": "ALTERNATIVE",
+                    "priority": 10,
+                    "autheticatorFlow": false,
+                    "userSetupAllowed": false
+                },
+                {
+                    "authenticatorFlow": true,
+                    "requirement": "ALTERNATIVE",
+                    "priority": 22,
+                    "autheticatorFlow": true,
+                    "flowAlias": "flais-browser - Organization",
+                    "userSetupAllowed": false
+                }
+            ]
+        },
+        {
+            "id": "02dde0f2-764e-4ebc-acfa-4648d8fb289d",
+            "alias": "flais-browser - Organization",
+            "description": "",
+            "providerId": "basic-flow",
+            "topLevel": false,
+            "builtIn": false,
+            "authenticationExecutions": [
+                {
+                    "authenticator": "org-selector-authenticator",
+                    "authenticatorFlow": false,
+                    "requirement": "REQUIRED",
+                    "priority": 0,
+                    "autheticatorFlow": false,
+                    "userSetupAllowed": false
+                },
+                {
+                    "authenticator": "org-idp-selector-authenticator",
+                    "authenticatorFlow": false,
+                    "requirement": "REQUIRED",
+                    "priority": 1,
+                    "autheticatorFlow": false,
+                    "userSetupAllowed": false
+                },
+                {
+                    "authenticator": "org-redirector-authenticator",
+                    "authenticatorFlow": false,
+                    "requirement": "REQUIRED",
+                    "priority": 2,
+                    "autheticatorFlow": false,
+                    "userSetupAllowed": false
+                }
+            ]
+        }
     ]
-  },
-  "organizations": [
-    {
-      "id": "11e52313-46c4-4454-9c93-d3a0b186b7f0",
-      "name": "ID-Porten",
-      "alias": "idporten",
-      "enabled": true,
-      "description": "",
-      "attributes": {},
-      "domains": [
-        {
-          "name": "id-porten.no",
-          "verified": true
-        }
-      ],
-      "identityProviders": [
-        {
-          "alias": "idporten",
-          "enabled": true,
-          "updateProfileFirstLoginMode": "on",
-          "trustEmail": false,
-          "storeToken": false,
-          "addReadTokenRoleOnCreate": false,
-          "authenticateByDefault": false,
-          "linkOnly": false,
-          "hideOnLogin": false,
-          "config": {}
-        }
-      ]
-    },
-    {
-      "id": "1985b29e-f1b0-43c7-8e4e-ef61bccfbefc",
-      "name": "Rogaland",
-      "alias": "rogaland",
-      "enabled": true,
-      "description": "",
-      "attributes": {},
-      "domains": [
-        {
-          "name": "rogaland.no",
-          "verified": true
-        }
-      ],
-      "identityProviders": [
-        {
-          "alias": "entra-rogaland",
-          "enabled": true,
-          "updateProfileFirstLoginMode": "on",
-          "trustEmail": false,
-          "storeToken": false,
-          "addReadTokenRoleOnCreate": false,
-          "authenticateByDefault": false,
-          "linkOnly": false,
-          "hideOnLogin": false,
-          "config": {}
-        }
-      ]
-    },
-    {
-      "id": "e44362dc-b31c-4f54-9bf7-26945dd29716",
-      "name": "Innlandet",
-      "alias": "innlandet",
-      "enabled": true,
-      "description": "",
-      "attributes": {},
-      "domains": [
-        {
-          "name": "innlandet.no",
-          "verified": true
-        }
-      ],
-      "identityProviders": []
-    },
-    {
-      "id": "d46586ca-9cbb-46c8-924c-061aaef9925e",
-      "name": "Telemark",
-      "alias": "telemark",
-      "enabled": true,
-      "description": "",
-      "attributes": {},
-      "domains": [
-        {
-          "name": "telemark.no",
-          "verified": true
-        }
-      ],
-      "identityProviders": [
-        {
-          "alias": "entra-telemark",
-          "enabled": true,
-          "updateProfileFirstLoginMode": "on",
-          "trustEmail": false,
-          "storeToken": false,
-          "addReadTokenRoleOnCreate": false,
-          "authenticateByDefault": false,
-          "linkOnly": false,
-          "hideOnLogin": false,
-          "config": {}
-        },
-        {
-          "alias": "entra-telemark-alt",
-          "enabled": true,
-          "updateProfileFirstLoginMode": "on",
-          "trustEmail": false,
-          "storeToken": false,
-          "addReadTokenRoleOnCreate": false,
-          "authenticateByDefault": false,
-          "linkOnly": false,
-          "hideOnLogin": false,
-          "config": {}
-        }
-      ]
-    }
-  ],
-  "clients": [
-    {
-      "clientId": "flais-keycloak-demo",
-      "enabled": true,
-      "publicClient": true,
-      "protocol": "openid-connect",
-      "directAccessGrantsEnabled": false,
-      "serviceAccountsEnabled": false,
-      "standardFlowEnabled": true,
-      "implicitFlowEnabled": false,
-      "attributes": {},
-      "redirectUris": [
-        "http://localhost:3000/*"
-      ],
-      "webOrigins": [
-        "+"
-      ]
-    },
-    {
-      "clientId": "flais-keycloak-demo-telemark",
-      "enabled": true,
-      "publicClient": true,
-      "protocol": "openid-connect",
-      "directAccessGrantsEnabled": false,
-      "serviceAccountsEnabled": false,
-      "standardFlowEnabled": true,
-      "implicitFlowEnabled": false,
-      "attributes": {
-        "permission.whitelisted.organizations": "telemark"
-      },
-      "redirectUris": [
-        "http://localhost:3000/*"
-      ],
-      "webOrigins": [
-        "+"
-      ]
-    },
-    {
-      "clientId": "flais-keycloak-demo-idporten",
-      "enabled": true,
-      "publicClient": true,
-      "protocol": "openid-connect",
-      "directAccessGrantsEnabled": false,
-      "serviceAccountsEnabled": false,
-      "standardFlowEnabled": true,
-      "implicitFlowEnabled": false,
-      "attributes": {
-        "permission.whitelisted.organizations": "idporten"
-      },
-      "redirectUris": [
-        "http://localhost:3000/*"
-      ],
-      "webOrigins": [
-        "+"
-      ]
-    },
-    {
-      "clientId": "flais-keycloak-demo-entra",
-      "enabled": true,
-      "publicClient": true,
-      "protocol": "openid-connect",
-      "directAccessGrantsEnabled": false,
-      "serviceAccountsEnabled": false,
-      "standardFlowEnabled": true,
-      "implicitFlowEnabled": false,
-      "attributes": {
-        "permission.blacklisted.organizations": "idporten"
-      },
-      "redirectUris": [
-        "http://localhost:3000/*"
-      ],
-      "webOrigins": [
-        "+"
-      ]
-    },
-    {
-      "clientId": "flais-keycloak-demo-invalid",
-      "enabled": true,
-      "publicClient": true,
-      "protocol": "openid-connect",
-      "directAccessGrantsEnabled": false,
-      "serviceAccountsEnabled": false,
-      "standardFlowEnabled": true,
-      "implicitFlowEnabled": false,
-      "attributes": {
-        "permission.whitelisted.organizations": "invalid-org"
-      },
-      "redirectUris": [
-        "http://localhost:3000/*"
-      ],
-      "webOrigins": [
-        "+"
-      ]
-    }
-  ],
-  "identityProviders": [
-    {
-      "alias": "entra-telemark",
-      "displayName": "Entra telemark (Dex)",
-      "providerId": "oidc",
-      "enabled": true,
-      "storeToken": true,
-      "trustEmail": true,
-      "authenticateByDefault": false,
-      "linkOnly": false,
-      "config": {
-        "clientId": "test-app",
-        "clientSecret": "test-secret",
-        "authorizationUrl": "http://localhost:5556/dex/auth",
-        "issuer": "http://dex-entra-telemark:5556/dex",
-        "tokenUrl": "http://dex-entra-telemark:5556/dex/token",
-        "userinfoUrl": "http://dex-entra-telemark:5556/dex/userinfo",
-        "jwksUrl": "http://dex-entra-telemark:5556/dex/keys",
-        "useJwksUrl": "true",
-        "defaultScope": "openid email profile",
-        "validateSignature": "true",
-        "backchannelSupported": "true"
-      }
-    },
-    {
-      "alias": "entra-telemark-alt",
-      "displayName": "Entra telemark Alt (Dex)",
-      "providerId": "oidc",
-      "enabled": true,
-      "storeToken": true,
-      "trustEmail": true,
-      "authenticateByDefault": false,
-      "linkOnly": false,
-      "config": {
-        "clientId": "test-app",
-        "clientSecret": "test-secret",
-        "authorizationUrl": "http://localhost:5556/dex/auth",
-        "issuer": "http://dex-entra-telemark-alt:5556/dex",
-        "tokenUrl": "http://dex-entra-telemark-alt:5556/dex/token",
-        "userinfoUrl": "http://dex-entra-telemark-alt:5556/dex/userinfo",
-        "jwksUrl": "http://dex-entra-telemark-alt:5556/dex/keys",
-        "useJwksUrl": "true",
-        "defaultScope": "openid email profile",
-        "validateSignature": "true",
-        "backchannelSupported": "true"
-      }
-    },
-    {
-      "alias": "entra-rogaland",
-      "displayName": "Entra Rogaland (Dex)",
-      "providerId": "oidc",
-      "enabled": true,
-      "storeToken": true,
-      "trustEmail": true,
-      "authenticateByDefault": false,
-      "linkOnly": false,
-      "config": {
-        "clientId": "test-app",
-        "clientSecret": "test-secret",
-        "authorizationUrl": "http://localhost:5556/dex/auth",
-        "issuer": "http://dex-entra-rogaland:5556/dex",
-        "tokenUrl": "http://dex-entra-rogaland:5556/dex/token",
-        "userinfoUrl": "http://dex-entra-rogaland:5556/dex/userinfo",
-        "jwksUrl": "http://dex-entra-rogaland:5556/dex/keys",
-        "useJwksUrl": "true",
-        "defaultScope": "openid email profile",
-        "validateSignature": "true",
-        "backchannelSupported": "true"
-      }
-    },
-    {
-      "alias": "idporten",
-      "displayName": "ID-porten (Dex)",
-      "providerId": "oidc",
-      "enabled": true,
-      "storeToken": true,
-      "trustEmail": true,
-      "authenticateByDefault": false,
-      "linkOnly": false,
-      "config": {
-        "clientId": "test-app",
-        "clientSecret": "test-secret",
-        "authorizationUrl": "http://localhost:5558/dex/auth",
-        "issuer": "http://dex-idporten:5556/dex",
-        "tokenUrl": "http://dex-idporten:5556/dex/token",
-        "userinfoUrl": "http://dex-idporten:5556/dex/userinfo",
-        "jwksUrl": "http://dex-idporten:5556/dex/keys",
-        "useJwksUrl": "true",
-        "defaultScope": "openid email profile",
-        "validateSignature": "true",
-        "backchannelSupported": "true"
-      }
-    }
-  ],
-  "identityProviderMappers": [],
-  "authenticationFlows": [
-    {
-      "id": "9df3ddef-b8d6-4c18-9c83-e3bf506b22d9",
-      "alias": "flais-first-broker-login",
-      "description": "Actions taken after first broker login with identity provider account, which is not yet linked to any Keycloak account",
-      "providerId": "basic-flow",
-      "topLevel": true,
-      "builtIn": false,
-      "authenticationExecutions": [
-        {
-          "authenticator": "idp-create-user-if-unique",
-          "authenticatorFlow": false,
-          "requirement": "REQUIRED",
-          "priority": 50,
-          "autheticatorFlow": false,
-          "userSetupAllowed": false
-        },
-        {
-          "authenticatorFlow": true,
-          "requirement": "CONDITIONAL",
-          "priority": 51,
-          "autheticatorFlow": true,
-          "flowAlias": "flais-first-broker-login First Broker Login - Conditional Organization",
-          "userSetupAllowed": false
-        }
-      ]
-    },
-    {
-      "id": "df273fa6-79d5-4085-bf89-54c598b5a724",
-      "alias": "flais-first-broker-login First Broker Login - Conditional Organization",
-      "description": "Flow to determine if the authenticator that adds organization members is to be used",
-      "providerId": "basic-flow",
-      "topLevel": false,
-      "builtIn": false,
-      "authenticationExecutions": [
-        {
-          "authenticator": "conditional-user-configured",
-          "authenticatorFlow": false,
-          "requirement": "REQUIRED",
-          "priority": 10,
-          "autheticatorFlow": false,
-          "userSetupAllowed": false
-        },
-        {
-          "authenticator": "idp-add-organization-member",
-          "authenticatorFlow": false,
-          "requirement": "REQUIRED",
-          "priority": 20,
-          "autheticatorFlow": false,
-          "userSetupAllowed": false
-        }
-      ]
-    },
-    {
-      "id": "c0807a62-5222-426a-9630-f8c2c452e752",
-      "alias": "flais-browser",
-      "description": "Browser based authentication",
-      "providerId": "basic-flow",
-      "topLevel": true,
-      "builtIn": false,
-      "authenticationExecutions": [
-        {
-          "authenticator": "auth-cookie",
-          "authenticatorFlow": false,
-          "requirement": "ALTERNATIVE",
-          "priority": 10,
-          "autheticatorFlow": false,
-          "userSetupAllowed": false
-        },
-        {
-          "authenticatorFlow": true,
-          "requirement": "ALTERNATIVE",
-          "priority": 22,
-          "autheticatorFlow": true,
-          "flowAlias": "flais-browser - Organization",
-          "userSetupAllowed": false
-        }
-      ]
-    },
-    {
-      "id": "02dde0f2-764e-4ebc-acfa-4648d8fb289d",
-      "alias": "flais-browser - Organization",
-      "description": "",
-      "providerId": "basic-flow",
-      "topLevel": false,
-      "builtIn": false,
-      "authenticationExecutions": [
-        {
-          "authenticator": "org-selector-authenticator",
-          "authenticatorFlow": false,
-          "requirement": "REQUIRED",
-          "priority": 0,
-          "autheticatorFlow": false,
-          "userSetupAllowed": false
-        },
-        {
-          "authenticator": "org-idp-selector-authenticator",
-          "authenticatorFlow": false,
-          "requirement": "REQUIRED",
-          "priority": 1,
-          "autheticatorFlow": false,
-          "userSetupAllowed": false
-        },
-        {
-          "authenticator": "org-redirector-authenticator",
-          "authenticatorFlow": false,
-          "requirement": "REQUIRED",
-          "priority": 2,
-          "autheticatorFlow": false,
-          "userSetupAllowed": false
-        }
-      ]
-    }
-  ]
 }

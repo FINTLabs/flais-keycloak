@@ -3,8 +3,8 @@
 **/build/
 !**/src/**/build/
 .kotlin
-data
-exports
+/data
+/exports
 
 # Ignore Gradle GUI config
 gradle-app.setting
