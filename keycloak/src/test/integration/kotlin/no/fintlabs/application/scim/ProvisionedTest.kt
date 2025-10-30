@@ -9,7 +9,6 @@ import no.fintlabs.utils.ScimFlow.provisionUsers
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeAll
-import org.junit.jupiter.api.Order
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.assertNotNull
@@ -78,22 +77,26 @@ class ProvisionedTest {
     }
 
     @Test
-    @Order(1)
     fun `provisioned users in org (telemark) exists`(env: KcComposeEnvironment) {
-        val (_, realmRes) = KcAdminClient.connect(env, realm)
-        usersTelemark.forEach { u ->
-            val user = KcAdminClient.findUserByEmail(realmRes, u.userName)
-            assertNotNull(user)
+        val (kc, realmRes) = KcAdminClient.connect(env, realm)
+
+        kc.use {
+            usersTelemark.forEach { u ->
+                val user = KcAdminClient.findUserByEmail(realmRes, u.userName)
+                assertNotNull(user)
+            }
         }
     }
 
     @Test
-    @Order(2)
     fun `provisioned users in org (rogaland) exists`(env: KcComposeEnvironment) {
-        val (_, realmRes) = KcAdminClient.connect(env, realm)
-        usersTelemark.forEach { u ->
-            val user = KcAdminClient.findUserByEmail(realmRes, u.userName)
-            assertNotNull(user)
+        val (kc, realmRes) = KcAdminClient.connect(env, realm)
+
+        kc.use {
+            usersTelemark.forEach { u ->
+                val user = KcAdminClient.findUserByEmail(realmRes, u.userName)
+                assertNotNull(user)
+            }
         }
     }
 }

@@ -6,7 +6,6 @@ import no.fintlabs.utils.ScimFlow
 import no.fintlabs.utils.ScimFlow.provisionUsers
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import org.junit.jupiter.api.Assertions
-import org.junit.jupiter.api.Order
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 
@@ -52,7 +51,6 @@ class ProvisionTest {
         )
 
     @Test
-    @Order(1)
     fun `provision users to org (telemark) returns ok`(env: KcComposeEnvironment) {
         provisionUsers(
             "${env.scimClientTelemarkUrl()}/provision/d46586ca-9cbb-46c8-924c-061aaef9925e".toHttpUrl(),
@@ -63,7 +61,6 @@ class ProvisionTest {
     }
 
     @Test
-    @Order(2)
     fun `provision users to org (rogaland) returns ok`(env: KcComposeEnvironment) {
         provisionUsers(
             "${env.scimClientRogalandUrl()}/provision/1985b29e-f1b0-43c7-8e4e-ef61bccfbefc".toHttpUrl(),
