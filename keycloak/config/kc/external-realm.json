@@ -28,7 +28,7 @@
                 "subComponents": {},
                 "config": {
                     "kc.user.profile.config": [
-                        "{\"attributes\":[{\"name\":\"username\",\"displayName\":\"${username}\",\"validations\":{\"length\":{\"min\":3,\"max\":255},\"username-prohibited-characters\":{},\"up-username-not-idn-homograph\":{}},\"permissions\":{\"view\":[\"admin\",\"user\"],\"edit\":[\"admin\",\"user\"]},\"multivalued\":false},{\"name\":\"email\",\"displayName\":\"${email}\",\"validations\":{\"email\":{},\"length\":{\"max\":255}},\"permissions\":{\"view\":[\"admin\",\"user\"],\"edit\":[\"admin\",\"user\"]},\"multivalued\":false},{\"name\":\"firstName\",\"displayName\":\"${firstName}\",\"validations\":{\"length\":{\"max\":255},\"person-name-prohibited-characters\":{}},\"permissions\":{\"view\":[\"admin\",\"user\"],\"edit\":[\"admin\",\"user\"]},\"multivalued\":false},{\"name\":\"lastName\",\"displayName\":\"${lastName}\",\"validations\":{\"length\":{\"max\":255},\"person-name-prohibited-characters\":{}},\"permissions\":{\"view\":[\"admin\",\"user\"],\"edit\":[\"admin\",\"user\"]},\"multivalued\":false}],\"groups\":[{\"name\":\"user-metadata\",\"displayHeader\":\"User metadata\",\"displayDescription\":\"Attributes, which refer to user metadata\"}]}"
+                        "{\"attributes\":[{\"name\":\"username\",\"displayName\":\"${username}\",\"validations\":{\"length\":{\"min\":3,\"max\":255},\"username-prohibited-characters\":{},\"up-username-not-idn-homograph\":{}},\"permissions\":{\"view\":[\"admin\",\"user\"],\"edit\":[\"admin\",\"user\"]},\"multivalued\":false},{\"name\":\"email\",\"displayName\":\"${email}\",\"validations\":{\"email\":{},\"length\":{\"max\":255}},\"permissions\":{\"view\":[\"admin\",\"user\"],\"edit\":[\"admin\",\"user\"]},\"multivalued\":false},{\"name\":\"firstName\",\"displayName\":\"${firstName}\",\"validations\":{\"length\":{\"max\":255},\"person-name-prohibited-characters\":{}},\"permissions\":{\"view\":[\"admin\",\"user\"],\"edit\":[\"admin\",\"user\"]},\"multivalued\":false},{\"name\":\"lastName\",\"displayName\":\"${lastName}\",\"validations\":{\"length\":{\"max\":255},\"person-name-prohibited-characters\":{}},\"permissions\":{\"view\":[\"admin\",\"user\"],\"edit\":[\"admin\",\"user\"]},\"multivalued\":false},{\"name\":\"externalId\",\"displayName\":\"${externalId}\",\"validations\":{},\"annotations\":{},\"permissions\":{\"view\":[],\"edit\":[\"admin\"]},\"multivalued\":false}],\"groups\":[{\"name\":\"user-metadata\",\"displayHeader\":\"User metadata\",\"displayDescription\":\"Attributes, which refer to user metadata\"}]}"
                     ]
                 }
             }
@@ -70,7 +70,9 @@
             "enabled": true,
             "description": "",
             "attributes": {
-                "SCIM_LINK_IDP": ["true"],
+                "SCIM_LINK_IDP": [
+                    "true"
+                ],
                 "SCIM_EXTERNAL_JWKS_URI": [
                     "http://flais-scim-client-rogaland:9090/discovery/v2.0/keys"
                 ],
@@ -80,7 +82,9 @@
                 "SCIM_EXTERNAL_AUDIENCE": [
                     "4b51e5de-09c4-4f29-9d67-37b01f2c28f1"
                 ],
-                "SCIM_AUTHENTICATION_MODE": ["EXTERNAL"]
+                "SCIM_AUTHENTICATION_MODE": [
+                    "EXTERNAL"
+                ]
             },
             "domains": [
                 {
@@ -125,7 +129,9 @@
             "enabled": true,
             "description": "",
             "attributes": {
-                "SCIM_LINK_IDP": ["true"],
+                "SCIM_LINK_IDP": [
+                    "true"
+                ],
                 "SCIM_EXTERNAL_JWKS_URI": [
                     "http://flais-scim-client-telemark:9090/discovery/v2.0/keys"
                 ],
@@ -135,7 +141,9 @@
                 "SCIM_EXTERNAL_AUDIENCE": [
                     "8adf8e6e-67b2-4cf2-a259-e3dc5476c621"
                 ],
-                "SCIM_AUTHENTICATION_MODE": ["EXTERNAL"]
+                "SCIM_AUTHENTICATION_MODE": [
+                    "EXTERNAL"
+                ]
             },
             "domains": [
                 {
@@ -182,8 +190,12 @@
             "standardFlowEnabled": true,
             "implicitFlowEnabled": false,
             "attributes": {},
-            "redirectUris": ["http://localhost:3000/*"],
-            "webOrigins": ["+"]
+            "redirectUris": [
+                "http://localhost:3000/*"
+            ],
+            "webOrigins": [
+                "+"
+            ]
         },
         {
             "clientId": "flais-keycloak-demo-telemark",
@@ -197,8 +209,12 @@
             "attributes": {
                 "permission.whitelisted.organizations": "telemark"
             },
-            "redirectUris": ["http://localhost:3000/*"],
-            "webOrigins": ["+"]
+            "redirectUris": [
+                "http://localhost:3000/*"
+            ],
+            "webOrigins": [
+                "+"
+            ]
         },
         {
             "clientId": "flais-keycloak-demo-idporten",
@@ -212,8 +228,12 @@
             "attributes": {
                 "permission.whitelisted.organizations": "idporten"
             },
-            "redirectUris": ["http://localhost:3000/*"],
-            "webOrigins": ["+"]
+            "redirectUris": [
+                "http://localhost:3000/*"
+            ],
+            "webOrigins": [
+                "+"
+            ]
         },
         {
             "clientId": "flais-keycloak-demo-entra",
@@ -227,8 +247,12 @@
             "attributes": {
                 "permission.blacklisted.organizations": "idporten"
             },
-            "redirectUris": ["http://localhost:3000/*"],
-            "webOrigins": ["+"]
+            "redirectUris": [
+                "http://localhost:3000/*"
+            ],
+            "webOrigins": [
+                "+"
+            ]
         },
         {
             "clientId": "flais-keycloak-demo-invalid",
@@ -242,14 +266,18 @@
             "attributes": {
                 "permission.whitelisted.organizations": "invalid-org"
             },
-            "redirectUris": ["http://localhost:3000/*"],
-            "webOrigins": ["+"]
+            "redirectUris": [
+                "http://localhost:3000/*"
+            ],
+            "webOrigins": [
+                "+"
+            ]
         }
     ],
     "identityProviders": [
         {
             "alias": "entra-telemark",
-            "displayName": "Entra telemark (Dex)",
+            "displayName": "Entra Telemark (Dex)",
             "providerId": "oidc",
             "enabled": true,
             "storeToken": true,
@@ -263,6 +291,7 @@
                 "issuer": "http://dex-entra-telemark:5556/dex",
                 "tokenUrl": "http://dex-entra-telemark:5556/dex/token",
                 "userinfoUrl": "http://dex-entra-telemark:5556/dex/userinfo",
+                "kc.org.domain": "telemark.no",
                 "jwksUrl": "http://dex-entra-telemark:5556/dex/keys",
                 "useJwksUrl": "true",
                 "defaultScope": "openid email profile",
@@ -272,7 +301,7 @@
         },
         {
             "alias": "entra-telemark-alt",
-            "displayName": "Entra telemark Alt (Dex)",
+            "displayName": "Entra Telemark Alt (Dex)",
             "providerId": "oidc",
             "enabled": true,
             "storeToken": true,
@@ -280,7 +309,7 @@
             "authenticateByDefault": false,
             "linkOnly": false,
             "config": {
-                "clientId": "test-app",
+                "clientId": "test-app-alt",
                 "clientSecret": "test-secret",
                 "authorizationUrl": "http://localhost:5556/dex/auth",
                 "issuer": "http://dex-entra-telemark-alt:5556/dex",
@@ -310,6 +339,7 @@
                 "tokenUrl": "http://dex-entra-rogaland:5556/dex/token",
                 "userinfoUrl": "http://dex-entra-rogaland:5556/dex/userinfo",
                 "jwksUrl": "http://dex-entra-rogaland:5556/dex/keys",
+                "kc.org.domain": "rogaland.no",
                 "useJwksUrl": "true",
                 "defaultScope": "openid email profile",
                 "validateSignature": "true",
@@ -340,7 +370,30 @@
             }
         }
     ],
-    "identityProviderMappers": [],
+    "identityProviderMappers": [
+        {
+            "id": "d7a67b4f-8014-495c-a9c2-5311668be0e8",
+            "name": "map_oid_as_brokerid",
+            "identityProviderAlias": "entra-telemark",
+            "identityProviderMapper": "oidc-username-idp-mapper",
+            "config": {
+                "syncMode": "FORCE",
+                "template": "${CLAIM.oid}",
+                "target": "BROKER_ID"
+            }
+        },
+        {
+            "id": "6c625e9e-aca0-4c89-b4c6-348aa3663bb4",
+            "name": "map_oid_as_brokerid",
+            "identityProviderAlias": "entra-rogaland",
+            "identityProviderMapper": "oidc-username-idp-mapper",
+            "config": {
+                "syncMode": "FORCE",
+                "template": "${CLAIM.oid}",
+                "target": "BROKER_ID"
+            }
+        }
+    ],
     "authenticationFlows": [
         {
             "id": "9df3ddef-b8d6-4c18-9c83-e3bf506b22d9",

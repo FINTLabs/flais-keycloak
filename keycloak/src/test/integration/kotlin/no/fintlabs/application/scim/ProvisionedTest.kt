@@ -8,6 +8,7 @@ import no.fintlabs.utils.ScimFlow
 import no.fintlabs.utils.ScimFlow.provisionUsers
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
@@ -21,7 +22,7 @@ class ProvisionedTest {
     private val usersTelemark =
         listOf(
             ScimFlow.ScimUser(
-                externalId = "93b2d741-c6b2-48e2-aea9-945885596958",
+                externalId = "test-app",
                 userName = "alice@telemark.no",
                 active = true,
                 name = ScimFlow.ScimUser.Name("Alice", "Anders"),
@@ -29,7 +30,7 @@ class ProvisionedTest {
                 groups = emptyList(),
             ),
             ScimFlow.ScimUser(
-                externalId = "f4bfe76a-0b8f-4a49-a81a-5b07244c8f95",
+                externalId = "test-app",
                 userName = "bob@telemark.no",
                 active = true,
                 name = ScimFlow.ScimUser.Name("Bob", "Berg"),
@@ -40,7 +41,7 @@ class ProvisionedTest {
     val usersRogaland =
         listOf(
             ScimFlow.ScimUser(
-                externalId = "93b2d741-c6b2-48e2-aea9-945885596958",
+                externalId = "test-app",
                 userName = "alice@rogaland.no",
                 active = true,
                 name = ScimFlow.ScimUser.Name("Alice", "Anders"),
@@ -48,7 +49,7 @@ class ProvisionedTest {
                 groups = emptyList(),
             ),
             ScimFlow.ScimUser(
-                externalId = "f4bfe76a-0b8f-4a49-a81a-5b07244c8f95",
+                externalId = "test-app",
                 userName = "bob@rogaland.no",
                 active = true,
                 name = ScimFlow.ScimUser.Name("Bob", "Berg"),
@@ -96,6 +97,36 @@ class ProvisionedTest {
             usersTelemark.forEach { u ->
                 val user = KcAdminClient.findUserByEmail(realmRes, u.userName)
                 assertNotNull(user)
+            }
+        }
+    }
+
+    @Test
+    fun `provisioned users in org (rogaland) linked to correct idp`(env: KcComposeEnvironment) {
+        val (kc, realmRes) = KcAdminClient.connect(env, realm)
+
+        kc.use {
+            usersRogaland.forEach { u ->
+                val user = KcAdminClient.findUserByEmail(realmRes, u.userName)
+                assertNotNull(user)
+                val identities = KcAdminClient.getFederatedIdentities(realmRes, user.id)
+                assertNotNull(identities)
+                assertEquals("entra-rogaland", identities.first().identityProvider)
+            }
+        }
+    }
+
+    @Test
+    fun `provisioned users in org (telemark) linked to correct idp`(env: KcComposeEnvironment) {
+        val (kc, realmRes) = KcAdminClient.connect(env, realm)
+
+        kc.use {
+            usersTelemark.forEach { u ->
+                val user = KcAdminClient.findUserByEmail(realmRes, u.userName)
+                assertNotNull(user)
+                val identities = KcAdminClient.getFederatedIdentities(realmRes, user.id)
+                assertNotNull(identities)
+                assertEquals("entra-telemark", identities.first().identityProvider)
             }
         }
     }
