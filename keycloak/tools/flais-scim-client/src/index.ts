@@ -1,7 +1,6 @@
 import { Issuer } from "./issuer/issuer";
 import logger from "./logger/logger";
 import express from "express";
-import "dotenv/config";
 import { Provisioner } from "./provisioner/provisioner";
 
 const port = 9090;
