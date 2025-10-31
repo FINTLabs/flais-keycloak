@@ -14,10 +14,9 @@ import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 /**
  * Utility for extracting and parsing the `kcContext` object from Keycloak login pages.
  *
- * Keycloak themes embed a JavaScript variable `kcContext` into the rendered HTML.
+ * Keycloakify embeds a JavaScript variable `kcContext` into the rendered HTML.
  * This object contains information about the page (e.g. error state, IDP providers,
- * form actions). Tests use it to assert that the correct Keycloak page was shown
- * without needing to simulate a full browser.
+ * form actions). Tests use this information to assert correct information was returned.
  */
 object KcContextParser {
     object HttpUrlAsStringSerializer : KSerializer<HttpUrl> {
@@ -40,7 +39,7 @@ object KcContextParser {
 
     @Serializable
     data class Provider(
-        val name: String,
+        val displayName: String,
         val alias: String,
     )
 
@@ -66,26 +65,36 @@ object KcContextParser {
     )
 
     @Serializable
+    data class Social(
+        val providers: List<Provider>? = null,
+    )
+
+    @Serializable
     data class KcContext(
         val pageId: String,
         val url: Url,
         val message: Message? = null,
-        val providers: List<Provider>? = null,
         val organizations: List<Organization>? = null,
+        val social: Social? = null,
     )
 
     fun parseKcContext(html: String): KcContext {
-        val regex = Regex("""const\s+kcContext\s*=\s*(\{.*?});""", RegexOption.DOT_MATCHES_ALL)
-        val rawJsonLike =
-            regex.find(html)?.groupValues?.get(1)
+        val objRegex =
+            Regex(
+                pattern = """const\s+kcContext\s*=\s*(\{.*?})\s*;""",
+                options = setOf(RegexOption.DOT_MATCHES_ALL),
+            )
+        val rawObj =
+            objRegex.find(html)?.groupValues?.get(1)
                 ?: error("Could not extract kcContext from HTML")
 
         val cleaned =
-            rawJsonLike
+            rawObj
+                .replace(Regex("/\\*.*?\\*/", RegexOption.DOT_MATCHES_ALL), "")
+                .replace(Regex("(?<!:)//.*?$", RegexOption.MULTILINE), "")
                 .replace(Regex(""",\s*([}\]])"""), "$1")
-                .replace(Regex("""\bfunction\b[^{]+"""), "\"\"")
 
         val json = Json { ignoreUnknownKeys = true }
-        return json.decodeFromString(cleaned)
+        return json.decodeFromString<KcContext>(cleaned)
     }
 }

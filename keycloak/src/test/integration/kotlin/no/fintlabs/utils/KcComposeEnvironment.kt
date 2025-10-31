@@ -41,6 +41,23 @@ class KcComposeEnvironment(
             )
 
             withExposedService(
+                "flais-scim-client-telemark",
+                9090,
+                Wait
+                    .forHttp("/healthz")
+                    .forPort(9090)
+                    .withStartupTimeout(Duration.ofMinutes(1)),
+            )
+            withExposedService(
+                "flais-scim-client-rogaland",
+                9090,
+                Wait
+                    .forHttp("/healthz")
+                    .forPort(9090)
+                    .withStartupTimeout(Duration.ofMinutes(1)),
+            )
+
+            withExposedService(
                 "dex-entra-telemark",
                 5556,
                 Wait
@@ -89,21 +106,15 @@ class KcComposeEnvironment(
         return "http://$host:$port"
     }
 
-    fun dexTelemarkUrl(): String {
-        val host = compose.getServiceHost("dex-entra-telemark", 5556)
-        val port = compose.getServicePort("dex-entra-telemark", 5556)
-        return "http://$host:$port/dex"
+    fun scimClientTelemarkUrl(): String {
+        val host = compose.getServiceHost("flais-scim-client-telemark", 9090)
+        val port = compose.getServicePort("flais-scim-client-telemark", 9090)
+        return "http://$host:$port"
     }
 
-    fun dexNovariUrl(): String {
-        val host = compose.getServiceHost("dex-entra-novari", 5556)
-        val port = compose.getServicePort("dex-entra-novari", 5556)
-        return "http://$host:$port/dex"
-    }
-
-    fun dexIdportenUrl(): String {
-        val host = compose.getServiceHost("dex-idporten", 5556)
-        val port = compose.getServicePort("dex-idporten", 5556)
-        return "http://$host:$port/dex"
+    fun scimClientRogalandUrl(): String {
+        val host = compose.getServiceHost("flais-scim-client-rogaland", 9090)
+        val port = compose.getServicePort("flais-scim-client-rogaland", 9090)
+        return "http://$host:$port"
     }
 }
