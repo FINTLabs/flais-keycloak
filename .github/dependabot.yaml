@@ -39,6 +39,12 @@ updates:
       interval: "weekly"
       day: "sunday"
 
+  - package-ecosystem: "gradle"
+    directory: "/keycloak/libs/scim-server/"
+    schedule:
+      interval: "weekly"
+      day: "sunday"
+
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
