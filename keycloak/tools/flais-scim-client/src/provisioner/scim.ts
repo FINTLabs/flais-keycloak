@@ -12,7 +12,7 @@ export interface ScimUserInput {
 const CORE_USER_SCHEMA = "urn:ietf:params:scim:schemas:core:2.0:User";
 const CORE_GROUP_SCHEMA = "urn:ietf:params:scim:schemas:core:2.0:Group";
 
-export function toScimUserDoc(u: ScimUserInput) {
+export const toScimUserDoc = (u: ScimUserInput) => {
     const doc: any = {
         schemas: [CORE_USER_SCHEMA],
         userName: u.userName,
@@ -34,13 +34,13 @@ export function toScimUserDoc(u: ScimUserInput) {
         if ((u as any)[k] !== undefined) (doc as any)[k] = (u as any)[k];
     }
     return doc;
-}
+};
 
-export async function findUser(
+export const findUser = async (
     http: AxiosInstance,
     userName: string,
     orgId: string
-) {
+) => {
     const r = await http.get(
         `/realms/external/scim/v2/organizations/${orgId}/Users`,
         {
@@ -53,9 +53,13 @@ export async function findUser(
         );
     const resources = r.data?.Resources ?? [];
     return resources[0] || null;
-}
+};
 
-export async function createUser(http: AxiosInstance, doc: any, orgId: string) {
+export const createUser = async (
+    http: AxiosInstance,
+    doc: any,
+    orgId: string
+) => {
     const r = await http.post(
         `/realms/external/scim/v2/organizations/${orgId}/Users`,
         doc
@@ -65,14 +69,14 @@ export async function createUser(http: AxiosInstance, doc: any, orgId: string) {
             `Create user failed: ${r.status} ${JSON.stringify(r.data)}`
         );
     return r.data;
-}
+};
 
-export async function updateUser(
+export const updateUser = async (
     http: AxiosInstance,
     id: string,
     doc: any,
     orgId: string
-) {
+) => {
     const r = await http.put(
         `/realms/external/scim/v2/organizations/${orgId}/Users/${id}`,
         doc
@@ -82,13 +86,13 @@ export async function updateUser(
             `Update user failed: ${r.status} ${JSON.stringify(r.data)}`
         );
     return r.data;
-}
+};
 
-export async function findGroup(
+export const findGroup = async (
     http: AxiosInstance,
     displayName: string,
     orgId: string
-) {
+) => {
     const r = await http.get(
         `/realms/external/scim/v2/organizations/${orgId}/Groups`,
         {
@@ -101,13 +105,13 @@ export async function findGroup(
         );
     const resources = r.data?.Resources ?? [];
     return resources[0] || null;
-}
+};
 
-export async function createGroup(
+export const createGroup = async (
     http: AxiosInstance,
     displayName: string,
     orgId: string
-) {
+) => {
     const r = await http.post(
         `/realms/external/scim/v2/organizations/${orgId}/Groups`,
         {
@@ -120,23 +124,23 @@ export async function createGroup(
             `Create group failed: ${r.status} ${JSON.stringify(r.data)}`
         );
     return r.data;
-}
+};
 
-export async function ensureGroup(
+export const ensureGroup = async (
     http: AxiosInstance,
     name: string,
     orgId: string
-) {
+) => {
     const g = await findGroup(http, name, orgId);
     return g ?? (await createGroup(http, name, orgId));
-}
+};
 
-export async function addUserToGroup(
+export const addUserToGroup = async (
     http: AxiosInstance,
     groupId: string,
     userId: string,
     orgId: string
-) {
+) => {
     const payload = {
         schemas: ["urn:ietf:params:scim:api:messages:2.0:PatchOp"],
         Operations: [
@@ -155,4 +159,4 @@ export async function addUserToGroup(
         throw new Error(
             `Group membership failed: ${r.status} ${JSON.stringify(r.data)}`
         );
-}
+};

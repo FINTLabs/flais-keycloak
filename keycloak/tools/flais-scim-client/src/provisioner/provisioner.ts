@@ -138,5 +138,3 @@ export class Provisioner {
         return result;
     }
 }
-
-export function registerProvisioner(app: Express, issuerUrl: string) {}
