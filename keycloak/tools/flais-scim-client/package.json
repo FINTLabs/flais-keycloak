@@ -13,13 +13,13 @@
     "license": "ISC",
     "description": "",
     "devDependencies": {
-        "@types/node": "24.9.1",
+        "@types/node": "24.10.0",
         "ts-node": "10.9.2",
         "typescript": "5.9.3"
     },
     "dependencies": {
-        "@types/express": "5.0.3",
-        "axios": "1.12.2",
+        "@types/express": "5.0.5",
+        "axios": "1.13.2",
         "express": "5.1.0",
         "jose": "6.1.0",
         "nanoid": "5.1.6",
