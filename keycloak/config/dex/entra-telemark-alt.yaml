@@ -20,11 +20,11 @@ staticClients:
 
 enablePasswordDB: true
 staticPasswords:
-    -   email: alice.basic@telemark.no
-        username: alice.basic
+    -   email: alice.basic@telemark-alt.no
+        username: alice.basic@telemark-alt.no
         userID: 11111111-1111-1111-1111-111111111111
         hash: $2b$10$pECRn7RvUKar9qQjpPUvGO8ZNuK5xezvXZOnX6TaD.SddrZwsMZBK # password = password
-    -   email: jon.basic@telemark.no
-        username: jon.basic
+    -   email: jon.basic@telemark-alt.no
+        username: jon.basic@telemark-alt.no
         userID: 22222222-2222-2222-2222-222222222222
         hash: $2b$10$pECRn7RvUKar9qQjpPUvGO8ZNuK5xezvXZOnX6TaD.SddrZwsMZBK # password = password
