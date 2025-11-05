@@ -9,21 +9,16 @@ type UserInput = {
     active: boolean;
     name: { givenName: string; familyName: string };
     emails: Array<{ value: string; primary?: boolean; type?: string }>;
-    groups: string[];
     [k: string]: unknown;
 };
 
 type ProvisionResult = {
     total: number;
     ok: number;
-    skipped: number;
-    failed: number;
     details: Array<{
         index: number;
         userName?: string;
-        action: "create" | "update" | "skip-invalid";
         error?: string;
-        groups?: { name: string; added: boolean; error?: string }[];
     }>;
 };
 
@@ -75,8 +70,6 @@ export class Provisioner {
         const result: ProvisionResult = {
             total: users.length,
             ok: 0,
-            skipped: 0,
-            failed: 0,
             details: [],
         };
 
@@ -87,12 +80,6 @@ export class Provisioner {
             const per = {
                 index: i + 1,
                 userName: u.userName,
-                action: "create" as const,
-                groups: [] as {
-                    name: string;
-                    added: boolean;
-                    error?: string;
-                }[],
             };
 
             const desired = toScimUserDoc(u);
@@ -100,7 +87,7 @@ export class Provisioner {
             let userId: string | undefined;
 
             if (existing) {
-                userId = existing.id as string | undefined;
+                userId = existing.id;
                 await updateUser(http, userId!, desired, orgId);
                 logger.info(`[${i + 1}] UPDATE ${u.userName} (id=${userId})`);
             } else {
@@ -108,27 +95,6 @@ export class Provisioner {
                 userId = created.id;
                 logger.info(`[${i + 1}] CREATE ${u.userName} (id=${userId})`);
             }
-
-            // for (const gName of u.groups ?? []) {
-            //     const gRes = {
-            //         name: gName,
-            //         added: false as boolean,
-            //         error: undefined as string | undefined,
-            //     };
-            //     try {
-            //         const g = await ensureGroup(http, gName);
-            //         if (userId) {
-            //             await addUserToGroup(http, g.id, userId);
-            //             gRes.added = true;
-            //         }
-            //     } catch (e: any) {
-            //         gRes.error = e?.message || String(e);
-            //         logger.warn(
-            //             `group/membership issue for '${gName}': ${gRes.error}`
-            //         );
-            //     }
-            //     per.groups.push(gRes);
-            // }
 
             result.ok++;
             result.details.push(per);
