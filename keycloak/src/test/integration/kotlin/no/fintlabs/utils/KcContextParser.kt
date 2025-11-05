@@ -39,7 +39,7 @@ object KcContextParser {
 
     @Serializable
     data class Provider(
-        val displayName: String,
+        val name: String,
         val alias: String,
     )
 
@@ -65,17 +65,12 @@ object KcContextParser {
     )
 
     @Serializable
-    data class Social(
-        val providers: List<Provider>? = null,
-    )
-
-    @Serializable
     data class KcContext(
         val pageId: String,
         val url: Url,
         val message: Message? = null,
         val organizations: List<Organization>? = null,
-        val social: Social? = null,
+        val providers: List<Provider>? = null,
     )
 
     fun parseKcContext(html: String): KcContext {

@@ -118,15 +118,15 @@ class OrgIdpSelectorTest {
             val kc = KcContextParser.parseKcContext(html)
 
             Assertions.assertEquals("flais-org-idp-selector", kc.pageId)
-            Assertions.assertNotNull(kc.social?.providers)
-            Assertions.assertTrue(kc.social?.providers?.size!! > 1)
+            Assertions.assertNotNull(kc.providers)
+            Assertions.assertTrue(kc.providers?.size!! > 1)
             Assertions.assertTrue(
-                kc.social.providers
+                kc.providers
                     .stream()
                     .anyMatch { p: KcContextParser.Provider? -> "entra-telemark" == p!!.alias },
             )
             Assertions.assertTrue(
-                kc.social.providers
+                kc.providers
                     .stream()
                     .anyMatch { p: KcContextParser.Provider? -> "entra-telemark" == p!!.alias },
             )
