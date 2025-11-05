@@ -80,3 +80,20 @@ export const updateUser = async (
 
     return r.data;
 };
+
+export const deleteUser = async (
+    http: AxiosInstance,
+    id: string,
+    orgId: string
+) => {
+    const r = await http.delete(
+        `/realms/external/scim/v2/organizations/${orgId}/Users/${id}`
+    );
+
+    if (![200, 204].includes(r.status))
+        throw new Error(
+            `Delete user failed: ${r.status} ${JSON.stringify(r.data)}`
+        );
+
+    return r.status === 204 ? { success: true } : r.data;
+};

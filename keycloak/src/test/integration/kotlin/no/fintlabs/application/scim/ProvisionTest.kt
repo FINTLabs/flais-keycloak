@@ -5,7 +5,6 @@ import no.fintlabs.extensions.KcEnvExtension
 import no.fintlabs.utils.KcComposeEnvironment
 import no.fintlabs.utils.ScimFlow
 import no.fintlabs.utils.ScimFlow.provisionUsers
-import okhttp3.HttpUrl.Companion.toHttpUrl
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
@@ -58,7 +57,8 @@ class ProvisionTest {
         kcConfig: KcConfig,
     ) {
         provisionUsers(
-            "${env.scimClientTelemarkUrl()}/provision/${kcConfig.requireOrg("telemark").id}".toHttpUrl(),
+            env.scimClientTelemarkUrl(),
+            kcConfig.requireOrg("telemark").id,
             usersTelemark,
         ).use { resp ->
             Assertions.assertEquals(200, resp.code)
@@ -71,7 +71,8 @@ class ProvisionTest {
         kcConfig: KcConfig,
     ) {
         provisionUsers(
-            "${env.scimClientRogalandUrl()}/provision/${kcConfig.requireOrg("rogaland").id}".toHttpUrl(),
+            env.scimClientRogalandUrl(),
+            kcConfig.requireOrg("rogaland").id,
             usersRogaland,
         ).use { resp ->
             Assertions.assertEquals(200, resp.code)

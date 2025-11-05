@@ -38,6 +38,11 @@ object KcAdminClient {
         email: String,
     ): UserRepresentation? = realm.users().searchByEmail(email, true).firstOrNull()
 
+    fun findUserByUsername(
+        realm: RealmResource,
+        username: String,
+    ): UserRepresentation? = realm.users().searchByUsername(username, true).firstOrNull()
+
     fun deleteUser(
         realm: RealmResource,
         userId: String,

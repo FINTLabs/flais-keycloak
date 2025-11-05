@@ -3,6 +3,7 @@ package no.fintlabs.utils
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import okhttp3.HttpUrl
+import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -65,12 +66,24 @@ object ScimFlow {
     }
 
     fun provisionUsers(
-        url: HttpUrl,
+        baseUrl: String,
+        orgId: String,
         users: List<ScimUser>,
         httpClient: OkHttpClient? = null,
     ): Response {
         val client = resolveClient(httpClient)
         val payload = json.encodeToString(users)
-        return postJson(url, payload, client)
+        return postJson("$baseUrl/provision/$orgId".toHttpUrl(), payload, client)
+    }
+
+    fun deprovisionUsers(
+        baseUrl: String,
+        orgId: String,
+        users: List<ScimUser>,
+        httpClient: OkHttpClient? = null,
+    ): Response {
+        val client = resolveClient(httpClient)
+        val payload = json.encodeToString(users)
+        return postJson("$baseUrl/deprovision/$orgId".toHttpUrl(), payload, client)
     }
 }

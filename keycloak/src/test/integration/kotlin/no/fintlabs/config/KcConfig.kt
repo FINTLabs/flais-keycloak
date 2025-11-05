@@ -21,7 +21,7 @@ class KcConfig private constructor(
 
     @Serializable
     data class Organization(
-        val id: String? = null,
+        val id: String,
         val name: String,
         val alias: String,
         val enabled: Boolean = true,
