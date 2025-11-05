@@ -4,6 +4,7 @@ import no.fintlabs.config.KcConfig
 import no.fintlabs.extensions.KcEnvExtension
 import no.fintlabs.utils.KcAdminClient
 import no.fintlabs.utils.KcComposeEnvironment
+import no.fintlabs.utils.KcFlow.loginWithUser
 import no.fintlabs.utils.ScimFlow
 import no.fintlabs.utils.ScimFlow.provisionUsers
 import okhttp3.HttpUrl.Companion.toHttpUrl
@@ -22,38 +23,39 @@ class ProvisionedTest {
     private val usersTelemark =
         listOf(
             ScimFlow.ScimUser(
-                externalId = "test-app",
-                userName = "alice@telemark.no",
+                externalId = "CiQxMTExMTExMS0xMTExLTExMTEtMTExMS0xMTExMTExMTExMTESBWxvY2Fs",
+                userName = "alice.basic@telemark.no",
                 active = true,
-                name = ScimFlow.ScimUser.Name("Alice", "Anders"),
-                emails = listOf(ScimFlow.ScimUser.Email("alice@telemark.no", primary = true)),
+                name = ScimFlow.ScimUser.Name("Alice", "Basic"),
+                emails = listOf(ScimFlow.ScimUser.Email("alice.basic@telemark.no", primary = true)),
                 groups = emptyList(),
             ),
             ScimFlow.ScimUser(
-                externalId = "test-app",
-                userName = "bob@telemark.no",
+                externalId = "CiQyMjIyMjIyMi0yMjIyLTIyMjItMjIyMi0yMjIyMjIyMjIyMjISBWxvY2Fs",
+                userName = "jon.basic@telemark.no",
                 active = true,
-                name = ScimFlow.ScimUser.Name("Bob", "Berg"),
-                emails = listOf(ScimFlow.ScimUser.Email("bob@telemark.no")),
+                name = ScimFlow.ScimUser.Name("Jon", "Basic"),
+                emails = listOf(ScimFlow.ScimUser.Email("jon.basic@telemark.no")),
                 groups = emptyList(),
             ),
         )
+
     val usersRogaland =
         listOf(
             ScimFlow.ScimUser(
-                externalId = "test-app",
-                userName = "alice@rogaland.no",
+                externalId = "CiQxMTExMTExMS0xMTExLTExMTEtMTExMS0xMTExMTExMTExMTESBWxvY2Fs",
+                userName = "alice.basic@rogaland.no",
                 active = true,
-                name = ScimFlow.ScimUser.Name("Alice", "Anders"),
-                emails = listOf(ScimFlow.ScimUser.Email("alice@rogaland.no", primary = true)),
+                name = ScimFlow.ScimUser.Name("Alice", "Basic"),
+                emails = listOf(ScimFlow.ScimUser.Email("alice.basic@rogaland.no", primary = true)),
                 groups = emptyList(),
             ),
             ScimFlow.ScimUser(
-                externalId = "test-app",
-                userName = "bob@rogaland.no",
+                externalId = "CiQyMjIyMjIyMi0yMjIyLTIyMjItMjIyMi0yMjIyMjIyMjIyMjISEWxvY2Fs",
+                userName = "jon.basic@rogaland.no",
                 active = true,
-                name = ScimFlow.ScimUser.Name("Bob", "Berg"),
-                emails = listOf(ScimFlow.ScimUser.Email("bob@rogaland.no")),
+                name = ScimFlow.ScimUser.Name("Jon", "Basic"),
+                emails = listOf(ScimFlow.ScimUser.Email("jon.basic@rogaland.no")),
                 groups = emptyList(),
             ),
         )
@@ -127,6 +129,21 @@ class ProvisionedTest {
                 val identities = KcAdminClient.getFederatedIdentities(realmRes, user.id)
                 assertNotNull(identities)
                 assertEquals("entra-telemark", identities.first().identityProvider)
+            }
+        }
+    }
+
+    @Test
+    fun `provisioned users in org (telemark) can login`(env: KcComposeEnvironment) {
+        val clientId = "flais-keycloak-demo"
+        val orgAlias = "telemark"
+        val idpAlias = "entra-telemark"
+
+        usersTelemark.forEach { u ->
+            loginWithUser(env, clientId, orgAlias, idpAlias, u.userName, "password").use { resp ->
+                Assertions.assertEquals(200, resp.code)
+
+                Assertions.assertNotNull(resp.request.url.queryParameter("code"))
             }
         }
     }

@@ -1,5 +1,6 @@
 package no.fintlabs.application.scim
 
+import no.fintlabs.config.KcConfig
 import no.fintlabs.extensions.KcEnvExtension
 import no.fintlabs.utils.KcComposeEnvironment
 import no.fintlabs.utils.ScimFlow
@@ -11,49 +12,53 @@ import org.junit.jupiter.api.extension.ExtendWith
 
 @ExtendWith(KcEnvExtension::class)
 class ProvisionTest {
-    val usersTelemark =
+    private val usersTelemark =
         listOf(
             ScimFlow.ScimUser(
-                externalId = "test-app",
-                userName = "alice@telemark.no",
+                externalId = "CiQxMTExMTExMS0xMTExLTExMTEtMTExMS0xMTExMTExMTExMTESBWxvY2Fs",
+                userName = "alice.basic@telemark.no",
                 active = true,
-                name = ScimFlow.ScimUser.Name("Alice", "Anders"),
-                emails = listOf(ScimFlow.ScimUser.Email("alice@telemark.no", primary = true)),
+                name = ScimFlow.ScimUser.Name("Alice", "Basic"),
+                emails = listOf(ScimFlow.ScimUser.Email("alice.basic@telemark.no", primary = true)),
                 groups = emptyList(),
             ),
             ScimFlow.ScimUser(
-                externalId = "test-app",
-                userName = "bob@telemark.no",
+                externalId = "CiQyMjIyMjIyMi0yMjIyLTIyMjItMjIyMi0yMjIyMjIyMjIyMjISBWxvY2Fs",
+                userName = "jon.basic@telemark.no",
                 active = true,
-                name = ScimFlow.ScimUser.Name("Bob", "Berg"),
-                emails = listOf(ScimFlow.ScimUser.Email("bob@telemark.no")),
+                name = ScimFlow.ScimUser.Name("Jon", "Basic"),
+                emails = listOf(ScimFlow.ScimUser.Email("jon.basic@telemark.no")),
                 groups = emptyList(),
             ),
         )
+
     val usersRogaland =
         listOf(
             ScimFlow.ScimUser(
-                externalId = "test-app",
-                userName = "alice@rogaland.no",
+                externalId = "CiQxMTExMTExMS0xMTExLTExMTEtMTExMS0xMTExMTExMTExMTESBWxvY2Fs",
+                userName = "alice.basic@rogaland.no",
                 active = true,
-                name = ScimFlow.ScimUser.Name("Alice", "Anders"),
-                emails = listOf(ScimFlow.ScimUser.Email("alice@rogaland.no", primary = true)),
+                name = ScimFlow.ScimUser.Name("Alice", "Basic"),
+                emails = listOf(ScimFlow.ScimUser.Email("alice.basic@rogaland.no", primary = true)),
                 groups = emptyList(),
             ),
             ScimFlow.ScimUser(
-                externalId = "test-app",
-                userName = "bob@rogaland.no",
+                externalId = "CiQyMjIyMjIyMi0yMjIyLTIyMjItMjIyMi0yMjIyMjIyMjIyMjISEWxvY2Fs",
+                userName = "jon.basic@rogaland.no",
                 active = true,
-                name = ScimFlow.ScimUser.Name("Bob", "Berg"),
-                emails = listOf(ScimFlow.ScimUser.Email("bob@rogaland.no")),
+                name = ScimFlow.ScimUser.Name("Jon", "Basic"),
+                emails = listOf(ScimFlow.ScimUser.Email("jon.basic@rogaland.no")),
                 groups = emptyList(),
             ),
         )
 
     @Test
-    fun `provision users to org (telemark) returns ok`(env: KcComposeEnvironment) {
+    fun `provision users to org (telemark) returns ok`(
+        env: KcComposeEnvironment,
+        kcConfig: KcConfig,
+    ) {
         provisionUsers(
-            "${env.scimClientTelemarkUrl()}/provision/d46586ca-9cbb-46c8-924c-061aaef9925e".toHttpUrl(),
+            "${env.scimClientTelemarkUrl()}/provision/${kcConfig.requireOrg("telemark").id}".toHttpUrl(),
             usersTelemark,
         ).use { resp ->
             Assertions.assertEquals(200, resp.code)
@@ -61,9 +66,12 @@ class ProvisionTest {
     }
 
     @Test
-    fun `provision users to org (rogaland) returns ok`(env: KcComposeEnvironment) {
+    fun `provision users to org (rogaland) returns ok`(
+        env: KcComposeEnvironment,
+        kcConfig: KcConfig,
+    ) {
         provisionUsers(
-            "${env.scimClientRogalandUrl()}/provision/1985b29e-f1b0-43c7-8e4e-ef61bccfbefc".toHttpUrl(),
+            "${env.scimClientRogalandUrl()}/provision/${kcConfig.requireOrg("rogaland").id}".toHttpUrl(),
             usersRogaland,
         ).use { resp ->
             Assertions.assertEquals(200, resp.code)
