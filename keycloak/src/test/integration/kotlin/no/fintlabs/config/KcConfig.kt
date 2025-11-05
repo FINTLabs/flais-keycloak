@@ -21,12 +21,12 @@ class KcConfig private constructor(
 
     @Serializable
     data class Organization(
-        val id: String? = null,
+        val id: String,
         val name: String,
         val alias: String,
         val enabled: Boolean = true,
         val description: String? = null,
-        val attributes: Map<String, String> = emptyMap(),
+        val attributes: Map<String, List<String>> = emptyMap(),
         val domains: List<Domain> = emptyList(),
         val identityProviders: List<OrgIdentityProviderRef> = emptyList(),
     )

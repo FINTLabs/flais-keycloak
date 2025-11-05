@@ -23,7 +23,7 @@ object KcUrl {
     private fun generateCodeVerifier(): String {
         val bytes = ByteArray(32)
         SecureRandom().nextBytes(bytes)
-        return base64UrlNoPadding(bytes) // RFC 7636 compliant
+        return base64UrlNoPadding(bytes)
     }
 
     private fun codeChallengeS256(verifier: String): String {

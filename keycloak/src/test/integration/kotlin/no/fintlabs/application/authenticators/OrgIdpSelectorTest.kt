@@ -121,10 +121,14 @@ class OrgIdpSelectorTest {
             Assertions.assertNotNull(kc.providers)
             Assertions.assertTrue(kc.providers?.size!! > 1)
             Assertions.assertTrue(
-                kc.providers.stream().anyMatch { p: KcContextParser.Provider? -> "entra-telemark" == p!!.alias },
+                kc.providers
+                    .stream()
+                    .anyMatch { p: KcContextParser.Provider? -> "entra-telemark" == p!!.alias },
             )
             Assertions.assertTrue(
-                kc.providers.stream().anyMatch { p: KcContextParser.Provider? -> "entra-telemark" == p!!.alias },
+                kc.providers
+                    .stream()
+                    .anyMatch { p: KcContextParser.Provider? -> "entra-telemark" == p!!.alias },
             )
         }
     }
