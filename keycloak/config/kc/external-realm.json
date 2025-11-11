@@ -404,44 +404,70 @@
             "builtIn": false,
             "authenticationExecutions": [
                 {
-                    "authenticator": "idp-create-user-if-unique",
-                    "authenticatorFlow": false,
+                    "authenticatorFlow": true,
                     "requirement": "REQUIRED",
-                    "priority": 50,
-                    "autheticatorFlow": false,
+                    "priority": 54,
+                    "autheticatorFlow": true,
+                    "flowAlias": "flais-first-broker-login - User creation or linking",
                     "userSetupAllowed": false
                 },
                 {
                     "authenticatorFlow": true,
                     "requirement": "CONDITIONAL",
-                    "priority": 51,
+                    "priority": 57,
                     "autheticatorFlow": true,
-                    "flowAlias": "flais-first-broker-login First Broker Login - Conditional Organization",
+                    "flowAlias": "flais-first-broker-login - Conditional Organization",
                     "userSetupAllowed": false
                 }
             ]
         },
         {
-            "id": "df273fa6-79d5-4085-bf89-54c598b5a724",
-            "alias": "flais-first-broker-login First Broker Login - Conditional Organization",
+            "id": "b2b2890e-b424-4a55-b777-c72a1718dab6",
+            "alias": "flais-first-broker-login - Conditional Organization",
             "description": "Flow to determine if the authenticator that adds organization members is to be used",
             "providerId": "basic-flow",
             "topLevel": false,
             "builtIn": false,
             "authenticationExecutions": [
                 {
-                    "authenticator": "conditional-user-configured",
+                    "authenticator": "idp-add-organization-member",
                     "authenticatorFlow": false,
                     "requirement": "REQUIRED",
-                    "priority": 10,
+                    "priority": 0,
                     "autheticatorFlow": false,
                     "userSetupAllowed": false
                 },
                 {
-                    "authenticator": "idp-add-organization-member",
+                    "authenticator": "conditional-user-configured",
                     "authenticatorFlow": false,
                     "requirement": "REQUIRED",
-                    "priority": 20,
+                    "priority": 0,
+                    "autheticatorFlow": false,
+                    "userSetupAllowed": false
+                }
+            ]
+        },
+        {
+            "id": "a40907d0-0c54-4795-836c-d08367f4dc42",
+            "alias": "flais-first-broker-login - User creation or linking",
+            "description": "Flow for the existing/non-existing user alternatives",
+            "providerId": "basic-flow",
+            "topLevel": false,
+            "builtIn": false,
+            "authenticationExecutions": [
+                {
+                    "authenticator": "idp-create-user-if-unique",
+                    "authenticatorFlow": false,
+                    "requirement": "ALTERNATIVE",
+                    "priority": 0,
+                    "autheticatorFlow": false,
+                    "userSetupAllowed": false
+                },
+                {
+                    "authenticator": "idp-auto-link",
+                    "authenticatorFlow": false,
+                    "requirement": "ALTERNATIVE",
+                    "priority": 1,
                     "autheticatorFlow": false,
                     "userSetupAllowed": false
                 }
