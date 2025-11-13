@@ -1,0 +1,65 @@
+# https://goauthentik.io/blueprints/schema.json
+version: 1
+metadata:
+    name: "Scopes"
+    labels:
+        blueprints.goauthentik.io/instantiate: "true"
+
+entries:
+    -   model: authentik_blueprints.metaapplyblueprint
+        attrs:
+            identifiers:
+                path: system/bootstrap.yaml
+            required: false
+
+    -   model: authentik_blueprints.metaapplyblueprint
+        attrs:
+            identifiers:
+                path: system/providers-oauth2.yaml
+
+    -   model: authentik_blueprints.metaapplyblueprint
+        attrs:
+            identifiers:
+                path: default/flow-default-provider-authorization-implicit-consent.yaml
+
+    -   model: authentik_blueprints.metaapplyblueprint
+        attrs:
+            identifiers:
+                path: default/flow-default-provider-invalidation.yaml
+
+    -   model: authentik_providers_oauth2.scopemapping
+        state: present
+        identifiers:
+            name: "Custom OAuth Mapping: Entra Name"
+        attrs:
+            scope_name: "profile"
+            expression: |
+                given_name = request.user.attributes.get("given_name")
+                family_name = request.user.attributes.get("family_name")
+
+                return {
+                    "given_name": given_name,
+                    "family_name": family_name,
+                }
+
+    -   model: authentik_providers_oauth2.scopemapping
+        state: present
+        identifiers:
+            name: "Custom OAuth Mapping: Entra Roles"
+        attrs:
+            scope_name: "profile"
+            expression: |
+                return {
+                    "roles": request.user.attributes.get("roles", [])
+                }
+
+    -   model: authentik_providers_oauth2.scopemapping
+        state: present
+        identifiers:
+            name: "Custom OAuth Mapping: Entra OID"
+        attrs:
+            scope_name: "profile"
+            expression: |
+                return {
+                    "oid": request.user.attributes.get("oid")
+                }

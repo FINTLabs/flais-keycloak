@@ -50,7 +50,16 @@ class PublicClientTokenTest {
             val code = resp.request.url.queryParameter("code")
             assertNotNull(code)
 
-            val accessToken = exchangeCodeForAccessToken(env, realm, code, redirectUri, clientId, codeVerifier, client)
+            val accessToken =
+                exchangeCodeForAccessToken(
+                    env,
+                    realm,
+                    code,
+                    redirectUri,
+                    clientId,
+                    codeVerifier,
+                    client,
+                )
             assertNotNull(accessToken)
 
             validateToken(env, realm, accessToken, client).use { resp ->

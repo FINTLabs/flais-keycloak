@@ -1,0 +1,25 @@
+# https://goauthentik.io/blueprints/schema.json
+version: 1
+metadata:
+    name: "Admin Users"
+    labels:
+        blueprints.goauthentik.io/instantiate: "true"
+
+entries:
+    -   model: authentik_blueprints.metaapplyblueprint
+        attrs:
+            identifiers:
+                path: system/bootstrap.yaml
+
+    -   model: authentik_core.user
+        state: present
+        identifiers:
+            username: "admin"
+        attrs:
+            name: "System Administrator"
+            email: "admin@admin.no"
+            is_active: true
+            is_superuser: true
+            password: "admin"
+            groups:
+                - !Find [ authentik_core.group, [ name, authentik Admins ] ]
