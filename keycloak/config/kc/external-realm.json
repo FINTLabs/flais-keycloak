@@ -28,7 +28,7 @@
                 "subComponents": {},
                 "config": {
                     "kc.user.profile.config": [
-                        "{\"attributes\":[{\"name\":\"username\",\"displayName\":\"${username}\",\"validations\":{\"length\":{\"min\":3,\"max\":255},\"username-prohibited-characters\":{},\"up-username-not-idn-homograph\":{}},\"permissions\":{\"view\":[\"admin\",\"user\"],\"edit\":[\"admin\",\"user\"]},\"multivalued\":false},{\"name\":\"email\",\"displayName\":\"${email}\",\"validations\":{\"email\":{},\"length\":{\"max\":255}},\"permissions\":{\"view\":[\"admin\",\"user\"],\"edit\":[\"admin\",\"user\"]},\"multivalued\":false},{\"name\":\"firstName\",\"displayName\":\"${firstName}\",\"validations\":{\"length\":{\"max\":255},\"person-name-prohibited-characters\":{}},\"permissions\":{\"view\":[\"admin\",\"user\"],\"edit\":[\"admin\",\"user\"]},\"multivalued\":false},{\"name\":\"lastName\",\"displayName\":\"${lastName}\",\"validations\":{\"length\":{\"max\":255},\"person-name-prohibited-characters\":{}},\"permissions\":{\"view\":[\"admin\",\"user\"],\"edit\":[\"admin\",\"user\"]},\"multivalued\":false},{\"name\":\"externalId\",\"displayName\":\"External ID\",\"validations\":{},\"annotations\":{},\"permissions\":{\"view\":[],\"edit\":[\"admin\"]},\"multivalued\":false}],\"groups\":[{\"name\":\"user-metadata\",\"displayHeader\":\"User metadata\",\"displayDescription\":\"Attributes, which refer to user metadata\"}]}"
+                        "{\"attributes\":[{\"name\":\"username\",\"displayName\":\"${username}\",\"validations\":{\"length\":{\"min\":3,\"max\":255},\"username-prohibited-characters\":{},\"up-username-not-idn-homograph\":{}},\"permissions\":{\"view\":[\"admin\",\"user\"],\"edit\":[\"admin\",\"user\"]},\"multivalued\":false},{\"name\":\"email\",\"displayName\":\"${email}\",\"validations\":{\"email\":{},\"length\":{\"max\":255}},\"permissions\":{\"view\":[\"admin\",\"user\"],\"edit\":[\"admin\",\"user\"]},\"multivalued\":false},{\"name\":\"firstName\",\"displayName\":\"${firstName}\",\"validations\":{\"length\":{\"max\":255},\"person-name-prohibited-characters\":{}},\"permissions\":{\"view\":[\"admin\",\"user\"],\"edit\":[\"admin\",\"user\"]},\"multivalued\":false},{\"name\":\"lastName\",\"displayName\":\"${lastName}\",\"validations\":{\"length\":{\"max\":255},\"person-name-prohibited-characters\":{}},\"permissions\":{\"view\":[\"admin\",\"user\"],\"edit\":[\"admin\",\"user\"]},\"multivalued\":false},{\"name\":\"externalId\",\"displayName\":\"External ID\",\"validations\":{},\"annotations\":{},\"permissions\":{\"view\":[],\"edit\":[\"admin\"]},\"multivalued\":false},{\"name\":\"roles\",\"displayName\":\"Roles\",\"validations\":{},\"annotations\":{},\"permissions\":{\"view\":[],\"edit\":[\"admin\"]},\"multivalued\":false}],\"groups\":[{\"name\":\"user-metadata\",\"displayHeader\":\"User metadata\",\"displayDescription\":\"Attributes, which refer to user metadata\"}]}"
                     ]
                 }
             }
@@ -277,7 +277,7 @@
     "identityProviders": [
         {
             "alias": "entra-telemark",
-            "displayName": "Entra Telemark (Dex)",
+            "displayName": "Entra Telemark (Authentik)",
             "providerId": "oidc",
             "enabled": true,
             "storeToken": true,
@@ -285,15 +285,18 @@
             "authenticateByDefault": false,
             "linkOnly": false,
             "config": {
-                "clientId": "test-app",
+                "clientId": "entra-telemark",
                 "clientSecret": "test-secret",
-                "authorizationUrl": "http://localhost:5556/dex/auth",
-                "issuer": "http://dex-entra-telemark:5556/dex",
-                "tokenUrl": "http://dex-entra-telemark:5556/dex/token",
-                "userinfoUrl": "http://dex-entra-telemark:5556/dex/userinfo",
-                "kc.org.domain": "telemark.no",
-                "jwksUrl": "http://dex-entra-telemark:5556/dex/keys",
+                "authorizationUrl": "http://localhost:9000/application/o/authorize/",
+                "issuer": "http://authentik:9000/application/o/entra-telemark-app/",
+                "tokenUrl": "http://authentik:9000/application/o/token/",
+                "userInfoUrl": "http://authentik:9000/application/o/userinfo/",
+                "jwksUrl": "http://authentik:9000/application/o/entra-telemark-app/jwks/",
+                "tokenIntrospectionUrl": "http://authentik:9000/application/o/introspect/",
+                "metadataDescriptorUrl": "http://authentik:9000/application/o/entra-telemark-app/.well-known/openid-configuration",
+                "logoutUrl": "http://authentik:9000/application/o/entra-telemark-app/end-session/",
                 "useJwksUrl": "true",
+                "kc.org.domain": "telemark.no",
                 "defaultScope": "openid email profile",
                 "validateSignature": "true",
                 "backchannelSupported": "true"
@@ -301,7 +304,7 @@
         },
         {
             "alias": "entra-telemark-alt",
-            "displayName": "Entra Telemark Alt (Dex)",
+            "displayName": "Entra Telemark Alt (Authentik)",
             "providerId": "oidc",
             "enabled": true,
             "storeToken": true,
@@ -309,13 +312,16 @@
             "authenticateByDefault": false,
             "linkOnly": false,
             "config": {
-                "clientId": "test-app-alt",
+                "clientId": "entra-telemark-alt",
                 "clientSecret": "test-secret",
-                "authorizationUrl": "http://localhost:5556/dex/auth",
-                "issuer": "http://dex-entra-telemark-alt:5556/dex",
-                "tokenUrl": "http://dex-entra-telemark-alt:5556/dex/token",
-                "userinfoUrl": "http://dex-entra-telemark-alt:5556/dex/userinfo",
-                "jwksUrl": "http://dex-entra-telemark-alt:5556/dex/keys",
+                "authorizationUrl": "http://localhost:9000/application/o/authorize/",
+                "issuer": "http://authentik:9000/application/o/entra-telemark-alt-app/",
+                "tokenUrl": "http://authentik:9000/application/o/token/",
+                "userInfoUrl": "http://authentik:9000/application/o/userinfo/",
+                "jwksUrl": "http://authentik:9000/application/o/entra-telemark-alt-app/jwks/",
+                "tokenIntrospectionUrl": "http://authentik:9000/application/o/introspect/",
+                "metadataDescriptorUrl": "http://authentik:9000/application/o/entra-telemark-alt-app/.well-known/openid-configuration",
+                "logoutUrl": "http://authentik:9000/application/o/entra-telemark-alt-app/end-session/",
                 "useJwksUrl": "true",
                 "defaultScope": "openid email profile",
                 "validateSignature": "true",
@@ -324,7 +330,7 @@
         },
         {
             "alias": "entra-rogaland",
-            "displayName": "Entra Rogaland (Dex)",
+            "displayName": "Entra Rogaland (Authentik)",
             "providerId": "oidc",
             "enabled": true,
             "storeToken": true,
@@ -332,13 +338,16 @@
             "authenticateByDefault": false,
             "linkOnly": false,
             "config": {
-                "clientId": "test-app",
+                "clientId": "entra-rogaland",
                 "clientSecret": "test-secret",
-                "authorizationUrl": "http://localhost:5556/dex/auth",
-                "issuer": "http://dex-entra-rogaland:5556/dex",
-                "tokenUrl": "http://dex-entra-rogaland:5556/dex/token",
-                "userinfoUrl": "http://dex-entra-rogaland:5556/dex/userinfo",
-                "jwksUrl": "http://dex-entra-rogaland:5556/dex/keys",
+                "authorizationUrl": "http://localhost:9000/application/o/authorize/",
+                "issuer": "http://authentik:9000/application/o/entra-rogaland-app/",
+                "tokenUrl": "http://authentik:9000/application/o/token/",
+                "userInfoUrl": "http://authentik:9000/application/o/userinfo/",
+                "jwksUrl": "http://authentik:9000/application/o/entra-rogaland-app/jwks/",
+                "tokenIntrospectionUrl": "http://authentik:9000/application/o/introspect/",
+                "metadataDescriptorUrl": "http://authentik:9000/application/o/entra-rogaland-app/.well-known/openid-configuration",
+                "logoutUrl": "http://authentik:9000/application/o/entra-rogaland-app/end-session/",
                 "kc.org.domain": "rogaland.no",
                 "useJwksUrl": "true",
                 "defaultScope": "openid email profile",
@@ -348,7 +357,7 @@
         },
         {
             "alias": "idporten",
-            "displayName": "ID-porten (Dex)",
+            "displayName": "ID-porten (Authentik)",
             "providerId": "oidc",
             "enabled": true,
             "storeToken": true,
@@ -356,13 +365,16 @@
             "authenticateByDefault": false,
             "linkOnly": false,
             "config": {
-                "clientId": "test-app",
+                "clientId": "idporten",
                 "clientSecret": "test-secret",
-                "authorizationUrl": "http://localhost:5558/dex/auth",
-                "issuer": "http://dex-idporten:5556/dex",
-                "tokenUrl": "http://dex-idporten:5556/dex/token",
-                "userinfoUrl": "http://dex-idporten:5556/dex/userinfo",
-                "jwksUrl": "http://dex-idporten:5556/dex/keys",
+                "authorizationUrl": "http://localhost:9000/application/o/authorize/",
+                "issuer": "http://authentik:9000/application/o/idporten-app/",
+                "tokenUrl": "http://authentik:9000/application/o/token/",
+                "userInfoUrl": "http://authentik:9000/application/o/userinfo/",
+                "jwksUrl": "http://authentik:9000/application/o/idporten-app/jwks/",
+                "tokenIntrospectionUrl": "http://authentik:9000/application/o/introspect/",
+                "metadataDescriptorUrl": "http://authentik:9000/application/o/idporten-app/.well-known/openid-configuration",
+                "logoutUrl": "http://authentik:9000/application/o/idporten-app/end-session/",
                 "useJwksUrl": "true",
                 "defaultScope": "openid email profile",
                 "validateSignature": "true",
@@ -378,7 +390,7 @@
             "identityProviderMapper": "oidc-username-idp-mapper",
             "config": {
                 "syncMode": "FORCE",
-                "template": "${CLAIM.sub}",
+                "template": "${CLAIM.oid}",
                 "target": "BROKER_ID"
             }
         },
@@ -389,8 +401,30 @@
             "identityProviderMapper": "oidc-username-idp-mapper",
             "config": {
                 "syncMode": "FORCE",
-                "template": "${CLAIM.sub}",
+                "template": "${CLAIM.oid}",
                 "target": "BROKER_ID"
+            }
+        },
+        {
+            "id": "32966a25-1e6e-4d4f-aa84-6b2be93472b2",
+            "name": "map_roles_to_user",
+            "identityProviderAlias": "entra-telemark",
+            "identityProviderMapper": "oidc-user-attribute-idp-mapper",
+            "config": {
+                "syncMode": "FORCE",
+                "claim": "roles",
+                "user.attribute": "roles"
+            }
+        },
+        {
+            "id": "3e4b8c2f-9d3a-4f0b-8c3e-12f6c9a7b8d2",
+            "name": "map_roles_to_user",
+            "identityProviderAlias": "entra-rogaland",
+            "identityProviderMapper": "oidc-user-attribute-idp-mapper",
+            "config": {
+                "syncMode": "FORCE",
+                "claim": "roles",
+                "user.attribute": "roles"
             }
         }
     ],

@@ -1,7 +1,9 @@
 # flais-keycloak
 
-`flais-keycloak` is the user authentication system for Novari IKS, designed to orchestrate multiple identity providers into a unified platform.  
-It extends [Keycloak](https://www.keycloak.org/) with custom functionality, theming, and demo applications for testing.
+`flais-keycloak` is the user authentication system for Novari IKS, designed to
+orchestrate multiple identity providers into a unified platform.
+It extends [Keycloak](https://www.keycloak.org/) with custom functionality,
+theming, and demo applications for testing.
 
 ## 📂 Project Structure
 
@@ -9,12 +11,16 @@ It extends [Keycloak](https://www.keycloak.org/) with custom functionality, them
 flais-keycloak/
 ├── keycloak/     # Keycloak
 │   |── config/
-│   |    ├── dex              # Dex configuration files
-│   |    └── kc               # Keycloak configuration for dev/test
+│   |    ├── authentik          # Authentik configuration files
+│   |    ├── nginx              # NGINX configuration files
+│   |    └── kc                 # Keycloak configuration for dev/test
 │   |── libs/
-│   |    ├── flais-provider   # Custom Keycloak SPI provider
-│   |    └── flais-theme      # Flais Keycloak login theme
-│   └── tests/                # Tests for Keycloak
+│   |    ├── flais-provider     # Custom Keycloak SPI provider
+│   |    ├── flais-theme        # Flais Keycloak login theme
+│   |    └── scim-server        # Scim server for Keycloak
+│   |── tools/
+│   |    └── flais-scim-client  # Custom scim client for testing
+│   └── src/                    # Tests for Keycloak
 ├── apps/         # Applications for Keycloak
 │   └── flais-keycloak-demo/  # Public client to test Keycloak
 ├── charts/       # Helm charts
@@ -35,17 +41,17 @@ Prerequisites:
 
 1. Navigate to keycloak folder
 
-   ```
-   cd keycloak
-   ```
+    ```
+    cd keycloak
+    ```
 
 2. Run task "deployDev" for full setup
 
-   ```bash
-   gradle deployDev
-   ```
+    ```bash
+    gradle deployDev
+    ```
 
 3. Run task "restart" to restart Keycloak for changes
-   ```bash
-   gradle restart
-   ```
+    ```bash
+    gradle restart
+    ```

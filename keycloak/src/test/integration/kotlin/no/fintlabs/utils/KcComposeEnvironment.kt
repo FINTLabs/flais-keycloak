@@ -31,12 +31,12 @@ class KcComposeEnvironment(
                         Wait
                             .forHttp("/health/ready")
                             .forPort(9000)
-                            .withStartupTimeout(Duration.ofMinutes(2)),
+                            .withStartupTimeout(Duration.ofMinutes(5)),
                     ).withStrategy(
                         Wait
                             .forHttp("/")
                             .forPort(8080)
-                            .withStartupTimeout(Duration.ofMinutes(2)),
+                            .withStartupTimeout(Duration.ofMinutes(5)),
                     ),
             )
 
@@ -54,31 +54,6 @@ class KcComposeEnvironment(
                 Wait
                     .forHttp("/healthz")
                     .forPort(9090)
-                    .withStartupTimeout(Duration.ofMinutes(1)),
-            )
-
-            withExposedService(
-                "dex-entra-telemark",
-                5556,
-                Wait
-                    .forHttp("/dex/.well-known/openid-configuration")
-                    .forPort(5556)
-                    .withStartupTimeout(Duration.ofMinutes(1)),
-            )
-            withExposedService(
-                "dex-entra-novari",
-                5556,
-                Wait
-                    .forHttp("/dex/.well-known/openid-configuration")
-                    .forPort(5556)
-                    .withStartupTimeout(Duration.ofMinutes(1)),
-            )
-            withExposedService(
-                "dex-idporten",
-                5556,
-                Wait
-                    .forHttp("/dex/.well-known/openid-configuration")
-                    .forPort(5556)
                     .withStartupTimeout(Duration.ofMinutes(1)),
             )
         }

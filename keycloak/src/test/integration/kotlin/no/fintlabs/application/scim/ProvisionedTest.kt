@@ -25,7 +25,7 @@ class ProvisionedTest {
     private val usersTelemark =
         listOf(
             ScimFlow.ScimUser(
-                externalId = "CiQxMTExMTExMS0xMTExLTExMTEtMTExMS0xMTExMTExMTExMTESBWxvY2Fs",
+                externalId = "11111111-1111-1111-1111-111111111111",
                 userName = "alice.basic@telemark.no",
                 active = true,
                 name = ScimFlow.ScimUser.Name("Alice", "Basic"),
@@ -33,7 +33,7 @@ class ProvisionedTest {
                 groups = emptyList(),
             ),
             ScimFlow.ScimUser(
-                externalId = "CiQyMjIyMjIyMi0yMjIyLTIyMjItMjIyMi0yMjIyMjIyMjIyMjISBWxvY2Fs",
+                externalId = "22222222-2222-2222-2222-222222222222",
                 userName = "jon.basic@telemark.no",
                 active = true,
                 name = ScimFlow.ScimUser.Name("Jon", "Basic"),
@@ -45,7 +45,7 @@ class ProvisionedTest {
     val usersRogaland =
         listOf(
             ScimFlow.ScimUser(
-                externalId = "CiQxMTExMTExMS0xMTExLTExMTEtMTExMS0xMTExMTExMTExMTESBWxvY2Fs",
+                externalId = "11111111-1111-1111-1111-111111111111",
                 userName = "alice.basic@rogaland.no",
                 active = true,
                 name = ScimFlow.ScimUser.Name("Alice", "Basic"),
@@ -53,7 +53,7 @@ class ProvisionedTest {
                 groups = emptyList(),
             ),
             ScimFlow.ScimUser(
-                externalId = "CiQyMjIyMjIyMi0yMjIyLTIyMjItMjIyMi0yMjIyMjIyMjIyMjISEWxvY2Fs",
+                externalId = "22222222-2222-2222-2222-222222222222",
                 userName = "jon.basic@rogaland.no",
                 active = true,
                 name = ScimFlow.ScimUser.Name("Jon", "Basic"),
@@ -162,11 +162,17 @@ class ProvisionedTest {
         val usersTelemark =
             listOf(
                 ScimFlow.ScimUser(
-                    externalId = "CiQxMTExMTExMS0xMTExLTExMTEtMTExMS0xMTExMTExMTExMTESBWxvY2Fs",
+                    externalId = "11111111-1111-1111-1111-111111111111",
                     userName = "alice.basic@telemark.no",
                     active = true,
                     name = ScimFlow.ScimUser.Name("Alice 2", "Basic 2"),
-                    emails = listOf(ScimFlow.ScimUser.Email("alice.basic2@telemark.no", primary = true)),
+                    emails =
+                        listOf(
+                            ScimFlow.ScimUser.Email(
+                                "alice.basic2@telemark.no",
+                                primary = true,
+                            ),
+                        ),
                     groups = emptyList(),
                 ),
             )
@@ -174,11 +180,17 @@ class ProvisionedTest {
         val usersRogaland =
             listOf(
                 ScimFlow.ScimUser(
-                    externalId = "CiQxMTExMTExMS0xMTExLTExMTEtMTExMS0xMTExMTExMTExMTESBWxvY2Fs",
+                    externalId = "11111111-1111-1111-1111-111111111111",
                     userName = "alice.basic@rogaland.no",
                     active = true,
                     name = ScimFlow.ScimUser.Name("Alice 2", "Basic 2"),
-                    emails = listOf(ScimFlow.ScimUser.Email("alice.basic2@rogaland.no", primary = true)),
+                    emails =
+                        listOf(
+                            ScimFlow.ScimUser.Email(
+                                "alice.basic2@rogaland.no",
+                                primary = true,
+                            ),
+                        ),
                     groups = emptyList(),
                 ),
             )
@@ -227,11 +239,17 @@ class ProvisionedTest {
         val usersTelemark =
             listOf(
                 ScimFlow.ScimUser(
-                    externalId = "CiQxMTExMTExMS0xMTExLTExMTEtMTExMS0xMTExMTExMTExMTESBWxvY2Fs",
+                    externalId = "11111111-1111-1111-1111-111111111111",
                     userName = "alice.basic@telemark.no",
                     active = true,
                     name = ScimFlow.ScimUser.Name("Alice", "Basic"),
-                    emails = listOf(ScimFlow.ScimUser.Email("alice.basic@telemark.no", primary = true)),
+                    emails =
+                        listOf(
+                            ScimFlow.ScimUser.Email(
+                                "alice.basic@telemark.no",
+                                primary = true,
+                            ),
+                        ),
                     groups = emptyList(),
                 ),
             )
@@ -239,11 +257,17 @@ class ProvisionedTest {
         val usersRogaland =
             listOf(
                 ScimFlow.ScimUser(
-                    externalId = "CiQxMTExMTExMS0xMTExLTExMTEtMTExMS0xMTExMTExMTExMTESBWxvY2Fs",
+                    externalId = "11111111-1111-1111-1111-111111111111",
                     userName = "alice.basic@rogaland.no",
                     active = true,
                     name = ScimFlow.ScimUser.Name("Alice", "Basic"),
-                    emails = listOf(ScimFlow.ScimUser.Email("alice.basic@rogaland.no", primary = true)),
+                    emails =
+                        listOf(
+                            ScimFlow.ScimUser.Email(
+                                "alice.basic@rogaland.no",
+                                primary = true,
+                            ),
+                        ),
                     groups = emptyList(),
                 ),
             )

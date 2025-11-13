@@ -52,7 +52,10 @@ class KcEnvExtension :
             try {
                 KcConfig.fromFile(resolved)
             } catch (t: Throwable) {
-                throw ExtensionConfigurationException("Failed to load Keycloak config from '$resolved'", t)
+                throw ExtensionConfigurationException(
+                    "Failed to load Keycloak config from '$resolved'",
+                    t,
+                )
             }
         store.put(CFG_KEY, cfg)
     }
