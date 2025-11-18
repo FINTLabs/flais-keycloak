@@ -13,8 +13,8 @@ val skipScimServer =
         .map { it.toBooleanStrictOrNull() ?: false }
         .getOrElse(false)
 
-if (!skipScimServer) {
-    include(":libs:scim-server")
-}
+include(":libs:flais-scim-server")
 
 include(":libs:flais-provider")
+
+include("libs:flais-scim-server")
