@@ -26,7 +26,11 @@ class FlaisFirstBrokerLoginFlowTest {
     fun setUp(env: KcComposeEnvironment) {
         val (kc, realmRes) = KcAdminClient.connect(env, realm)
         kc.use {
-            KcAdminClient.findUserByUsername(realmRes, email)?.let { KcAdminClient.deleteUser(realmRes, it.id) }
+            KcAdminClient
+                .findUserByUsername(
+                    realmRes,
+                    email,
+                )?.let { KcAdminClient.deleteUser(realmRes, it.id) }
 
             assertNull(KcAdminClient.findUserByUsername(realmRes, email))
         }
@@ -48,7 +52,12 @@ class FlaisFirstBrokerLoginFlowTest {
                 val user = KcAdminClient.findUserByUsername(realmRes, email)
                 assertNotNull(user)
 
-                val member = KcAdminClient.getOrgMember(realmRes, kcConfig.requireOrg(orgAlias).id, user.id)
+                val member =
+                    KcAdminClient.getOrgMember(
+                        realmRes,
+                        kcConfig.requireOrg(orgAlias).id,
+                        user.id,
+                    )
                 assertNotNull(member)
 
                 val links = KcAdminClient.getFederatedIdentities(realmRes, user.id)
@@ -121,7 +130,12 @@ class FlaisFirstBrokerLoginFlowTest {
                 val user = KcAdminClient.findUserByUsername(realmRes, email)
                 assertNotNull(user)
 
-                val member = KcAdminClient.getOrgMember(realmRes, kcConfig.requireOrg(orgAlias).id, userId)
+                val member =
+                    KcAdminClient.getOrgMember(
+                        realmRes,
+                        kcConfig.requireOrg(orgAlias).id,
+                        userId,
+                    )
                 assertNotNull(member)
 
                 val links = KcAdminClient.getFederatedIdentities(realmRes, user.id)

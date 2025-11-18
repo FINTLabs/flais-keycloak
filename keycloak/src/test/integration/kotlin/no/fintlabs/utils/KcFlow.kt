@@ -2,8 +2,10 @@ package no.fintlabs.utils
 
 import okhttp3.FormBody
 import okhttp3.HttpUrl
+import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
+import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.Response
 
 /**
@@ -66,17 +68,78 @@ object KcFlow {
         httpClient: OkHttpClient? = null,
     ): Response = post(url, mapOf("identity_provider" to idpAlias), resolveClient(httpClient))
 
-    fun continueFromDexIdp(
+    fun continueFromAuthentikIdp(
         url: HttpUrl,
         username: String,
         password: String,
         httpClient: OkHttpClient? = null,
-    ): Response =
-        post(
-            url,
-            mapOf("login" to username, "password" to password),
-            resolveClient(httpClient),
-        )
+    ): Response {
+        val client = resolveClient(httpClient)
+        val jsonMediaType = "application/json".toMediaType()
+
+        val flowUrl =
+            if (url.encodedPath.contains("/application/o/authorize/")) {
+                client.newCall(Request.Builder().url(url).build()).execute().use { it.request.url }
+            } else {
+                url
+            }
+
+        val flowSlug =
+            flowUrl.pathSegments.let { segments ->
+                val idx = segments.indexOf("flow")
+                if (idx >= 0 &&
+                    idx + 1 < segments.size
+                ) {
+                    segments[idx + 1]
+                } else {
+                    "default-authentication-flow"
+                }
+            }
+        val apiUrl = flowUrl.newBuilder().encodedPath("/api/v3/flows/executor/$flowSlug/").build()
+
+        fun apiRequest(body: String? = null): Response {
+            val builder = Request.Builder().url(apiUrl).header("Accept", "application/json")
+            if (body != null) builder.post(body.toRequestBody(jsonMediaType)) else builder.get()
+            return client.newCall(builder.build()).execute()
+        }
+
+        apiRequest().use { if (it.code != 200) return it }
+
+        apiRequest("""{"uid_field":"$username"}""").use { if (it.code != 200) return it }
+
+        val authResp = apiRequest("""{"password":"$password"}""")
+        val authBody = authResp.body.string()
+
+        val redirectMatch = Regex("\"to\":\\s*\"([^\"]+)\"").find(authBody)
+        if (redirectMatch != null) {
+            var redirectPath = redirectMatch.groupValues[1].replace("\\/", "/")
+
+            if (redirectPath == "/") {
+                redirectPath = flowUrl.queryParameter("next") ?: redirectPath
+            }
+
+            val redirectUrl =
+                when {
+                    redirectPath.startsWith("http") -> redirectPath
+                    else -> {
+                        val (path, query) =
+                            redirectPath.split('?', limit = 2).let {
+                                it[0] to it.getOrNull(1)
+                            }
+                        flowUrl
+                            .newBuilder()
+                            .encodedPath(path)
+                            .apply { query?.let { encodedQuery(it) } ?: query(null) }
+                            .build()
+                            .toString()
+                    }
+                }
+
+            return client.newCall(Request.Builder().url(redirectUrl).build()).execute()
+        }
+
+        return authResp
+    }
 
     fun selectOrgAndContinueToIdpSelector(
         env: KcComposeEnvironment,
@@ -111,7 +174,7 @@ object KcFlow {
         selectOrgAndContinueToIdpSelector(env, clientId, orgAlias, client, url).use { resp1 ->
             val kc1 = KcContextParser.parseKcContext(resp1.body.string())
             continueFromIdpSelector(kc1.url.loginAction!!, idpAlias, client).use { resp2 ->
-                return continueFromDexIdp(resp2.request.url, username, password, client)
+                return continueFromAuthentikIdp(resp2.request.url, username, password, client)
             }
         }
     }

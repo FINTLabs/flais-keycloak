@@ -34,15 +34,9 @@ services:
         depends_on:
             keycloak-pg:
                 condition: service_healthy
-            dex-entra-telemark:
+            authentik:
                 condition: service_healthy
-            dex-entra-telemark-alt:
-                condition: service_healthy
-            dex-entra-novari:
-                condition: service_healthy
-            dex-idporten:
-                condition: service_healthy
-            dex-entra-rogaland:
+            authentik-worker:
                 condition: service_healthy
             flais-keycloak-demo:
                 condition: service_healthy
@@ -83,15 +77,9 @@ services:
         depends_on:
             keycloak-pg-test:
                 condition: service_healthy
-            dex-entra-telemark:
+            authentik:
                 condition: service_healthy
-            dex-entra-telemark-alt:
-                condition: service_healthy
-            dex-entra-novari:
-                condition: service_healthy
-            dex-idporten:
-                condition: service_healthy
-            dex-entra-rogaland:
+            authentik-worker:
                 condition: service_healthy
             flais-keycloak-demo:
                 condition: service_healthy
@@ -115,7 +103,7 @@ services:
         ports:
             - "5432:5432"
         healthcheck:
-            test: ["CMD-SHELL", "sh -c 'pg_isready -U keycloak -d keycloak'"]
+            test: [ "CMD-SHELL", "sh -c 'pg_isready -U keycloak -d keycloak'" ]
             interval: 10s
             timeout: 3s
             retries: 5
@@ -132,7 +120,7 @@ services:
             POSTGRES_USER: keycloak
             POSTGRES_PASSWORD: password
         healthcheck:
-            test: ["CMD-SHELL", "sh -c 'pg_isready -U keycloak -d keycloak'"]
+            test: [ "CMD-SHELL", "sh -c 'pg_isready -U keycloak -d keycloak'" ]
             interval: 10s
             timeout: 3s
             retries: 5
@@ -158,10 +146,10 @@ services:
         restart: unless-stopped
         healthcheck:
             test:
-                [
-                    "CMD-SHELL",
-                    "wget -q --spider http://127.0.0.1/healthz || exit 1",
-                ]
+              [
+                  "CMD-SHELL",
+                  "wget -q --spider http://127.0.0.1/healthz || exit 1",
+              ]
             interval: 10s
             timeout: 5s
             retries: 5
@@ -186,10 +174,10 @@ services:
         restart: unless-stopped
         healthcheck:
             test:
-                [
-                    "CMD-SHELL",
-                    'node -e "fetch(''http://127.0.0.1:9090/healthz'').then(r=>process.exit(r.status===200?0:1)).catch(()=>process.exit(1))"',
-                ]
+              [
+                  "CMD-SHELL",
+                  'node -e "fetch(''http://127.0.0.1:9090/healthz'').then(r=>process.exit(r.status===200?0:1)).catch(()=>process.exit(1))"',
+              ]
             interval: 10s
             timeout: 5s
             retries: 5
@@ -213,10 +201,10 @@ services:
         restart: unless-stopped
         healthcheck:
             test:
-                [
-                    "CMD-SHELL",
-                    'node -e "fetch(''http://127.0.0.1:9090/healthz'').then(r=>process.exit(r.status===200?0:1)).catch(()=>process.exit(1))"',
-                ]
+              [
+                  "CMD-SHELL",
+                  'node -e "fetch(''http://127.0.0.1:9090/healthz'').then(r=>process.exit(r.status===200?0:1)).catch(()=>process.exit(1))"',
+              ]
             interval: 10s
             timeout: 5s
             retries: 5
@@ -227,107 +215,61 @@ services:
             - keycloak
 
     # ----------------------
-    # Dex providers
+    # Authentik
     # ----------------------
-    dex-entra-telemark:
-        image: ghcr.io/dexidp/dex:v2.44.0-alpine
-        hostname: dex-entra-telemark
-        command: ["dex", "serve", "/etc/dex/config.yaml"]
-        ports: ["5556:5556"]
-        volumes:
-            - ./config/dex/entra-telemark.yaml:/etc/dex/config.yaml:ro
-        restart: unless-stopped
-        networks: [keycloak]
-        healthcheck:
-            test:
-                [
-                    "CMD-SHELL",
-                    "wget -q -O - http://localhost:5556/dex/.well-known/openid-configuration >/dev/null 2>&1 || exit 1",
-                ]
-            interval: 10s
-            timeout: 5s
-            retries: 12
-            start_period: 5s
+    authentik-pg:
+        image: postgres:16-alpine
+        environment:
+            POSTGRES_USER: postgres
+            POSTGRES_PASSWORD: devpass
+            POSTGRES_DB: authentik
+        tmpfs:
+            - /var/lib/postgresql/data
+        networks:
+            - keycloak
 
-    dex-entra-novari:
-        image: ghcr.io/dexidp/dex:v2.44.0-alpine
-        hostname: dex-entra-novari
-        command: ["dex", "serve", "/etc/dex/config.yaml"]
-        ports: ["5557:5556"]
-        volumes:
-            - ./config/dex/entra-novari.yaml:/etc/dex/config.yaml:ro
-        restart: unless-stopped
-        networks: [keycloak]
+    authentik:
+        image: ghcr.io/goauthentik/server:2025.10.1
+        hostname: authentik
+        command: server
+        environment:
+            AUTHENTIK_SECRET_KEY: "authentik"
+            AUTHENTIK_POSTGRESQL__HOST: authentik-pg
+            AUTHENTIK_POSTGRESQL__USER: postgres
+            AUTHENTIK_POSTGRESQL__PASSWORD: devpass
+            AUTHENTIK_POSTGRESQL__NAME: authentik
         healthcheck:
-            test:
-                [
-                    "CMD-SHELL",
-                    "wget -q -O - http://localhost:5556/dex/.well-known/openid-configuration >/dev/null 2>&1 || exit 1",
-                ]
+            test: >
+                /bin/sh -c '
+                set -e;
+                curl -fsS http://127.0.0.1:9000/-/health/ready/ >/dev/null;
+                curl -fsS http://127.0.0.1:9000/application/o/entra-telemark-app/.well-known/openid-configuration >/dev/null;
+                curl -fsS http://127.0.0.1:9000/application/o/entra-telemark-alt-app/.well-known/openid-configuration >/dev/null;
+                curl -fsS http://127.0.0.1:9000/application/o/entra-rogaland-app/.well-known/openid-configuration >/dev/null;
+                curl -fsS http://127.0.0.1:9000/application/o/idporten-app/.well-known/openid-configuration >/dev/null;
+                '
             interval: 10s
             timeout: 5s
-            retries: 12
-            start_period: 5s
+            retries: 30
+            start_period: 10s
+        ports: [ "9000:9000" ]
+        depends_on: [ authentik-pg ]
+        networks:
+            - keycloak
 
-    dex-idporten:
-        image: ghcr.io/dexidp/dex:v2.44.0-alpine
-        hostname: dex-idporten
-        command: ["dex", "serve", "/etc/dex/config.yaml"]
-        ports: ["5558:5556"]
-        volumes:
-            - ./config/dex/idporten.yaml:/etc/dex/config.yaml:ro
-        restart: unless-stopped
-        networks: [keycloak]
-        healthcheck:
-            test:
-                [
-                    "CMD-SHELL",
-                    "wget -q -O - http://localhost:5556/dex/.well-known/openid-configuration >/dev/null 2>&1 || exit 1",
-                ]
-            interval: 10s
-            timeout: 5s
-            retries: 12
-            start_period: 5s
-
-    dex-entra-telemark-alt:
-        image: ghcr.io/dexidp/dex:v2.44.0-alpine
-        hostname: dex-entra-telemark-alt
-        command: ["dex", "serve", "/etc/dex/config.yaml"]
-        ports: ["5559:5556"]
-        volumes:
-            - ./config/dex/entra-telemark-alt.yaml:/etc/dex/config.yaml:ro
-        restart: unless-stopped
-        networks: [keycloak]
-        healthcheck:
-            test:
-                [
-                    "CMD-SHELL",
-                    "wget -q -O - http://localhost:5556/dex/.well-known/openid-configuration >/dev/null 2>&1 || exit 1",
-                ]
-            interval: 10s
-            timeout: 5s
-            retries: 12
-            start_period: 5s
-
-    dex-entra-rogaland:
-        image: ghcr.io/dexidp/dex:v2.44.0-alpine
-        hostname: dex-entra-rogaland
-        command: ["dex", "serve", "/etc/dex/config.yaml"]
-        ports: ["5560:5556"]
-        volumes:
-            - ./config/dex/entra-rogaland.yaml:/etc/dex/config.yaml:ro
-        restart: unless-stopped
-        networks: [keycloak]
-        healthcheck:
-            test:
-                [
-                    "CMD-SHELL",
-                    "wget -q -O - http://localhost:5556/dex/.well-known/openid-configuration >/dev/null 2>&1 || exit 1",
-                ]
-            interval: 10s
-            timeout: 5s
-            retries: 12
-            start_period: 5s
+    authentik-worker:
+        image: ghcr.io/goauthentik/server:2025.10.1
+        command: worker
+        environment:
+            AUTHENTIK_SECRET_KEY: "authentik"
+            AUTHENTIK_POSTGRESQL__HOST: authentik-pg
+            AUTHENTIK_POSTGRESQL__USER: postgres
+            AUTHENTIK_POSTGRESQL__PASSWORD: devpass
+            AUTHENTIK_POSTGRESQL__NAME: authentik
+        depends_on: [ authentik-pg ]
+        volumes: [ "./config/authentik/:/blueprints/custom/:ro" ]
+        networks:
+            - keycloak
 
 networks:
     keycloak:
