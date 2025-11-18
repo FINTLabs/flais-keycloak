@@ -14,7 +14,7 @@ class ProvisionTest {
     private val usersTelemark =
         listOf(
             ScimFlow.ScimUser(
-                externalId = "CiQxMTExMTExMS0xMTExLTExMTEtMTExMS0xMTExMTExMTExMTESBWxvY2Fs",
+                externalId = "11111111-1111-1111-1111-111111111111",
                 userName = "alice.basic@telemark.no",
                 active = true,
                 name = ScimFlow.ScimUser.Name("Alice", "Basic"),
@@ -22,7 +22,7 @@ class ProvisionTest {
                 groups = emptyList(),
             ),
             ScimFlow.ScimUser(
-                externalId = "CiQyMjIyMjIyMi0yMjIyLTIyMjItMjIyMi0yMjIyMjIyMjIyMjISBWxvY2Fs",
+                externalId = "22222222-2222-2222-2222-222222222222",
                 userName = "jon.basic@telemark.no",
                 active = true,
                 name = ScimFlow.ScimUser.Name("Jon", "Basic"),
@@ -34,7 +34,7 @@ class ProvisionTest {
     val usersRogaland =
         listOf(
             ScimFlow.ScimUser(
-                externalId = "CiQxMTExMTExMS0xMTExLTExMTEtMTExMS0xMTExMTExMTExMTESBWxvY2Fs",
+                externalId = "11111111-1111-1111-1111-111111111111",
                 userName = "alice.basic@rogaland.no",
                 active = true,
                 name = ScimFlow.ScimUser.Name("Alice", "Basic"),
@@ -42,7 +42,7 @@ class ProvisionTest {
                 groups = emptyList(),
             ),
             ScimFlow.ScimUser(
-                externalId = "CiQyMjIyMjIyMi0yMjIyLTIyMjItMjIyMi0yMjIyMjIyMjIyMjISEWxvY2Fs",
+                externalId = "22222222-2222-2222-2222-222222222222",
                 userName = "jon.basic@rogaland.no",
                 active = true,
                 name = ScimFlow.ScimUser.Name("Jon", "Basic"),

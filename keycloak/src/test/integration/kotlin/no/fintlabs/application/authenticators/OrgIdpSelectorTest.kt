@@ -50,7 +50,10 @@ class OrgIdpSelectorTest {
 
                 Assertions.assertEquals("error", responseKc.pageId)
                 Assertions.assertEquals("error", responseKc.message!!.type)
-                Assertions.assertEquals("Could not find the selected identity provider", responseKc.message.summary)
+                Assertions.assertEquals(
+                    "Could not find the selected identity provider",
+                    responseKc.message.summary,
+                )
             }
         }
     }
