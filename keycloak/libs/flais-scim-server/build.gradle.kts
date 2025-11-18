@@ -18,11 +18,13 @@ java {
 
 dependencies {
     implementation(libs.kotlin.stdlib)
+    implementation(libs.scim.server.sdk)
 
     compileOnly(libs.keycloak.core)
     compileOnly(libs.keycloak.services)
     compileOnly(libs.keycloak.server.spi)
     compileOnly(libs.keycloak.server.spi.priv)
+
 }
 
 tasks.withType<KotlinCompile>().configureEach {

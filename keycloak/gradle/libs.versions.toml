@@ -25,6 +25,8 @@ keycloak-server-spi-priv = { module = "org.keycloak:keycloak-server-spi-private"
 
 keycloak-admin-client = { module = "org.keycloak:keycloak-admin-client", version.ref = "kc-admin" }
 
+scim-server-sdk = { module = "com.unboundid.product.scim2:scim2-sdk-server", version = "4.1.0" }
+
 keycloak-scim-server = { module = "fi.metatavu.keycloak.scim.server:keycloak-scim-server", version.ref = "kc-scim-server" }
 
 junit-jupiter = { module = "org.junit.jupiter:junit-jupiter", version.ref = "junit" }
