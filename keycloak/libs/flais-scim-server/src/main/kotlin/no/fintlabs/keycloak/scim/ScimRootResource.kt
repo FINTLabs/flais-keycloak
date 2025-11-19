@@ -10,12 +10,33 @@ import org.keycloak.organization.OrganizationProvider
 @Produces(ContentTypes.APPLICATION_SCIM_JSON)
 @Consumes(ContentTypes.APPLICATION_SCIM_JSON)
 class ScimRootResource {
+    val resourceClasses = listOf(
+        ScimUserResource::class
+    )
 
     @Path("/Users")
     fun users(
         @Context session: KeycloakSession,
         @PathParam("organizationId") organizationId: String
     ) = ScimUserResource(getScimContext(session, organizationId))
+
+    @Path("/Schemas")
+    fun schemas(
+        @Context session: KeycloakSession,
+        @PathParam("organizationId") organizationId: String
+    ) = ScimSchemaResosurce(resourceClasses)
+
+    @Path("/ServiceProviderConfig")
+    fun serviceProviderConfig(
+        @Context session: KeycloakSession,
+        @PathParam("organizationId") organizationId: String
+    ) = ScimServiceProviderConfigResource()
+
+    @Path("/ResourceTypes")
+    fun resourceTypes(
+        @Context session: KeycloakSession,
+        @PathParam("organizationId") organizationId: String
+    ) = ScimResourceTypesResource(resourceClasses)
 
     private fun getScimContext(session: KeycloakSession, organizationId: String): ScimContext {
         val context = session.context
