@@ -15,8 +15,6 @@ import no.fintlabs.keycloak.scim.resources.UserResource
 import no.fintlabs.keycloak.scim.results.SearchResults
 import org.keycloak.models.UserModel
 import org.keycloak.util.JsonSerialization
-import kotlin.io.use
-import kotlin.streams.asSequence
 
 
 @ResourceType(
@@ -25,27 +23,28 @@ import kotlin.streams.asSequence
     schema = UserResource::class)
 class ScimUserResource(
     private val scimContext: ScimContext,
-
 ) {
-
     @GET
     fun getUsers(
         @Context uriInfo: UriInfo,
-    ) = SearchResults(RESOURCE_TYPE_DEFINITION, uriInfo) { _ ->
-        val scimRole = requireNotNull(scimContext.realm.getRole(ScimRoles.SCIM_MANAGED_ROLE)) {
-            "SCIM managed role not found"
-        }
+    ) : Response {
+        val searchResult = SearchResults(RESOURCE_TYPE_DEFINITION, uriInfo) { _ ->
+                val scimRole = requireNotNull(scimContext.realm.getRole(ScimRoles.SCIM_MANAGED_ROLE)) {
+                    "SCIM managed role not found"
+                }
 
-        scimContext.orgProvider
-            .getMembersStream(
-                scimContext.organization,
-                emptyMap(),
-                true,
-                null,
-                null
-            )
-            .filter { it.hasRole(scimRole) }
-            .map { translateUser(it) }
+                scimContext.orgProvider
+                    .getMembersStream(
+                        scimContext.organization,
+                        emptyMap(),
+                        true,
+                        null,
+                        null
+                    )
+                    .filter { it.hasRole(scimRole) }
+                    .map { translateUser(it) }
+            }
+        return Response.ok(searchResult).build()
     }
 
     @GET
