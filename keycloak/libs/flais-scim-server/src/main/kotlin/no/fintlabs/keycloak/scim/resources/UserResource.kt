@@ -39,7 +39,7 @@ class UserResource : BaseScimResource() {
     @Attribute(
         description = "A Boolean value indicating the User's " +
             "administrative status.",
-        isRequired = false,
+        isRequired = true,
         mutability = AttributeDefinition.Mutability.READ_WRITE,
         returned = AttributeDefinition.Returned.DEFAULT,
         uniqueness = AttributeDefinition.Uniqueness.NONE
