@@ -1,10 +1,12 @@
 package no.fintlabs.keycloak.scim
 
+import com.unboundid.scim2.common.exceptions.ResourceNotFoundException
 import com.unboundid.scim2.common.messages.PatchRequest
 import com.unboundid.scim2.common.types.Email
 import com.unboundid.scim2.common.types.Name
 import com.unboundid.scim2.common.types.Role
 import com.unboundid.scim2.server.annotations.ResourceType
+import com.unboundid.scim2.server.utils.ResourcePreparer
 import com.unboundid.scim2.server.utils.ResourceTypeDefinition
 import jakarta.ws.rs.*
 import jakarta.ws.rs.core.Context
@@ -49,8 +51,21 @@ class ScimUserResource(
 
     @GET
     @Path("/{id}")
-    fun getUser(@PathParam("id") id: String): Response {
-        return Response.ok(null).build()
+    fun getUser(
+        @PathParam("id") id: String,
+        @Context uriInfo: UriInfo
+    ): Response {
+        try {
+            val user = scimContext.orgProvider.getMemberById(scimContext.organization, id)
+            val scimUser = translateUser(user).let {
+                val resourcePreparer = ResourcePreparer<UserResource>(RESOURCE_TYPE_DEFINITION, uriInfo)
+                resourcePreparer.setResourceTypeAndLocation(it)
+                resourcePreparer.trimRetrievedResource(it)
+            }
+            return Response.ok(scimUser).build()
+        } catch (e: NotFoundException) {
+            throw ResourceNotFoundException("No user found with id $id")
+        }
     }
 
     @POST
