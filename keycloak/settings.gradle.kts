@@ -7,14 +7,22 @@ pluginManagement {
     }
 }
 
-val skipScimServer =
+val skipFlaisScimServer =
     providers
-        .gradleProperty("skipScimServer")
+        .gradleProperty("skipFlaisScimServer")
         .map { it.toBooleanStrictOrNull() ?: false }
         .getOrElse(false)
 
-include(":libs:flais-scim-server")
+val skipFlaisProvider =
+    providers
+        .gradleProperty("skipFlaisProvider")
+        .map { it.toBooleanStrictOrNull() ?: false }
+        .getOrElse(false)
 
-include(":libs:flais-provider")
+if (!skipFlaisScimServer) {
+    include(":libs:flais-scim-server")
+}
 
-include("libs:flais-scim-server")
+if (!skipFlaisProvider) {
+    include(":libs:flais-provider")
+}
