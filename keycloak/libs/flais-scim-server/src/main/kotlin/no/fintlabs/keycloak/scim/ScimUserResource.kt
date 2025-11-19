@@ -8,9 +8,11 @@ import com.unboundid.scim2.common.types.Role
 import com.unboundid.scim2.server.annotations.ResourceType
 import com.unboundid.scim2.server.utils.ResourcePreparer
 import com.unboundid.scim2.server.utils.ResourceTypeDefinition
+import com.unboundid.scim2.server.utils.SchemaChecker
 import jakarta.ws.rs.*
 import jakarta.ws.rs.core.Context
 import jakarta.ws.rs.core.Response
+import jakarta.ws.rs.core.UriBuilder
 import jakarta.ws.rs.core.UriInfo
 import no.fintlabs.keycloak.scim.consts.ScimRoles
 import no.fintlabs.keycloak.scim.resources.UserResource
@@ -69,8 +71,53 @@ class ScimUserResource(
     }
 
     @POST
-    fun createUser(scimUser: ScimUserResource): Response {
-        return Response.status(201).entity(null).build()
+    fun createUser(
+        @Context uriInfo: UriInfo,
+        scimUser: UserResource
+    ): Response {
+        val resourcePreparer = ResourcePreparer<UserResource>(
+            RESOURCE_TYPE_DEFINITION, uriInfo)
+        SCHEMA_CHECKER.checkCreate(
+            SCHEMA_CHECKER.removeReadOnlyAttributes(scimUser.asGenericScimResource().objectNode))
+            .throwSchemaExceptions()
+
+        val userProvider = scimContext.session.users()
+        if (userProvider.getUserById(scimContext.realm, scimUser.userName) != null) {
+            return Response.status(Response.Status.CONFLICT).build()
+        }
+
+        val user = userProvider.addUser(scimContext.realm, scimUser.userName)
+        user.isEnabled = scimUser.active!!
+
+        user.setSingleAttribute("externalId", scimUser.externalId)
+
+        scimUser.name?.let { name ->
+            user.firstName = name.givenName
+            user.lastName = name.familyName
+        }
+
+        scimUser.emails?.find { it.primary }?.let { email ->
+            user.email = email.value
+            user.isEmailVerified = true
+        }
+
+        val scimRole = requireNotNull(scimContext.realm.getRole(ScimRoles.SCIM_MANAGED_ROLE)) {
+            "SCIM managed role not found"
+        }
+        user.grantRole(scimRole)
+
+        scimUser.roles?.let {
+            user.setAttribute(
+                "roles",
+                it.map(JsonSerialization::writeValueAsString).toList()
+            )
+        }
+
+        val result = translateUser(user).let {
+            resourcePreparer.trimCreatedResource(it, scimUser)
+        }
+        val resultURI = UriBuilder.fromUri(uriInfo.requestUri).path(result.id).build()
+        return Response.created(resultURI).entity(result).build()
     }
 
     @PATCH
@@ -106,5 +153,7 @@ class ScimUserResource(
     companion object {
         private val RESOURCE_TYPE_DEFINITION =
             ResourceTypeDefinition.fromJaxRsResource(ScimUserResource::class.java)
+
+        private val SCHEMA_CHECKER = SchemaChecker(RESOURCE_TYPE_DEFINITION)
     }
 }
