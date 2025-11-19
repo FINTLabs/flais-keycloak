@@ -19,7 +19,6 @@ class ProvisionTest {
                 active = true,
                 name = ScimFlow.ScimUser.Name("Alice", "Basic"),
                 emails = listOf(ScimFlow.ScimUser.Email("alice.basic@telemark.no", primary = true)),
-                groups = emptyList(),
             ),
             ScimFlow.ScimUser(
                 externalId = "22222222-2222-2222-2222-222222222222",
@@ -27,7 +26,6 @@ class ProvisionTest {
                 active = true,
                 name = ScimFlow.ScimUser.Name("Jon", "Basic"),
                 emails = listOf(ScimFlow.ScimUser.Email("jon.basic@telemark.no")),
-                groups = emptyList(),
             ),
         )
 
@@ -39,7 +37,6 @@ class ProvisionTest {
                 active = true,
                 name = ScimFlow.ScimUser.Name("Alice", "Basic"),
                 emails = listOf(ScimFlow.ScimUser.Email("alice.basic@rogaland.no", primary = true)),
-                groups = emptyList(),
             ),
             ScimFlow.ScimUser(
                 externalId = "22222222-2222-2222-2222-222222222222",
@@ -47,7 +44,6 @@ class ProvisionTest {
                 active = true,
                 name = ScimFlow.ScimUser.Name("Jon", "Basic"),
                 emails = listOf(ScimFlow.ScimUser.Email("jon.basic@rogaland.no")),
-                groups = emptyList(),
             ),
         )
 
