@@ -5,18 +5,19 @@ import no.fintlabs.utils.KcComposeEnvironment
 import no.fintlabs.utils.KcFlow.loginWithUser
 import no.fintlabs.utils.KcHttpClient
 import no.fintlabs.utils.KcToken.exchangeCodeForAccessToken
-import no.fintlabs.utils.KcToken.validateToken
 import no.fintlabs.utils.KcUrl
-import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertNotNull
 import org.junit.jupiter.api.extension.ExtendWith
+import org.keycloak.util.JsonSerialization
+import java.util.Base64
 
 @ExtendWith(KcEnvExtension::class)
-class PublicClientTokenTest {
+class PublicClientMapperTest {
     @Test
-    fun `code flow returns valid access token`(env: KcComposeEnvironment) {
+    fun `map_roles_to_token maps roles correctly to access token`(env: KcComposeEnvironment) {
         val client = KcHttpClient.create(followRedirects = true)
         val realm = "external"
         val clientId = "flais-keycloak-demo"
@@ -62,12 +63,25 @@ class PublicClientTokenTest {
                 )
             assertNotNull(accessToken)
 
-            validateToken(env, realm, accessToken, client).use { resp ->
-                assertEquals(200, resp.code)
+            val parts = accessToken.split(".")
+            assertEquals(3, parts.size, "access token must be a valid JWT")
 
-                val body = resp.body.string()
-                Assertions.assertTrue(body.contains("\"sub\""), "userinfo should contain 'sub': $body")
-            }
+            val payloadBytes = Base64.getUrlDecoder().decode(parts[1])
+            val payloadJson = String(payloadBytes, Charsets.UTF_8)
+
+            val json =
+                JsonSerialization.readValue(
+                    payloadJson.byteInputStream(),
+                    Map::class.java,
+                ) as Map<*, *>
+
+            assertTrue(json.containsKey("roles"), "access token should contain 'roles': $payloadJson")
+
+            val roles =
+                json["roles"] as? List<*>
+                    ?: throw AssertionError("roles should be a list: $payloadJson")
+
+            assertEquals(listOf("read", "write", "admin"), roles)
         }
     }
 }

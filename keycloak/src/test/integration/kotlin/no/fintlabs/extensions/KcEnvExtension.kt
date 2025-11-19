@@ -1,6 +1,7 @@
 package no.fintlabs.extensions
 
 import no.fintlabs.config.KcConfig
+import no.fintlabs.utils.KcAdminClient
 import no.fintlabs.utils.KcComposeEnvironment
 import org.junit.jupiter.api.extension.AfterAllCallback
 import org.junit.jupiter.api.extension.BeforeAllCallback
@@ -38,8 +39,13 @@ class KcEnvExtension :
     ParameterResolver {
     override fun beforeAll(context: ExtensionContext) {
         val store = store(context)
-        val env = KcComposeEnvironment().also { it.start() }
-        store.put(ENV_KEY, env)
+
+        val env =
+            store.get(ENV_KEY, KcComposeEnvironment::class.java)
+                ?: KcComposeEnvironment().also {
+                    it.start()
+                    store.put(ENV_KEY, it)
+                }
 
         val requested = "config/kc/external-realm.json"
         val resolved =
@@ -48,7 +54,7 @@ class KcEnvExtension :
                     "Could not find config. Tried '$requested' from various roots.",
                 )
 
-        val cfg =
+        val kcConfig =
             try {
                 KcConfig.fromFile(resolved)
             } catch (t: Throwable) {
@@ -57,17 +63,22 @@ class KcEnvExtension :
                     t,
                 )
             }
-        store.put(CFG_KEY, cfg)
+        store.put(CFG_KEY, kcConfig)
+
+        val kcJson =
+            try {
+                Files.readString(resolved)
+            } catch (t: Throwable) {
+                throw ExtensionConfigurationException(
+                    "Failed to read Keycloak realm JSON from '$resolved'",
+                    t,
+                )
+            }
+
+        KcAdminClient.resetRealmFromJson(env, kcJson)
     }
 
-    override fun afterAll(context: ExtensionContext) {
-        val store = store(context)
-        store.get(CFG_KEY, KcConfig::class.java)?.let { store.remove(CFG_KEY) }
-        store.get(ENV_KEY, KcComposeEnvironment::class.java)?.let {
-            it.close()
-            store.remove(ENV_KEY)
-        }
-    }
+    override fun afterAll(context: ExtensionContext) = Unit
 
     override fun supportsParameter(
         pc: ParameterContext,
@@ -109,12 +120,8 @@ class KcEnvExtension :
     }
 
     private fun store(context: ExtensionContext): ExtensionContext.Store {
-        val ns =
-            ExtensionContext.Namespace.create(
-                KcEnvExtension::class.java,
-                context.requiredTestClass,
-            )
-        return context.getStore(ns)
+        val ns = ExtensionContext.Namespace.create(KcEnvExtension::class.java)
+        return context.root.getStore(ns)
     }
 
     private companion object {

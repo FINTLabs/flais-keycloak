@@ -28,7 +28,7 @@
                 "subComponents": {},
                 "config": {
                     "kc.user.profile.config": [
-                        "{\"attributes\":[{\"name\":\"username\",\"displayName\":\"${username}\",\"validations\":{\"length\":{\"min\":3,\"max\":255},\"username-prohibited-characters\":{},\"up-username-not-idn-homograph\":{}},\"permissions\":{\"view\":[\"admin\",\"user\"],\"edit\":[\"admin\",\"user\"]},\"multivalued\":false},{\"name\":\"email\",\"displayName\":\"${email}\",\"validations\":{\"email\":{},\"length\":{\"max\":255}},\"permissions\":{\"view\":[\"admin\",\"user\"],\"edit\":[\"admin\",\"user\"]},\"multivalued\":false},{\"name\":\"firstName\",\"displayName\":\"${firstName}\",\"validations\":{\"length\":{\"max\":255},\"person-name-prohibited-characters\":{}},\"permissions\":{\"view\":[\"admin\",\"user\"],\"edit\":[\"admin\",\"user\"]},\"multivalued\":false},{\"name\":\"lastName\",\"displayName\":\"${lastName}\",\"validations\":{\"length\":{\"max\":255},\"person-name-prohibited-characters\":{}},\"permissions\":{\"view\":[\"admin\",\"user\"],\"edit\":[\"admin\",\"user\"]},\"multivalued\":false},{\"name\":\"externalId\",\"displayName\":\"External ID\",\"validations\":{},\"annotations\":{},\"permissions\":{\"view\":[],\"edit\":[\"admin\"]},\"multivalued\":false},{\"name\":\"roles\",\"displayName\":\"Roles\",\"validations\":{},\"annotations\":{},\"permissions\":{\"view\":[],\"edit\":[\"admin\"]},\"multivalued\":false}],\"groups\":[{\"name\":\"user-metadata\",\"displayHeader\":\"User metadata\",\"displayDescription\":\"Attributes, which refer to user metadata\"}]}"
+                        "{\"attributes\":[{\"name\":\"username\",\"displayName\":\"${username}\",\"validations\":{\"length\":{\"min\":3,\"max\":255},\"username-prohibited-characters\":{},\"up-username-not-idn-homograph\":{}},\"permissions\":{\"view\":[\"admin\",\"user\"],\"edit\":[\"admin\",\"user\"]},\"multivalued\":false},{\"name\":\"email\",\"displayName\":\"${email}\",\"validations\":{\"email\":{},\"length\":{\"max\":255}},\"permissions\":{\"view\":[\"admin\",\"user\"],\"edit\":[\"admin\",\"user\"]},\"multivalued\":false},{\"name\":\"firstName\",\"displayName\":\"${firstName}\",\"validations\":{\"length\":{\"max\":255},\"person-name-prohibited-characters\":{}},\"permissions\":{\"view\":[\"admin\",\"user\"],\"edit\":[\"admin\",\"user\"]},\"multivalued\":false},{\"name\":\"lastName\",\"displayName\":\"${lastName}\",\"validations\":{\"length\":{\"max\":255},\"person-name-prohibited-characters\":{}},\"permissions\":{\"view\":[\"admin\",\"user\"],\"edit\":[\"admin\",\"user\"]},\"multivalued\":false},{\"name\":\"externalId\",\"displayName\":\"External ID\",\"validations\":{},\"annotations\":{},\"permissions\":{\"view\":[],\"edit\":[\"admin\"]},\"multivalued\":false},{\"name\":\"roles\",\"displayName\":\"Roles\",\"validations\":{},\"annotations\":{},\"permissions\":{\"view\":[],\"edit\":[\"admin\"]},\"multivalued\":true}],\"groups\":[{\"name\":\"user-metadata\",\"displayHeader\":\"User metadata\",\"displayDescription\":\"Attributes, which refer to user metadata\"}]}"
                     ]
                 }
             }
@@ -195,6 +195,27 @@
             ],
             "webOrigins": [
                 "+"
+            ],
+            "protocolMappers": [
+                {
+                    "id": "ea84be6f-11d8-409e-878b-2303e4e56fc5",
+                    "name": "map_roles_to_token",
+                    "protocol": "openid-connect",
+                    "protocolMapper": "oidc-usermodel-attribute-mapper",
+                    "consentRequired": false,
+                    "config": {
+                        "aggregate.attrs": "false",
+                        "introspection.token.claim": "false",
+                        "multivalued": "true",
+                        "userinfo.token.claim": "false",
+                        "user.attribute": "roles",
+                        "id.token.claim": "false",
+                        "lightweight.claim": "false",
+                        "access.token.claim": "true",
+                        "claim.name": "roles",
+                        "jsonType.label": "String"
+                    }
+                }
             ]
         },
         {
@@ -407,7 +428,7 @@
         },
         {
             "id": "32966a25-1e6e-4d4f-aa84-6b2be93472b2",
-            "name": "map_roles_to_user",
+            "name": "map_roles_to_user_attribute",
             "identityProviderAlias": "entra-telemark",
             "identityProviderMapper": "oidc-user-attribute-idp-mapper",
             "config": {
@@ -418,7 +439,7 @@
         },
         {
             "id": "3e4b8c2f-9d3a-4f0b-8c3e-12f6c9a7b8d2",
-            "name": "map_roles_to_user",
+            "name": "map_roles_to_user_attribute",
             "identityProviderAlias": "entra-rogaland",
             "identityProviderMapper": "oidc-user-attribute-idp-mapper",
             "config": {
