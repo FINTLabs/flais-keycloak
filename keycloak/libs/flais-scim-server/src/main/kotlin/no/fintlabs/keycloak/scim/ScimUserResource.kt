@@ -1,10 +1,11 @@
 package no.fintlabs.keycloak.scim
 
-import com.unboundid.scim2.common.exceptions.ResourceNotFoundException
+import com.fasterxml.jackson.databind.node.ObjectNode
 import com.unboundid.scim2.common.messages.PatchRequest
 import com.unboundid.scim2.common.types.Email
 import com.unboundid.scim2.common.types.Name
 import com.unboundid.scim2.common.types.Role
+import com.unboundid.scim2.common.utils.JsonUtils
 import com.unboundid.scim2.server.annotations.ResourceType
 import com.unboundid.scim2.server.utils.ResourcePreparer
 import com.unboundid.scim2.server.utils.ResourceTypeDefinition
@@ -17,6 +18,7 @@ import jakarta.ws.rs.core.UriInfo
 import no.fintlabs.keycloak.scim.consts.ScimRoles
 import no.fintlabs.keycloak.scim.resources.UserResource
 import no.fintlabs.keycloak.scim.results.SearchResults
+import org.keycloak.models.FederatedIdentityModel
 import org.keycloak.models.UserModel
 import org.keycloak.util.JsonSerialization
 
@@ -33,20 +35,20 @@ class ScimUserResource(
         @Context uriInfo: UriInfo,
     ) : Response {
         val searchResult = SearchResults(RESOURCE_TYPE_DEFINITION, uriInfo) { _ ->
-                val scimRole = requireNotNull(scimContext.realm.getRole(ScimRoles.SCIM_MANAGED_ROLE)) {
-                    "SCIM managed role not found"
-                }
+            val scimRole = requireNotNull(scimContext.realm.getRole(ScimRoles.SCIM_MANAGED_ROLE)) {
+                "SCIM managed role not found"
+            }
 
-                scimContext.orgProvider
-                    .getMembersStream(
-                        scimContext.organization,
-                        emptyMap(),
-                        true,
-                        null,
-                        null
-                    )
-                    .filter { it.hasRole(scimRole) }
-                    .map { translateUser(it) }
+            scimContext.orgProvider
+                .getMembersStream(
+                    scimContext.organization,
+                    emptyMap(),
+                    true,
+                    null,
+                    null
+                )
+                .filter { it.hasRole(scimRole) }
+                .map { translateUser(it) }
             }
         return Response.ok(searchResult).build()
     }
@@ -57,17 +59,17 @@ class ScimUserResource(
         @PathParam("id") id: String,
         @Context uriInfo: UriInfo
     ): Response {
-        try {
-            val user = scimContext.orgProvider.getMemberById(scimContext.organization, id)
-            val scimUser = translateUser(user).let {
-                val resourcePreparer = ResourcePreparer<UserResource>(RESOURCE_TYPE_DEFINITION, uriInfo)
-                resourcePreparer.setResourceTypeAndLocation(it)
-                resourcePreparer.trimRetrievedResource(it)
-            }
-            return Response.ok(scimUser).build()
-        } catch (e: NotFoundException) {
-            throw ResourceNotFoundException("No user found with id $id")
+        val user = runCatching { scimContext.orgProvider.getMemberById(scimContext.organization, id) }.getOrElse {
+            throw NotFoundException("No user found with id $id")
         }
+        assertUserScimManaged(user)
+
+        val scimUser = translateUser(user).let {
+            val resourcePreparer = ResourcePreparer<UserResource>(RESOURCE_TYPE_DEFINITION, uriInfo)
+            resourcePreparer.setResourceTypeAndLocation(it)
+            resourcePreparer.trimRetrievedResource(it)
+        }
+        return Response.ok(scimUser).build()
     }
 
     @POST
@@ -87,31 +89,12 @@ class ScimUserResource(
         }
 
         val user = userProvider.addUser(scimContext.realm, scimUser.userName)
-        user.isEnabled = scimUser.active!!
-
-        user.setSingleAttribute("externalId", scimUser.externalId)
-
-        scimUser.name?.let { name ->
-            user.firstName = name.givenName
-            user.lastName = name.familyName
-        }
-
-        scimUser.emails?.find { it.primary }?.let { email ->
-            user.email = email.value
-            user.isEmailVerified = true
-        }
-
         val scimRole = requireNotNull(scimContext.realm.getRole(ScimRoles.SCIM_MANAGED_ROLE)) {
             "SCIM managed role not found"
         }
         user.grantRole(scimRole)
-
-        scimUser.roles?.let {
-            user.setAttribute(
-                "roles",
-                it.map(JsonSerialization::writeValueAsString).toList()
-            )
-        }
+        updateUserModel(user, scimUser)
+        updateUserIdpLinking(user)
 
         val result = translateUser(user).let {
             resourcePreparer.trimCreatedResource(it, scimUser)
@@ -120,21 +103,94 @@ class ScimUserResource(
         return Response.created(resultURI).entity(result).build()
     }
 
+    @PUT
+    @Path("/{id}")
+    fun updateUser(
+        @Context uriInfo: UriInfo,
+        @PathParam("id") id: String,
+        updatedScimUser: UserResource
+    ): Response {
+        val user = runCatching { scimContext.orgProvider.getMemberById(scimContext.organization, id) }.getOrElse {
+            throw NotFoundException("No user found with id $id")
+        }
+        assertUserScimManaged(user)
+        assertUserOrganizationManaged(user)
+
+        JsonUtils.valueToNode<ObjectNode>(translateUser(user)).apply {
+            SCHEMA_CHECKER.checkReplace(
+                updatedScimUser.asGenericScimResource().objectNode,
+                SCHEMA_CHECKER.removeReadOnlyAttributes(this))
+                .throwSchemaExceptions()
+        }
+
+        updateUserModel(user, updatedScimUser)
+        updateUserIdpLinking(user)
+
+        val result = translateUser(user).let {
+            val resourcePreparer = ResourcePreparer<UserResource>(
+                RESOURCE_TYPE_DEFINITION, uriInfo)
+            resourcePreparer.trimReplacedResource(it, updatedScimUser)
+        }
+
+        return Response.ok(result).build()
+    }
+
     @PATCH
     @Path("/{id}")
-    fun patchUser(@PathParam("id") id: String, request: PatchRequest): Response {
-        return Response.ok(null).build()
+    fun patchUser(
+        @Context uriInfo: UriInfo,
+        @PathParam("id") id: String,
+        patchOperations: PatchRequest
+    ): Response {
+        val user = runCatching { scimContext.orgProvider.getMemberById(scimContext.organization, id) }.getOrElse {
+            throw NotFoundException("No user found with id $id")
+        }
+        assertUserScimManaged(user)
+        assertUserOrganizationManaged(user)
+
+        val node = JsonUtils.valueToNode<ObjectNode>(translateUser(user)).apply {
+            SCHEMA_CHECKER.checkModify(
+                patchOperations,
+                SCHEMA_CHECKER.removeReadOnlyAttributes(this)
+            ).throwSchemaExceptions()
+            patchOperations.forEach { it.apply(this) }
+        }
+        val scimUser = runCatching {
+            JsonUtils.getObjectReader().treeToValue(node, UserResource::class.java)
+        }.getOrElse {
+            throw InternalServerErrorException(it.message, it)
+        }
+
+        updateUserModel(user, scimUser)
+        updateUserIdpLinking(user)
+
+        val result = translateUser(user).let {
+            val resourcePreparer = ResourcePreparer<UserResource>(
+                RESOURCE_TYPE_DEFINITION, uriInfo)
+            resourcePreparer.trimModifiedResource(it, patchOperations)
+        }
+
+        return Response.ok(result).build()
     }
 
     @DELETE
     @Path("/{id}")
     fun deleteUser(@PathParam("id") id: String): Response {
-        return Response.noContent().build()
+        val user = runCatching { scimContext.orgProvider.getMemberById(scimContext.organization, id) }.getOrElse {
+            throw NotFoundException("No user found with id $id")
+        }
+        assertUserScimManaged(user)
+
+        if (scimContext.orgProvider.isManagedMember(scimContext.organization, user)) {
+            scimContext.orgProvider.removeMember(scimContext.organization, user)
+        }
+
+        throw NotFoundException("User is not part of the organization")
     }
 
     private fun translateUser(user: UserModel) = UserResource().apply {
         id = user.id
-        externalId = user.getFirstAttribute("externalId")
+        externalId = user.getExternalId()
         userName = user.username
         active = user.isEnabled
         emails = mutableListOf(Email().apply {
@@ -149,6 +205,81 @@ class ScimUserResource(
             JsonSerialization.readValue(it, Role::class.java)
         }.toList().toMutableList()
     }
+
+    private fun updateUserModel(user: UserModel, scimUser: UserResource) {
+        user.username = scimUser.userName
+        user.isEnabled = scimUser.active!!
+
+        user.setExternalId(scimUser.externalId)
+
+        scimUser.name?.let { name ->
+            user.firstName = name.givenName
+            user.lastName = name.familyName
+        }
+
+        scimUser.emails?.find { it.primary }?.let { email ->
+            user.email = email.value
+            user.isEmailVerified = true
+        }
+
+        scimUser.roles?.let {
+            user.setAttribute(
+                "roles",
+                it.map(JsonSerialization::writeValueAsString).toList()
+            )
+        }
+    }
+
+    private fun updateUserIdpLinking(user: UserModel) {
+        val emailDomain = user.email.substringAfter('@', missingDelimiterValue = "")
+            .takeIf { it.isNotEmpty() } ?: return
+        val externalId = user.getExternalId() ?: return
+
+        val userProvider = scimContext.session.users()
+
+        val socialProviders = scimContext.orgProvider.getIdentityProviders(scimContext.organization).filter { idp ->
+            idp.config["kc.org.domain"]?.equals(emailDomain, ignoreCase = true) ?: false
+        }.map { it.alias }.toList()
+
+        socialProviders.forEach { provider ->
+            if (userProvider.getFederatedIdentity(scimContext.realm, user, provider) == null) return@forEach
+            val federatedIdentity = FederatedIdentityModel(
+                provider,
+                externalId,
+                user.username
+            )
+            userProvider.addFederatedIdentity(scimContext.realm, user, federatedIdentity)
+        }
+
+        scimContext.session.users().getFederatedIdentitiesStream(scimContext.realm, user)
+            .filter { !socialProviders.contains(it.identityProvider) }
+            .forEach {
+                scimContext.session.users().removeFederatedIdentity(scimContext.realm, user, it.identityProvider)
+            }
+    }
+
+    private fun assertUserScimManaged(user: UserModel) {
+        val scimRole = requireNotNull(scimContext.realm.getRole(ScimRoles.SCIM_MANAGED_ROLE)) {
+            "SCIM managed role not found"
+        }
+        if (!user.hasRole(scimRole)) {
+            throw ForbiddenException("User is not SCIM-Managed ${user.id}")
+        }
+    }
+
+    private fun assertUserOrganizationManaged(user: UserModel) {
+        if (!scimContext.orgProvider.isManagedMember(scimContext.organization, user)) {
+            throw ForbiddenException("User is not part of the organization")
+        }
+    }
+
+    fun UserModel.getExternalId(): String? =
+        this.getFirstAttribute("externalId")
+
+    fun UserModel.setExternalId(id: String) {
+        this.setSingleAttribute("externalId", id)
+    }
+
 
     companion object {
         private val RESOURCE_TYPE_DEFINITION =
