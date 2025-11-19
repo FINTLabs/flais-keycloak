@@ -24,7 +24,6 @@ dependencies {
     compileOnly(libs.keycloak.services)
     compileOnly(libs.keycloak.server.spi)
     compileOnly(libs.keycloak.server.spi.priv)
-
 }
 
 tasks.withType<KotlinCompile>().configureEach {

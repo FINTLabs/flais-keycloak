@@ -1,6 +1,10 @@
 package no.fintlabs.keycloak.scim
 
-import jakarta.ws.rs.*
+import jakarta.ws.rs.Consumes
+import jakarta.ws.rs.NotFoundException
+import jakarta.ws.rs.Path
+import jakarta.ws.rs.PathParam
+import jakarta.ws.rs.Produces
 import jakarta.ws.rs.core.Context
 import no.fintlabs.keycloak.scim.consts.ContentTypes
 import org.keycloak.models.KeycloakSession
@@ -10,35 +14,39 @@ import org.keycloak.organization.OrganizationProvider
 @Produces(ContentTypes.APPLICATION_SCIM_JSON)
 @Consumes(ContentTypes.APPLICATION_SCIM_JSON)
 class ScimRootResource {
-    val resourceClasses = listOf(
-        ScimUserResource::class
-    )
+    val resourceClasses =
+        listOf(
+            ScimUserResource::class,
+        )
 
     @Path("/Users")
     fun users(
         @Context session: KeycloakSession,
-        @PathParam("organizationId") organizationId: String
+        @PathParam("organizationId") organizationId: String,
     ) = ScimUserResource(getScimContext(session, organizationId))
 
     @Path("/Schemas")
     fun schemas(
         @Context session: KeycloakSession,
-        @PathParam("organizationId") organizationId: String
+        @PathParam("organizationId") organizationId: String,
     ) = ScimSchemaResosurce(resourceClasses)
 
     @Path("/ServiceProviderConfig")
     fun serviceProviderConfig(
         @Context session: KeycloakSession,
-        @PathParam("organizationId") organizationId: String
+        @PathParam("organizationId") organizationId: String,
     ) = ScimServiceProviderConfigResource()
 
     @Path("/ResourceTypes")
     fun resourceTypes(
         @Context session: KeycloakSession,
-        @PathParam("organizationId") organizationId: String
+        @PathParam("organizationId") organizationId: String,
     ) = ScimResourceTypesResource(resourceClasses)
 
-    private fun getScimContext(session: KeycloakSession, organizationId: String): ScimContext {
+    private fun getScimContext(
+        session: KeycloakSession,
+        organizationId: String,
+    ): ScimContext {
         val context = session.context
         checkNotNull(context) { "Keycloak context is not set" }
 
@@ -48,7 +56,7 @@ class ScimRootResource {
             session,
             context.realm,
             orgProvider,
-            organization
+            organization,
         )
     }
 }

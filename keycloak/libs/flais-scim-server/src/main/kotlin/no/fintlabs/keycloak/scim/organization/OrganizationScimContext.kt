@@ -14,9 +14,8 @@ class OrganizationScimContext(
     session: KeycloakSession,
     realm: RealmModel,
     private val organization: OrganizationModel,
-    config: OrganizationScimConfig
+    config: OrganizationScimConfig,
 ) : ScimContext(baseUri, session, realm, config) {
-
     /**
      * Gets the organization
      *

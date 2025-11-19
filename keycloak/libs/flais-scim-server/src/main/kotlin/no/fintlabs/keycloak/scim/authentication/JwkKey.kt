@@ -5,5 +5,5 @@ import java.security.PublicKey
 class JwkKey(
     val publicKey: PublicKey,
     val kid: String,
-    val use: String
+    val use: String,
 )

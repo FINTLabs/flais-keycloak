@@ -46,7 +46,7 @@ class SearchResults<T : ScimResource> : ListResponseStreamingOutput<T> {
     constructor(
         resourceType: ResourceTypeDefinition,
         uriInfo: UriInfo,
-        resourceGetter: ResourceGetter<T>
+        resourceGetter: ResourceGetter<T>,
     ) {
         this.resourceGetter = resourceGetter
         filterEvaluator = SchemaAwareFilterEvaluator(resourceType)
@@ -54,35 +54,44 @@ class SearchResults<T : ScimResource> : ListResponseStreamingOutput<T> {
 
         val qp = uriInfo.queryParameters
 
-        filter = qp.getFirst(ApiConstants.QUERY_PARAMETER_FILTER)
-            ?.let { Filter.fromString(it) }
+        filter =
+            qp
+                .getFirst(ApiConstants.QUERY_PARAMETER_FILTER)
+                ?.let { Filter.fromString(it) }
 
-        startIndex = qp.getFirst(ApiConstants.QUERY_PARAMETER_PAGE_START_INDEX)
-            ?.toIntOrNull()
-            ?.coerceAtLeast(1)
+        startIndex =
+            qp
+                .getFirst(ApiConstants.QUERY_PARAMETER_PAGE_START_INDEX)
+                ?.toIntOrNull()
+                ?.coerceAtLeast(1)
 
-        count = qp.getFirst(ApiConstants.QUERY_PARAMETER_PAGE_SIZE)
-            ?.toIntOrNull()
-            ?.coerceAtLeast(0)
+        count =
+            qp
+                .getFirst(ApiConstants.QUERY_PARAMETER_PAGE_SIZE)
+                ?.toIntOrNull()
+                ?.coerceAtLeast(0)
 
         val sortByString = qp.getFirst(ApiConstants.QUERY_PARAMETER_SORT_BY)
         val sortOrderString = qp.getFirst(ApiConstants.QUERY_PARAMETER_SORT_ORDER)
 
-        val sortBy = try {
-            sortByString?.let { Path.fromString(it) }
-        } catch (e: BadRequestException) {
-            throw BadRequestException.invalidValue(
-                "'$sortByString' is not a valid value for the sortBy parameter: ${e.message}"
-            )
-        }
+        val sortBy =
+            try {
+                sortByString?.let { Path.fromString(it) }
+            } catch (e: BadRequestException) {
+                throw BadRequestException.invalidValue(
+                    "'$sortByString' is not a valid value for the sortBy parameter: ${e.message}",
+                )
+            }
 
-        val sortOrder = sortOrderString
-            ?.let(SortOrder::fromName)
-            ?: SortOrder.ASCENDING
+        val sortOrder =
+            sortOrderString
+                ?.let(SortOrder::fromName)
+                ?: SortOrder.ASCENDING
 
-        resourceComparator = sortBy?.let {
-            ResourceComparator(it, sortOrder, resourceType)
-        }
+        resourceComparator =
+            sortBy?.let {
+                ResourceComparator(it, sortOrder, resourceType)
+            }
     }
 
     @Throws(IOException::class)
@@ -94,15 +103,16 @@ class SearchResults<T : ScimResource> : ListResponseStreamingOutput<T> {
 
     fun writeResources(
         resources: Stream<T>,
-        os: ListResponseWriter<T>
+        os: ListResponseWriter<T>,
     ) {
         val resolvedStartIndex = (startIndex ?: 1).coerceAtLeast(1)
         val resolvedCount = count ?: Int.MAX_VALUE
 
-        var preparedResources = resources
-            .map { it.asGenericScimResource() }
-            .filter { prepareAndFilter(it) }
-            .toList()
+        var preparedResources =
+            resources
+                .map { it.asGenericScimResource() }
+                .filter { prepareAndFilter(it) }
+                .toList()
 
         val totalCount = preparedResources.size
         os.totalResults(totalCount)
@@ -121,8 +131,11 @@ class SearchResults<T : ScimResource> : ListResponseStreamingOutput<T> {
         val fromIndex = (resolvedStartIndex - 1).coerceAtMost(totalCount)
         val toIndex = (fromIndex + resolvedCount).coerceAtMost(totalCount)
         val page =
-            if (fromIndex >= toIndex) emptyList()
-            else preparedResources.subList(fromIndex, toIndex)
+            if (fromIndex >= toIndex) {
+                emptyList()
+            } else {
+                preparedResources.subList(fromIndex, toIndex)
+            }
 
         os.startIndex(resolvedStartIndex)
         os.itemsPerPage(page.size)

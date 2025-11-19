@@ -10,7 +10,6 @@ import java.io.IOException
 
 @Provider
 class BodyLoggingInterceptor : ReaderInterceptor {
-
     companion object {
         private val logger: Logger = Logger.getLogger(BodyLoggingInterceptor::class.java.name)
     }

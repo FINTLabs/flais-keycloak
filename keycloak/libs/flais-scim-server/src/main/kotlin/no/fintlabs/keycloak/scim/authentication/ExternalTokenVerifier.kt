@@ -16,9 +16,8 @@ import java.security.PublicKey
 class ExternalTokenVerifier(
     private val expectedIssuer: String,
     private val jwksUrl: String,
-    private val expectedAudience: String
+    private val expectedAudience: String,
 ) {
-
     companion object {
         private val logger: Logger = Logger.getLogger(ExternalTokenVerifier::class.java)
     }
@@ -50,7 +49,10 @@ class ExternalTokenVerifier(
      * @return true if the token is valid, false otherwise
      */
     @Throws(JWSInputException::class, IOException::class)
-    private fun verify(tokenString: String, publicKey: PublicKey): Boolean {
+    private fun verify(
+        tokenString: String,
+        publicKey: PublicKey,
+    ): Boolean {
         val jwsInput = JWSInput(tokenString)
 
         val validSignature = RSAProvider.verify(jwsInput, publicKey)
@@ -72,13 +74,13 @@ class ExternalTokenVerifier(
                 logger.warn(
                     "Token issuer is wildcard, skipping issuer check. " +
                         "This is insecure and should not be used in production. " +
-                        "Found issuer is: ${token.issuer}"
+                        "Found issuer is: ${token.issuer}",
                 )
             } else {
                 logger.warnf(
                     "Token issuer mismatch. Expected: %s, Found: %s",
                     expectedIssuer,
-                    token.issuer
+                    token.issuer,
                 )
                 return false
             }
@@ -93,13 +95,13 @@ class ExternalTokenVerifier(
                 logger.warn(
                     "Token audience is wildcard, skipping audience check. " +
                         "This is insecure and should not be used in production. " +
-                        "Found audience is: $audienceStr"
+                        "Found audience is: $audienceStr",
                 )
             } else {
                 logger.warnf(
                     "Token audience mismatch. Expected to contain: %s, Found: %s",
                     expectedAudience,
-                    audienceStr
+                    audienceStr,
                 )
                 return false
             }
@@ -115,7 +117,10 @@ class ExternalTokenVerifier(
      * @param value value
      * @return true if the array contains the value, false otherwise
      */
-    private fun arrayContains(array: Array<String>, value: String): Boolean {
+    private fun arrayContains(
+        array: Array<String>,
+        value: String,
+    ): Boolean {
         for (s in array) {
             if (s == value) {
                 return true

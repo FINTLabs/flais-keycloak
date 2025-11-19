@@ -27,28 +27,30 @@ import kotlin.reflect.KClass
     description = "SCIM 2.0 Resource Type",
     name = "ResourceType",
     schema = ResourceTypeResource::class,
-    discoverable = false
+    discoverable = false,
 )
 class ScimResourceTypesResource(
-    private val resourceClasses: List<KClass<*>>
+    private val resourceClasses: List<KClass<*>>,
 ) {
-
     @GET
     @Produces(MEDIA_TYPE_SCIM, MediaType.APPLICATION_JSON)
     fun search(
         @Context uriInfo: UriInfo,
         @QueryParam(QUERY_PARAMETER_FILTER) filterString: String?,
-    ) : ListResponse<ScimResource> {
+    ): ListResponse<ScimResource> {
         if (!filterString.isNullOrEmpty()) {
             throw ForbiddenException("Filtering is not allowed")
         }
 
         val preparer = ResourcePreparer<GenericScimResource>(RESOURCE_TYPE_DEFINITION, uriInfo)
-        return ListResponse(getResourceTypes().map { schema ->
-            schema.asGenericScimResource().apply {
-                preparer.setResourceTypeAndLocation(this)
-            }
-        }.toList())
+        return ListResponse(
+            getResourceTypes()
+                .map { schema ->
+                    schema.asGenericScimResource().apply {
+                        preparer.setResourceTypeAndLocation(this)
+                    }
+                }.toList(),
+        )
     }
 
     @GET
@@ -56,12 +58,13 @@ class ScimResourceTypesResource(
     @Produces(MEDIA_TYPE_SCIM, MediaType.APPLICATION_JSON)
     fun get(
         @PathParam("id") id: String,
-        @Context uriInfo: UriInfo
-    ) : GenericScimResource {
-        val filter = Filter.or(
-            Filter.eq("id", id),
-            Filter.eq("name", id)
-        )
+        @Context uriInfo: UriInfo,
+    ): GenericScimResource {
+        val filter =
+            Filter.or(
+                Filter.eq("id", id),
+                Filter.eq("name", id),
+            )
         val filterEvaluator = SchemaAwareFilterEvaluator(RESOURCE_TYPE_DEFINITION)
         val preparer = ResourcePreparer<GenericScimResource>(RESOURCE_TYPE_DEFINITION, uriInfo)
         getResourceTypes().forEach { schema ->
@@ -74,12 +77,14 @@ class ScimResourceTypesResource(
         throw ResourceNotFoundException("No schema defined with id $id")
     }
 
-
-    fun getResourceTypes() = resourceClasses
-        .mapNotNull { resourceClass ->
-            ResourceTypeDefinition.fromJaxRsResource(resourceClass.java)
-                ?.takeIf { it.isDiscoverable }?.toScimResource()
-        }
+    fun getResourceTypes() =
+        resourceClasses
+            .mapNotNull { resourceClass ->
+                ResourceTypeDefinition
+                    .fromJaxRsResource(resourceClass.java)
+                    ?.takeIf { it.isDiscoverable }
+                    ?.toScimResource()
+            }
 
     companion object {
         private val RESOURCE_TYPE_DEFINITION =

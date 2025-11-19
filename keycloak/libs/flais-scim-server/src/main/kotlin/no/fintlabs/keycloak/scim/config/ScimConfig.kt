@@ -1,18 +1,15 @@
 package no.fintlabs.keycloak.scim.config
 
-import
-
 /**
  * SCIM Configuration
  */
 interface ScimConfig {
-
     /**
      * SCIM Authentication modes
      */
     enum class AuthenticationMode {
         KEYCLOAK,
-        EXTERNAL
+        EXTERNAL,
     }
 
     /**
