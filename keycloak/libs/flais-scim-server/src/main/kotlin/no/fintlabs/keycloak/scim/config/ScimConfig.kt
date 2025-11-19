@@ -25,40 +25,40 @@ interface ScimConfig {
      *
      * @return authentication mode
      */
-    fun getAuthenticationMode(): AuthenticationMode
+    val authenticationMode: AuthenticationMode
 
     /**
      * Gets the external token issuer (if in EXTERNAL mode)
      *
      * @return external token issuer
      */
-    fun getExternalIssuer(): String
+    val externalIssuer: String?
 
     /**
      * Gets the external token JWKS URI (if in EXTERNAL mode)
      *
      * @return external token JWKS URI
      */
-    fun getExternalJwksUri(): String
+    val externalJwksUri: String?
 
     /**
      * Gets the external audience (if in EXTERNAL mode)
      *
      * @return external audience
      */
-    fun getExternalAudience(): String
+    val externalAudience: String?
 
     /**
      * Returns whether identity provider should be automatically linked
      *
      * @return true if identity provider should be automatically linked
      */
-    fun getLinkIdp(): Boolean
+    val linkIdp: Boolean
 
     /**
      * Returns whether email should be used as username instead of username
      *
      * @return true if email should be used as username
      */
-    fun getEmailAsUsername(): Boolean
+    val emailAsUsername: Boolean
 }

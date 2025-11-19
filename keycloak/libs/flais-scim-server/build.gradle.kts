@@ -19,6 +19,7 @@ java {
 dependencies {
     implementation(libs.kotlin.stdlib)
     implementation(libs.scim.server.sdk)
+    implementation(libs.nimbusds.jwt)
 
     compileOnly(libs.keycloak.core)
     compileOnly(libs.keycloak.services)

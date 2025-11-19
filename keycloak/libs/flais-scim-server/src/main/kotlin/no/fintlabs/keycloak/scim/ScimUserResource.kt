@@ -5,11 +5,13 @@ import com.unboundid.scim2.common.messages.PatchRequest
 import com.unboundid.scim2.common.types.Email
 import com.unboundid.scim2.common.types.Name
 import com.unboundid.scim2.common.types.Role
+import com.unboundid.scim2.common.utils.ApiConstants.MEDIA_TYPE_SCIM
 import com.unboundid.scim2.common.utils.JsonUtils
 import com.unboundid.scim2.server.annotations.ResourceType
 import com.unboundid.scim2.server.utils.ResourcePreparer
 import com.unboundid.scim2.server.utils.ResourceTypeDefinition
 import com.unboundid.scim2.server.utils.SchemaChecker
+import jakarta.ws.rs.Consumes
 import jakarta.ws.rs.DELETE
 import jakarta.ws.rs.ForbiddenException
 import jakarta.ws.rs.GET
@@ -20,11 +22,14 @@ import jakarta.ws.rs.POST
 import jakarta.ws.rs.PUT
 import jakarta.ws.rs.Path
 import jakarta.ws.rs.PathParam
+import jakarta.ws.rs.Produces
 import jakarta.ws.rs.core.Context
+import jakarta.ws.rs.core.MediaType
 import jakarta.ws.rs.core.Response
 import jakarta.ws.rs.core.UriBuilder
 import jakarta.ws.rs.core.UriInfo
 import no.fintlabs.keycloak.scim.consts.ScimRoles
+import no.fintlabs.keycloak.scim.context.ScimContext
 import no.fintlabs.keycloak.scim.resources.UserResource
 import no.fintlabs.keycloak.scim.results.SearchResults
 import org.keycloak.models.FederatedIdentityModel
@@ -40,6 +45,7 @@ class ScimUserResource(
     private val scimContext: ScimContext,
 ) {
     @GET
+    @Produces(MEDIA_TYPE_SCIM, MediaType.APPLICATION_JSON)
     fun getUsers(
         @Context uriInfo: UriInfo,
     ): Response {
@@ -65,6 +71,7 @@ class ScimUserResource(
 
     @GET
     @Path("/{id}")
+    @Produces(MEDIA_TYPE_SCIM, MediaType.APPLICATION_JSON)
     fun getUser(
         @PathParam("id") id: String,
         @Context uriInfo: UriInfo,
@@ -85,6 +92,8 @@ class ScimUserResource(
     }
 
     @POST
+    @Produces(MEDIA_TYPE_SCIM, MediaType.APPLICATION_JSON)
+    @Consumes(MEDIA_TYPE_SCIM, MediaType.APPLICATION_JSON)
     fun createUser(
         @Context uriInfo: UriInfo,
         scimUser: UserResource,
@@ -123,6 +132,8 @@ class ScimUserResource(
 
     @PUT
     @Path("/{id}")
+    @Produces(MEDIA_TYPE_SCIM, MediaType.APPLICATION_JSON)
+    @Consumes(MEDIA_TYPE_SCIM, MediaType.APPLICATION_JSON)
     fun updateUser(
         @Context uriInfo: UriInfo,
         @PathParam("id") id: String,
@@ -161,6 +172,8 @@ class ScimUserResource(
 
     @PATCH
     @Path("/{id}")
+    @Produces(MEDIA_TYPE_SCIM, MediaType.APPLICATION_JSON)
+    @Consumes(MEDIA_TYPE_SCIM, MediaType.APPLICATION_JSON)
     fun patchUser(
         @Context uriInfo: UriInfo,
         @PathParam("id") id: String,
@@ -216,11 +229,12 @@ class ScimUserResource(
             }
         assertUserScimManaged(user)
 
-        if (scimContext.orgProvider.isManagedMember(scimContext.organization, user)) {
-            scimContext.orgProvider.removeMember(scimContext.organization, user)
+        if (!scimContext.orgProvider.isManagedMember(scimContext.organization, user)) {
+            throw NotFoundException("User is not part of the organization")
         }
 
-        throw NotFoundException("User is not part of the organization")
+        scimContext.orgProvider.removeMember(scimContext.organization, user)
+        return Response.noContent().build()
     }
 
     private fun translateUser(user: UserModel) =
