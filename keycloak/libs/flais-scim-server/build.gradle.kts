@@ -37,7 +37,9 @@ tasks.withType<KotlinCompile>().configureEach {
 tasks.shadowJar {
     archiveClassifier.set("")
     mergeServiceFiles()
-    minimize()
+    minimize {
+        exclude(dependency("com.fasterxml.jackson.module:jackson-module-jakarta-xmlbind-annotations:.*"))
+    }
 }
 
 tasks.build {

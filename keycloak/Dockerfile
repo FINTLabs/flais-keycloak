@@ -29,29 +29,28 @@ RUN --mount=type=cache,target=/home/gradle/.gradle \
 #-----------------------------
 # Stage: FLAIS scim server builder
 # -----------------------------
-# FROM gradle:9.2.0-jdk21 AS flais-scim-server-builder
-# WORKDIR /flais-scim-server
+FROM gradle:9.2.0-jdk21 AS flais-scim-server-builder
+WORKDIR /flais-scim-server
 
-# COPY settings.gradle.kts ./
-# COPY build.gradle.kts ./
-# COPY gradle gradle
-# COPY gradlew gradlew
-# COPY gradlew.bat gradlew.bat
+COPY settings.gradle.kts ./
+COPY build.gradle.kts ./
+COPY gradle gradle
+COPY gradlew gradlew
+COPY gradlew.bat gradlew.bat
 
-# RUN --mount=type=cache,target=/home/gradle/.gradle \
-#     ./gradlew --no-daemon -PskipFlaisProvider=true --version
+RUN --mount=type=cache,target=/home/gradle/.gradle \
+    ./gradlew --no-daemon -PskipFlaisProvider=true --version
 
-# COPY libs/flais-scim-server/build.gradle.kts libs/flais-scim-server/
+COPY libs/flais-scim-server/build.gradle.kts libs/flais-scim-server/
 
-# RUN --mount=type=cache,target=/home/gradle/.gradle \
-#     ./gradlew --no-daemon -PskipFlaisProvider=true :libs:flais-scim-server:dependencies
+RUN --mount=type=cache,target=/home/gradle/.gradle \
+    ./gradlew --no-daemon -PskipFlaisProvider=true :libs:flais-scim-server:dependencies
 
-# COPY libs/flais-scim-server/src libs/flais-scim-server/src
+COPY libs/flais-scim-server/src libs/flais-scim-server/src
 
-# RUN --mount=type=cache,target=/home/gradle/.gradle \
-#    gradle --no-daemon -PskipFlaisProvider=true --configuration-cache build && \
-#    # Copy built JARs to /flais-scim-server root
-#    cp libs/flais-scim-server/build/libs/*.jar /flais-scim-server/
+RUN --mount=type=cache,target=/home/gradle/.gradle \
+   gradle --no-daemon -PskipFlaisProvider=true --configuration-cache build && \
+   cp libs/flais-scim-server/build/libs/*.jar /flais-scim-server/
 
 # ---------------------------
 # Stage: FLAIS theme builder
@@ -82,7 +81,7 @@ ENV KC_HEALTH_ENABLED=true
 ENV KC_METRICS_ENABLED=true
 
 COPY --from=flais-provider-builder /flais-provider/*.jar /opt/keycloak/providers/
-# COPY --from=flais-scim-server-builder /flais-scim-server/*.jar /opt/keycloak/providers/
+COPY --from=flais-scim-server-builder /flais-scim-server/*.jar /opt/keycloak/providers/
 COPY --from=flais-theme-builder /flais-theme/dist_keycloak/flais-theme.jar /opt/keycloak/providers/
 
 RUN /opt/keycloak/bin/kc.sh build
