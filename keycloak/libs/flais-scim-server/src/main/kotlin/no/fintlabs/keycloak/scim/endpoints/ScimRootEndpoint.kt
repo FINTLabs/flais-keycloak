@@ -1,14 +1,18 @@
 package no.fintlabs.keycloak.scim.endpoints
 
 import jakarta.ws.rs.Path
+import jakarta.ws.rs.core.Response
 import no.fintlabs.keycloak.scim.http.scimRoute
 
-@Path("scim/v2/{organizationId}")
+@Path("v2/{organizationId}")
 class ScimRootEndpoint {
     val resourceClasses =
         listOf(
             ScimUserEndpoint::class,
         )
+
+    @Path("/test")
+    fun test(): Response = Response.ok().build()
 
     @Path("/Users")
     fun users() = scimRoute { ScimUserEndpoint(it) }
