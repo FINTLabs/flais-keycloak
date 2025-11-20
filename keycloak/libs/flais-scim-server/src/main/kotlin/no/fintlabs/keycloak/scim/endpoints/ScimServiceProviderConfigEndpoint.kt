@@ -31,12 +31,11 @@ class ScimServiceProviderConfigEndpoint {
     @Produces(MEDIA_TYPE_SCIM, MediaType.APPLICATION_JSON)
     fun get(
         @Context uriInfo: UriInfo,
-    ): GenericScimResource {
-        return serviceProviderConfig().asGenericScimResource().apply {
+    ): GenericScimResource =
+        serviceProviderConfig().asGenericScimResource().apply {
             ResourcePreparer<GenericScimResource>(RESOURCE_TYPE_DEFINITION, uriInfo)
                 .setResourceTypeAndLocation(this)
         }
-    }
 
     fun serviceProviderConfig(): ServiceProviderConfigResource =
         ServiceProviderConfigResource(
