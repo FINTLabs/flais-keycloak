@@ -122,6 +122,8 @@ class ScimUserEndpoint(
             }
         user.grantRole(scimRole)
         updateUserModel(user, scimUser)
+
+        scimContext.orgProvider.addManagedMember(scimContext.organization, user)
         updateUserIdpLinking(user)
 
         val result =
