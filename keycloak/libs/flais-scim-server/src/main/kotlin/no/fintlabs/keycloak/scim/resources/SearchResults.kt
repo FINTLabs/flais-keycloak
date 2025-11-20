@@ -147,6 +147,6 @@ class SearchResults<T : ScimResource> : ListResponseStreamingOutput<T> {
     private fun prepareAndFilter(resource: GenericScimResource): Boolean {
         responsePreparer.setResourceTypeAndLocation(resource)
         val currentFilter = filter ?: return true
-        return !currentFilter.visit(filterEvaluator, resource.objectNode)
+        return currentFilter.visit(filterEvaluator, resource.objectNode)
     }
 }
