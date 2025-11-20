@@ -9,7 +9,6 @@ import com.unboundid.scim2.common.utils.ApiConstants
 import com.unboundid.scim2.common.utils.JsonUtils
 import com.unboundid.scim2.server.annotations.ResourceType
 import com.unboundid.scim2.server.utils.ResourcePreparer
-import com.unboundid.scim2.server.utils.ResourceTypeDefinition
 import com.unboundid.scim2.server.utils.SchemaChecker
 import jakarta.ws.rs.Consumes
 import jakarta.ws.rs.DELETE
@@ -31,6 +30,8 @@ import jakarta.ws.rs.core.UriInfo
 import no.fintlabs.keycloak.scim.context.ScimContext
 import no.fintlabs.keycloak.scim.resources.SearchResults
 import no.fintlabs.keycloak.scim.resources.UserResource
+import no.fintlabs.keycloak.scim.utils.ResourcePath
+import no.fintlabs.keycloak.scim.utils.ResourceTypeDefinitionUtil.createResourceTypeDefinition
 import no.fintlabs.keycloak.scim.utils.ScimRoles
 import org.keycloak.models.FederatedIdentityModel
 import org.keycloak.models.UserModel
@@ -41,7 +42,7 @@ import org.keycloak.util.JsonSerialization
     name = "User",
     schema = UserResource::class,
 )
-@Path("User")
+@ResourcePath("Users")
 class ScimUserEndpoint(
     private val scimContext: ScimContext,
 ) {
@@ -352,9 +353,7 @@ class ScimUserEndpoint(
     }
 
     companion object {
-        private val RESOURCE_TYPE_DEFINITION =
-            ResourceTypeDefinition.fromJaxRsResource(ScimUserEndpoint::class.java)
-
+        private val RESOURCE_TYPE_DEFINITION = createResourceTypeDefinition<ScimUserEndpoint>()
         private val SCHEMA_CHECKER = SchemaChecker(RESOURCE_TYPE_DEFINITION)
     }
 }

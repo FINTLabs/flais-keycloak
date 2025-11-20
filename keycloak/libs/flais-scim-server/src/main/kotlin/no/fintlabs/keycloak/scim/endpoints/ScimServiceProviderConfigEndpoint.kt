@@ -12,13 +12,13 @@ import com.unboundid.scim2.common.types.SortConfig
 import com.unboundid.scim2.common.utils.ApiConstants.MEDIA_TYPE_SCIM
 import com.unboundid.scim2.server.annotations.ResourceType
 import com.unboundid.scim2.server.utils.ResourcePreparer
-import com.unboundid.scim2.server.utils.ResourceTypeDefinition
 import jakarta.ws.rs.GET
-import jakarta.ws.rs.Path
 import jakarta.ws.rs.Produces
 import jakarta.ws.rs.core.Context
 import jakarta.ws.rs.core.MediaType
 import jakarta.ws.rs.core.UriInfo
+import no.fintlabs.keycloak.scim.utils.ResourcePath
+import no.fintlabs.keycloak.scim.utils.ResourceTypeDefinitionUtil.createResourceTypeDefinition
 import java.net.URI
 
 @ResourceType(
@@ -27,7 +27,7 @@ import java.net.URI
     schema = ServiceProviderConfigResource::class,
     discoverable = false,
 )
-@Path("ServiceProviderConfig")
+@ResourcePath("ServiceProviderConfig")
 class ScimServiceProviderConfigEndpoint {
     @GET
     @Produces(MEDIA_TYPE_SCIM, MediaType.APPLICATION_JSON)
@@ -61,7 +61,6 @@ class ScimServiceProviderConfigEndpoint {
         )
 
     companion object {
-        private val RESOURCE_TYPE_DEFINITION =
-            ResourceTypeDefinition.fromJaxRsResource(ScimServiceProviderConfigEndpoint::class.java)
+        private val RESOURCE_TYPE_DEFINITION = createResourceTypeDefinition<ScimServiceProviderConfigEndpoint>()
     }
 }
