@@ -14,6 +14,7 @@ import com.unboundid.scim2.server.annotations.ResourceType
 import com.unboundid.scim2.server.utils.ResourcePreparer
 import com.unboundid.scim2.server.utils.ResourceTypeDefinition
 import jakarta.ws.rs.GET
+import jakarta.ws.rs.Path
 import jakarta.ws.rs.Produces
 import jakarta.ws.rs.core.Context
 import jakarta.ws.rs.core.MediaType
@@ -26,6 +27,7 @@ import java.net.URI
     schema = ServiceProviderConfigResource::class,
     discoverable = false,
 )
+@Path("ServiceProviderConfig")
 class ScimServiceProviderConfigEndpoint {
     @GET
     @Produces(MEDIA_TYPE_SCIM, MediaType.APPLICATION_JSON)
@@ -60,6 +62,6 @@ class ScimServiceProviderConfigEndpoint {
 
     companion object {
         private val RESOURCE_TYPE_DEFINITION =
-            ResourceTypeDefinition.fromJaxRsResource(ServiceProviderConfigResource::class.java)
+            ResourceTypeDefinition.fromJaxRsResource(ScimServiceProviderConfigEndpoint::class.java)
     }
 }

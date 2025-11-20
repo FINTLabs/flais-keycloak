@@ -29,6 +29,7 @@ import kotlin.reflect.KClass
     schema = ResourceTypeResource::class,
     discoverable = false,
 )
+@Path("ResourceTypes")
 class ScimResourceTypesEndpoint(
     private val resourceClasses: List<KClass<*>>,
 ) {
@@ -88,6 +89,6 @@ class ScimResourceTypesEndpoint(
 
     companion object {
         private val RESOURCE_TYPE_DEFINITION =
-            ResourceTypeDefinition.fromJaxRsResource(ResourceTypeResource::class.java)
+            ResourceTypeDefinition.fromJaxRsResource(ScimResourceTypesEndpoint::class.java)
     }
 }

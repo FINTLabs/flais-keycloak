@@ -41,6 +41,7 @@ import org.keycloak.util.JsonSerialization
     name = "User",
     schema = UserResource::class,
 )
+@Path("User")
 class ScimUserEndpoint(
     private val scimContext: ScimContext,
 ) {

@@ -13,18 +13,14 @@ typealias Route<T> = (ScimContext) -> T
 class ScimRouter<T> internal constructor(
     private val route: Route<T>,
 ) {
-    @PathParam("organizationId")
-    lateinit var organizationId: String
-
-    @Context
-    lateinit var session: KeycloakSession
-
     @Path("/")
-    fun handle() =
-        createScimContext(session, organizationId).let { context ->
-            verifyAuthenticated(context)
-            route(context)
-        }
+    fun handle(
+        @Context session: KeycloakSession,
+        @PathParam("organizationId") organizationId: String,
+    ) = createScimContext(session, organizationId).let { context ->
+        verifyAuthenticated(context)
+        route(context)
+    }
 }
 
 fun <T> scimRoute(route: Route<T>) = ScimRouter(route)
