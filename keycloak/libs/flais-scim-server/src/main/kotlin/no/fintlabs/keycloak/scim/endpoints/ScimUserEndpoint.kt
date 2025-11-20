@@ -286,8 +286,8 @@ class ScimUserEndpoint(
             user.email = email.value
             user.isEmailVerified = true
         }
-
         scimUser.roles?.let {
+            user.removeAttribute("roles")
             user.setAttribute(
                 "roles",
                 it.map(JsonSerialization::writeValueAsString).toList(),
@@ -313,7 +313,7 @@ class ScimUserEndpoint(
                 .toList()
 
         socialProviders.forEach { provider ->
-            if (userProvider.getFederatedIdentity(scimContext.realm, user, provider) == null) return@forEach
+            if (userProvider.getFederatedIdentity(scimContext.realm, user, provider) != null) return@forEach
             val federatedIdentity =
                 FederatedIdentityModel(
                     provider,
