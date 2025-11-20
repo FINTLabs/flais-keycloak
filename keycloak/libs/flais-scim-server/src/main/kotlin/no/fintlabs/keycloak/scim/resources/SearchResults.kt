@@ -1,4 +1,4 @@
-package no.fintlabs.keycloak.scim.results
+package no.fintlabs.keycloak.scim.resources
 
 import com.unboundid.scim2.common.GenericScimResource
 import com.unboundid.scim2.common.Path

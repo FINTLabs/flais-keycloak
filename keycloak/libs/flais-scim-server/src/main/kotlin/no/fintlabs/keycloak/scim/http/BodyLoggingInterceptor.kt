@@ -1,4 +1,4 @@
-package no.fintlabs.keycloak.scim.logging
+package no.fintlabs.keycloak.scim.http
 
 import jakarta.ws.rs.WebApplicationException
 import jakarta.ws.rs.ext.Provider

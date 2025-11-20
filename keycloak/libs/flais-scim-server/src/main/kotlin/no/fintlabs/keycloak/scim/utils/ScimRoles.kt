@@ -1,4 +1,4 @@
-package no.fintlabs.keycloak.scim.consts
+package no.fintlabs.keycloak.scim.utils
 
 /**
  * SCIM roles

@@ -1,11 +1,11 @@
-package no.fintlabs.keycloak.scim
+package no.fintlabs.keycloak.scim.endpoints
 
 import com.fasterxml.jackson.databind.node.ObjectNode
 import com.unboundid.scim2.common.messages.PatchRequest
 import com.unboundid.scim2.common.types.Email
 import com.unboundid.scim2.common.types.Name
 import com.unboundid.scim2.common.types.Role
-import com.unboundid.scim2.common.utils.ApiConstants.MEDIA_TYPE_SCIM
+import com.unboundid.scim2.common.utils.ApiConstants
 import com.unboundid.scim2.common.utils.JsonUtils
 import com.unboundid.scim2.server.annotations.ResourceType
 import com.unboundid.scim2.server.utils.ResourcePreparer
@@ -28,10 +28,10 @@ import jakarta.ws.rs.core.MediaType
 import jakarta.ws.rs.core.Response
 import jakarta.ws.rs.core.UriBuilder
 import jakarta.ws.rs.core.UriInfo
-import no.fintlabs.keycloak.scim.consts.ScimRoles
 import no.fintlabs.keycloak.scim.context.ScimContext
+import no.fintlabs.keycloak.scim.resources.SearchResults
 import no.fintlabs.keycloak.scim.resources.UserResource
-import no.fintlabs.keycloak.scim.results.SearchResults
+import no.fintlabs.keycloak.scim.utils.ScimRoles
 import org.keycloak.models.FederatedIdentityModel
 import org.keycloak.models.UserModel
 import org.keycloak.util.JsonSerialization
@@ -41,11 +41,11 @@ import org.keycloak.util.JsonSerialization
     name = "User",
     schema = UserResource::class,
 )
-class ScimUserResource(
+class ScimUserEndpoint(
     private val scimContext: ScimContext,
 ) {
     @GET
-    @Produces(MEDIA_TYPE_SCIM, MediaType.APPLICATION_JSON)
+    @Produces(ApiConstants.MEDIA_TYPE_SCIM, MediaType.APPLICATION_JSON)
     fun getUsers(
         @Context uriInfo: UriInfo,
     ): Response {
@@ -71,7 +71,7 @@ class ScimUserResource(
 
     @GET
     @Path("/{id}")
-    @Produces(MEDIA_TYPE_SCIM, MediaType.APPLICATION_JSON)
+    @Produces(ApiConstants.MEDIA_TYPE_SCIM, MediaType.APPLICATION_JSON)
     fun getUser(
         @PathParam("id") id: String,
         @Context uriInfo: UriInfo,
@@ -92,8 +92,8 @@ class ScimUserResource(
     }
 
     @POST
-    @Produces(MEDIA_TYPE_SCIM, MediaType.APPLICATION_JSON)
-    @Consumes(MEDIA_TYPE_SCIM, MediaType.APPLICATION_JSON)
+    @Produces(ApiConstants.MEDIA_TYPE_SCIM, MediaType.APPLICATION_JSON)
+    @Consumes(ApiConstants.MEDIA_TYPE_SCIM, MediaType.APPLICATION_JSON)
     fun createUser(
         @Context uriInfo: UriInfo,
         scimUser: UserResource,
@@ -132,8 +132,8 @@ class ScimUserResource(
 
     @PUT
     @Path("/{id}")
-    @Produces(MEDIA_TYPE_SCIM, MediaType.APPLICATION_JSON)
-    @Consumes(MEDIA_TYPE_SCIM, MediaType.APPLICATION_JSON)
+    @Produces(ApiConstants.MEDIA_TYPE_SCIM, MediaType.APPLICATION_JSON)
+    @Consumes(ApiConstants.MEDIA_TYPE_SCIM, MediaType.APPLICATION_JSON)
     fun updateUser(
         @Context uriInfo: UriInfo,
         @PathParam("id") id: String,
@@ -172,8 +172,8 @@ class ScimUserResource(
 
     @PATCH
     @Path("/{id}")
-    @Produces(MEDIA_TYPE_SCIM, MediaType.APPLICATION_JSON)
-    @Consumes(MEDIA_TYPE_SCIM, MediaType.APPLICATION_JSON)
+    @Produces(ApiConstants.MEDIA_TYPE_SCIM, MediaType.APPLICATION_JSON)
+    @Consumes(ApiConstants.MEDIA_TYPE_SCIM, MediaType.APPLICATION_JSON)
     fun patchUser(
         @Context uriInfo: UriInfo,
         @PathParam("id") id: String,
@@ -352,7 +352,7 @@ class ScimUserResource(
 
     companion object {
         private val RESOURCE_TYPE_DEFINITION =
-            ResourceTypeDefinition.fromJaxRsResource(ScimUserResource::class.java)
+            ResourceTypeDefinition.fromJaxRsResource(ScimUserEndpoint::class.java)
 
         private val SCHEMA_CHECKER = SchemaChecker(RESOURCE_TYPE_DEFINITION)
     }

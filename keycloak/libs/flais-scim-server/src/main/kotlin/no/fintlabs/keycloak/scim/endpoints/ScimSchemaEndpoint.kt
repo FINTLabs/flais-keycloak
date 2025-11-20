@@ -1,12 +1,11 @@
-package no.fintlabs.keycloak.scim
+package no.fintlabs.keycloak.scim.endpoints
 
 import com.unboundid.scim2.common.GenericScimResource
-import com.unboundid.scim2.common.ScimResource
 import com.unboundid.scim2.common.exceptions.ForbiddenException
 import com.unboundid.scim2.common.exceptions.ResourceNotFoundException
 import com.unboundid.scim2.common.filters.Filter
 import com.unboundid.scim2.common.messages.ListResponse
-import com.unboundid.scim2.common.types.ResourceTypeResource
+import com.unboundid.scim2.common.types.SchemaResource
 import com.unboundid.scim2.common.utils.ApiConstants.MEDIA_TYPE_SCIM
 import com.unboundid.scim2.common.utils.ApiConstants.QUERY_PARAMETER_FILTER
 import com.unboundid.scim2.server.annotations.ResourceType
@@ -24,12 +23,12 @@ import jakarta.ws.rs.core.UriInfo
 import kotlin.reflect.KClass
 
 @ResourceType(
-    description = "SCIM 2.0 Resource Type",
-    name = "ResourceType",
-    schema = ResourceTypeResource::class,
+    description = "SCIM 2.0 Schema",
+    name = "Schema",
+    schema = SchemaResource::class,
     discoverable = false,
 )
-class ScimResourceTypesResource(
+class ScimSchemaEndpoint(
     private val resourceClasses: List<KClass<*>>,
 ) {
     @GET
@@ -37,14 +36,14 @@ class ScimResourceTypesResource(
     fun search(
         @Context uriInfo: UriInfo,
         @QueryParam(QUERY_PARAMETER_FILTER) filterString: String?,
-    ): ListResponse<ScimResource> {
+    ): ListResponse<GenericScimResource> {
         if (!filterString.isNullOrEmpty()) {
             throw ForbiddenException("Filtering is not allowed")
         }
 
         val preparer = ResourcePreparer<GenericScimResource>(RESOURCE_TYPE_DEFINITION, uriInfo)
         return ListResponse(
-            getResourceTypes()
+            getSchemas()
                 .map { schema ->
                     schema.asGenericScimResource().apply {
                         preparer.setResourceTypeAndLocation(this)
@@ -67,7 +66,7 @@ class ScimResourceTypesResource(
             )
         val filterEvaluator = SchemaAwareFilterEvaluator(RESOURCE_TYPE_DEFINITION)
         val preparer = ResourcePreparer<GenericScimResource>(RESOURCE_TYPE_DEFINITION, uriInfo)
-        getResourceTypes().forEach { schema ->
+        getSchemas().forEach { schema ->
             val resource = schema.asGenericScimResource()
             if (filter.visit(filterEvaluator, resource.objectNode)) {
                 preparer.setResourceTypeAndLocation(resource)
@@ -77,17 +76,23 @@ class ScimResourceTypesResource(
         throw ResourceNotFoundException("No schema defined with id $id")
     }
 
-    fun getResourceTypes() =
+    private fun getSchemas() =
         resourceClasses
             .mapNotNull { resourceClass ->
-                ResourceTypeDefinition
-                    .fromJaxRsResource(resourceClass.java)
-                    ?.takeIf { it.isDiscoverable }
-                    ?.toScimResource()
-            }
+                val td =
+                    ResourceTypeDefinition
+                        .fromJaxRsResource(resourceClass.java)
+                        ?.takeIf { it.isDiscoverable }
+                        ?: return@mapNotNull null
+
+                buildList<SchemaResource> {
+                    td.coreSchema?.let { add(it) }
+                    addAll(td.schemaExtensions.keys)
+                }
+            }.flatten()
 
     companion object {
         private val RESOURCE_TYPE_DEFINITION =
-            ResourceTypeDefinition.fromJaxRsResource(ResourceTypeResource::class.java)
+            ResourceTypeDefinition.fromJaxRsResource(SchemaResource::class.java)
     }
 }

@@ -1,4 +1,4 @@
-package no.fintlabs.keycloak.scim
+package no.fintlabs.keycloak.scim.endpoints
 
 import com.unboundid.scim2.common.GenericScimResource
 import com.unboundid.scim2.common.types.AuthenticationScheme
@@ -26,7 +26,7 @@ import java.net.URI
     schema = ServiceProviderConfigResource::class,
     discoverable = false,
 )
-class ScimServiceProviderConfigResource {
+class ScimServiceProviderConfigEndpoint {
     @GET
     @Produces(MEDIA_TYPE_SCIM, MediaType.APPLICATION_JSON)
     fun get(

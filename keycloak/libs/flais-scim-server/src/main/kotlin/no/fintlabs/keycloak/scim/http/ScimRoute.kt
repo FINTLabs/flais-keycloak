@@ -1,4 +1,4 @@
-package no.fintlabs.keycloak.scim.route
+package no.fintlabs.keycloak.scim.http
 
 import jakarta.ws.rs.Path
 import jakarta.ws.rs.PathParam
@@ -10,7 +10,7 @@ import org.keycloak.models.KeycloakSession
 
 typealias Route<T> = (ScimContext) -> T
 
-class ScimRoute<T> internal constructor(
+class ScimRouter<T> internal constructor(
     private val route: Route<T>,
 ) {
     @PathParam("organizationId")
@@ -20,11 +20,11 @@ class ScimRoute<T> internal constructor(
     lateinit var session: KeycloakSession
 
     @Path("/")
-    fun all() =
+    fun handle() =
         createScimContext(session, organizationId).let { context ->
             verifyAuthenticated(context)
             route(context)
         }
 }
 
-fun <T> scimRoute(route: Route<T>) = ScimRoute(route)
+fun <T> scimRoute(route: Route<T>) = ScimRouter(route)
