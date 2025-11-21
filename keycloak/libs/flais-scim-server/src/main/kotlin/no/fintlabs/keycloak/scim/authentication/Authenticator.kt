@@ -5,9 +5,10 @@ import jakarta.ws.rs.core.HttpHeaders
 import no.fintlabs.keycloak.scim.context.ScimContext
 
 object Authenticator {
-    private val validatorRegistry = JwtValidatorRegistry()
-
-    fun verifyAuthenticated(scimContext: ScimContext) {
+    fun verifyAuthenticated(
+        scimContext: ScimContext,
+        validatorRegistry: JwtValidatorRegistry,
+    ) {
         val context =
             requireNotNull(scimContext.session.context) {
                 "Keycloak context is not set"

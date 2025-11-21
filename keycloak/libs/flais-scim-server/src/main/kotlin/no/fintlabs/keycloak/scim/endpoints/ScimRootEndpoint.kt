@@ -1,23 +1,25 @@
 package no.fintlabs.keycloak.scim.endpoints
 
 import jakarta.ws.rs.Path
-import no.fintlabs.keycloak.scim.http.scimRoute
+import no.fintlabs.keycloak.scim.context.ScimContext
 
-class ScimRootEndpoint {
+class ScimRootEndpoint(
+    private val scimContext: ScimContext,
+) {
     val resourceClasses =
         listOf(
             ScimUserEndpoint::class,
         )
 
-    @Path("v2/{organizationId}/Users")
-    fun users() = scimRoute { ScimUserEndpoint(it) }
+    @Path("Users")
+    fun users() = ScimUserEndpoint(scimContext)
 
-    @Path("v2/{organizationId}/Schemas")
-    fun schemas() = scimRoute { ScimSchemaEndpoint(resourceClasses) }
+    @Path("Schemas")
+    fun schemas() = ScimSchemaEndpoint(resourceClasses)
 
-    @Path("v2/{organizationId}/ServiceProviderConfig")
-    fun serviceProviderConfig() = scimRoute { ScimServiceProviderConfigEndpoint() }
+    @Path("ServiceProviderConfig")
+    fun serviceProviderConfig() = ScimServiceProviderConfigEndpoint()
 
-    @Path("v2/{organizationId}/ResourceTypes")
-    fun resourceTypes() = scimRoute { ScimResourceTypesEndpoint(resourceClasses) }
+    @Path("ResourceTypes")
+    fun resourceTypes() = ScimResourceTypesEndpoint(resourceClasses)
 }
