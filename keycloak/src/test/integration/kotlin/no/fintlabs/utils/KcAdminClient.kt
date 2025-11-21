@@ -6,7 +6,9 @@ import org.keycloak.admin.client.KeycloakBuilder
 import org.keycloak.admin.client.resource.RealmResource
 import org.keycloak.representations.idm.FederatedIdentityRepresentation
 import org.keycloak.representations.idm.MemberRepresentation
+import org.keycloak.representations.idm.RealmRepresentation
 import org.keycloak.representations.idm.UserRepresentation
+import org.keycloak.util.JsonSerialization
 
 /**
  * Utility object for interacting with a Keycloak instance using the Keycloak Admin Client.
@@ -116,4 +118,18 @@ object KcAdminClient {
                 .member(userId)
                 .toRepresentation()
         }.getOrNull()
+
+    fun resetRealmFromJson(
+        env: KcComposeEnvironment,
+        kcJson: String,
+    ) {
+        val rep: RealmRepresentation = JsonSerialization.readValue(kcJson, RealmRepresentation::class.java)
+
+        val (kc, _) = connect(env, ADMIN_REALM)
+        kc.use { keycloak ->
+            val realms = keycloak.realms()
+            runCatching { realms.realm(rep.realm).remove() }
+            realms.create(rep)
+        }
+    }
 }
