@@ -37,7 +37,7 @@ jobs:
           echo "app_version=$version" >> $GITHUB_OUTPUT
 
       - name: Update Chart.yaml
-        uses: mikefarah/yq@v4.48.1
+        uses: mikefarah/yq@v4.49.1
         with:
           cmd: |
             yq e -i '.version = "${{ steps.versions.outputs.chart_version }}"' ./charts/${{ inputs.chart_name }}/Chart.yaml
