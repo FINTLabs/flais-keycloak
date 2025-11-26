@@ -28,7 +28,7 @@ import jakarta.ws.rs.core.Response
 import jakarta.ws.rs.core.UriBuilder
 import jakarta.ws.rs.core.UriInfo
 import no.fintlabs.keycloak.scim.context.ScimContext
-import no.fintlabs.keycloak.scim.resources.SearchResults
+import no.fintlabs.keycloak.scim.resources.SearchHandler
 import no.fintlabs.keycloak.scim.resources.UserResource
 import no.fintlabs.keycloak.scim.utils.ResourcePath
 import no.fintlabs.keycloak.scim.utils.ResourceTypeDefinitionUtil.createResourceTypeDefinition
@@ -36,6 +36,7 @@ import no.fintlabs.keycloak.scim.utils.ScimRoles
 import org.keycloak.models.FederatedIdentityModel
 import org.keycloak.models.UserModel
 import org.keycloak.util.JsonSerialization
+import kotlin.streams.asSequence
 
 @ResourceType(
     description = "User Account",
@@ -51,23 +52,23 @@ class ScimUserEndpoint(
     fun getUsers(
         @Context uriInfo: UriInfo,
     ): Response {
-        val searchResult =
-            SearchResults(RESOURCE_TYPE_DEFINITION, uriInfo) { _ ->
-                val scimRole =
-                    requireNotNull(scimContext.realm.getRole(ScimRoles.SCIM_MANAGED_ROLE)) {
-                        "SCIM managed role not found"
-                    }
-
-                scimContext.orgProvider
-                    .getMembersStream(
-                        scimContext.organization,
-                        emptyMap(),
-                        true,
-                        null,
-                        null,
-                    ).filter { it.hasRole(scimRole) }
-                    .map { translateUser(it) }
+        val searchHandler = SearchHandler<UserResource>(RESOURCE_TYPE_DEFINITION, uriInfo)
+        val scimRole =
+            requireNotNull(scimContext.realm.getRole(ScimRoles.SCIM_MANAGED_ROLE)) {
+                "SCIM managed role not found"
             }
+        val userResources =
+            scimContext.orgProvider
+                .getMembersStream(
+                    scimContext.organization,
+                    emptyMap(),
+                    true,
+                    null,
+                    null,
+                ).filter { it.hasRole(scimRole) }
+                .map { translateUser(it) }
+                .asSequence()
+        val searchResult = searchHandler.createSearchResult(userResources)
         return Response.ok(searchResult).build()
     }
 
