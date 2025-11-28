@@ -1,0 +1,3 @@
+ignore:
+    - description: "Ignore dev credentials in docker-compose"
+      match: "devpass|password|authentik|admin"
