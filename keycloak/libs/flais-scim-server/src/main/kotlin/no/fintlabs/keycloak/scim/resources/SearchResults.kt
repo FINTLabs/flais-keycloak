@@ -1,8 +1,10 @@
 package no.fintlabs.keycloak.scim.resources
 
+import com.fasterxml.jackson.annotation.JsonProperty
 import com.unboundid.scim2.common.ScimResource
 
 data class SearchResults<T : ScimResource>(
+    @field:JsonProperty("Resources")
     val results: List<T> = emptyList(),
     val itemsPerPage: Int = 0,
     val totalResults: Int = 0,
