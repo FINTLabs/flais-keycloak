@@ -56,6 +56,7 @@ object KcAdminClient {
         firstName: String,
         lastName: String,
         enabled: Boolean = true,
+        realmRoleNames: List<String> = emptyList(),
     ): String {
         val rep =
             UserRepresentation().apply {
@@ -74,6 +75,20 @@ object KcAdminClient {
                 }
                 CreatedResponseUtil.getCreatedId(it)
             }
+
+        if (realmRoleNames.isNotEmpty()) {
+            val userResource = realm.users().get(userId)
+
+            val roleReps =
+                realmRoleNames.map { roleName ->
+                    realm.roles().get(roleName).toRepresentation()
+                }
+
+            userResource
+                .roles()
+                .realmLevel()
+                .add(roleReps)
+        }
 
         return userId
     }
