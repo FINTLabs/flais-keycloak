@@ -80,9 +80,18 @@ class ScimUserEndpoint(
         @Context uriInfo: UriInfo,
     ): Response {
         val user =
-            runCatching { scimContext.orgProvider.getMemberById(scimContext.organization, id) }.getOrElse {
-                throw NotFoundException("No user found with id $id")
-            }
+            scimContext.orgProvider
+                .getMemberById(scimContext.organization, id)
+                ?: return Response
+                    .status(Response.Status.NOT_FOUND)
+                    .type(ApiConstants.MEDIA_TYPE_SCIM)
+                    .entity(
+                        mapOf(
+                            "schemas" to listOf("urn:ietf:params:scim:api:messages:2.0:Error"),
+                            "status" to 404,
+                            "detail" to "No user found with id $id",
+                        ),
+                    ).build()
         assertUserScimManaged(user)
 
         val scimUser =
