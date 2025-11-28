@@ -273,3 +273,5 @@ services:
 
 networks:
     keycloak:
+        driver: bridge
+        name: keycloak
