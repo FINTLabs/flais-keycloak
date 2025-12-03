@@ -6,7 +6,9 @@ import org.keycloak.admin.client.KeycloakBuilder
 import org.keycloak.admin.client.resource.RealmResource
 import org.keycloak.representations.idm.FederatedIdentityRepresentation
 import org.keycloak.representations.idm.MemberRepresentation
+import org.keycloak.representations.idm.RealmRepresentation
 import org.keycloak.representations.idm.UserRepresentation
+import org.keycloak.util.JsonSerialization
 
 /**
  * Utility object for interacting with a Keycloak instance using the Keycloak Admin Client.
@@ -54,6 +56,7 @@ object KcAdminClient {
         firstName: String,
         lastName: String,
         enabled: Boolean = true,
+        realmRoleNames: List<String> = emptyList(),
     ): String {
         val rep =
             UserRepresentation().apply {
@@ -73,6 +76,20 @@ object KcAdminClient {
                 CreatedResponseUtil.getCreatedId(it)
             }
 
+        if (realmRoleNames.isNotEmpty()) {
+            val userResource = realm.users().get(userId)
+
+            val roleReps =
+                realmRoleNames.map { roleName ->
+                    realm.roles().get(roleName).toRepresentation()
+                }
+
+            userResource
+                .roles()
+                .realmLevel()
+                .add(roleReps)
+        }
+
         return userId
     }
 
@@ -91,6 +108,13 @@ object KcAdminClient {
         userId: String,
     ) {
         realm.users().delete(userId)
+    }
+
+    fun deleteAllUsers(realm: RealmResource) {
+        val users = realm.users().list()
+        users.forEach { user ->
+            realm.users().delete(user.id)
+        }
     }
 
     fun getFederatedIdentities(
@@ -116,4 +140,18 @@ object KcAdminClient {
                 .member(userId)
                 .toRepresentation()
         }.getOrNull()
+
+    fun resetRealmFromJson(
+        env: KcComposeEnvironment,
+        kcJson: String,
+    ) {
+        val rep: RealmRepresentation = JsonSerialization.readValue(kcJson, RealmRepresentation::class.java)
+
+        val (kc, _) = connect(env, ADMIN_REALM)
+        kc.use { keycloak ->
+            val realms = keycloak.realms()
+            runCatching { realms.realm(rep.realm).remove() }
+            realms.create(rep)
+        }
+    }
 }

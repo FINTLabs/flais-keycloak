@@ -6,16 +6,14 @@ import no.fintlabs.utils.KcAdminClient
 import no.fintlabs.utils.KcComposeEnvironment
 import no.fintlabs.utils.KcFlow.loginWithUser
 import no.fintlabs.utils.ScimFlow
-import no.fintlabs.utils.ScimFlow.deprovisionUsers
-import no.fintlabs.utils.ScimFlow.provisionUsers
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.assertNotNull
-import org.junit.jupiter.api.assertNull
 import org.junit.jupiter.api.extension.ExtendWith
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -30,15 +28,13 @@ class ProvisionedTest {
                 active = true,
                 name = ScimFlow.ScimUser.Name("Alice", "Basic"),
                 emails = listOf(ScimFlow.ScimUser.Email("alice.basic@telemark.no", primary = true)),
-                groups = emptyList(),
             ),
             ScimFlow.ScimUser(
                 externalId = "22222222-2222-2222-2222-222222222222",
                 userName = "jon.basic@telemark.no",
                 active = true,
                 name = ScimFlow.ScimUser.Name("Jon", "Basic"),
-                emails = listOf(ScimFlow.ScimUser.Email("jon.basic@telemark.no")),
-                groups = emptyList(),
+                emails = listOf(ScimFlow.ScimUser.Email("jon.basic@telemark.no", primary = true)),
             ),
         )
 
@@ -50,15 +46,13 @@ class ProvisionedTest {
                 active = true,
                 name = ScimFlow.ScimUser.Name("Alice", "Basic"),
                 emails = listOf(ScimFlow.ScimUser.Email("alice.basic@rogaland.no", primary = true)),
-                groups = emptyList(),
             ),
             ScimFlow.ScimUser(
                 externalId = "22222222-2222-2222-2222-222222222222",
                 userName = "jon.basic@rogaland.no",
                 active = true,
                 name = ScimFlow.ScimUser.Name("Jon", "Basic"),
-                emails = listOf(ScimFlow.ScimUser.Email("jon.basic@rogaland.no")),
-                groups = emptyList(),
+                emails = listOf(ScimFlow.ScimUser.Email("jon.basic@rogaland.no", primary = true)),
             ),
         )
 
@@ -68,19 +62,31 @@ class ProvisionedTest {
         env: KcComposeEnvironment,
         kcConfig: KcConfig,
     ) {
-        provisionUsers(
-            env.scimClientTelemarkUrl(),
-            kcConfig.requireOrg("telemark").id,
-            usersTelemark,
-        ).use { resp ->
-            Assertions.assertEquals(200, resp.code)
+        val (kc, realmRes) = KcAdminClient.connect(env, realm)
+
+        kc.use {
+            KcAdminClient.deleteAllUsers(realmRes)
         }
-        provisionUsers(
-            env.scimClientRogalandUrl(),
-            kcConfig.requireOrg("rogaland").id,
-            usersRogaland,
-        ).use { resp ->
-            Assertions.assertEquals(200, resp.code)
+
+        usersTelemark.forEach { user ->
+            ScimFlow
+                .createUser(
+                    "${env.keycloakServiceUrl()}/realms/external/scim/v2/${kcConfig.requireOrg("telemark").id}",
+                    "${env.flaisScimAuthUrl()}/token",
+                    user,
+                ).use { resp ->
+                    assertEquals(201, resp.code)
+                }
+        }
+        usersRogaland.forEach { user ->
+            ScimFlow
+                .createUser(
+                    "${env.keycloakServiceUrl()}/realms/external/scim/v2/${kcConfig.requireOrg("rogaland").id}",
+                    "${env.flaisScimAuthUrl()}/token",
+                    user,
+                ).use { resp ->
+                    assertEquals(201, resp.code)
+                }
         }
     }
 
@@ -154,64 +160,73 @@ class ProvisionedTest {
     }
 
     @Test
-    fun `patching provisioned users updates users with new info`(
+    fun `updating provisioned users updates users with new info`(
         env: KcComposeEnvironment,
         kcConfig: KcConfig,
     ) {
         val (kc, realmRes) = KcAdminClient.connect(env, realm)
-        val usersTelemark =
-            listOf(
-                ScimFlow.ScimUser(
-                    externalId = "11111111-1111-1111-1111-111111111111",
-                    userName = "alice.basic@telemark.no",
-                    active = true,
-                    name = ScimFlow.ScimUser.Name("Alice 2", "Basic 2"),
-                    emails =
-                        listOf(
-                            ScimFlow.ScimUser.Email(
-                                "alice.basic2@telemark.no",
-                                primary = true,
-                            ),
-                        ),
-                    groups = emptyList(),
-                ),
-            )
-
-        val usersRogaland =
-            listOf(
-                ScimFlow.ScimUser(
-                    externalId = "11111111-1111-1111-1111-111111111111",
-                    userName = "alice.basic@rogaland.no",
-                    active = true,
-                    name = ScimFlow.ScimUser.Name("Alice 2", "Basic 2"),
-                    emails =
-                        listOf(
-                            ScimFlow.ScimUser.Email(
-                                "alice.basic2@rogaland.no",
-                                primary = true,
-                            ),
-                        ),
-                    groups = emptyList(),
-                ),
-            )
-
-        provisionUsers(
-            env.scimClientTelemarkUrl(),
-            kcConfig.requireOrg("telemark").id,
-            usersTelemark,
-        ).use { resp ->
-            Assertions.assertEquals(200, resp.code)
-        }
-
-        provisionUsers(
-            env.scimClientRogalandUrl(),
-            kcConfig.requireOrg("rogaland").id,
-            usersRogaland,
-        ).use { resp ->
-            Assertions.assertEquals(200, resp.code)
-        }
 
         kc.use {
+            val usersTelemark =
+                listOf(
+                    ScimFlow.ScimUser(
+                        id = KcAdminClient.findUserByUsername(realmRes, "alice.basic@telemark.no")?.id,
+                        externalId = "11111111-1111-1111-1111-111111111111",
+                        userName = "alice.basic@telemark.no",
+                        active = true,
+                        name = ScimFlow.ScimUser.Name("Alice 2", "Basic 2"),
+                        emails =
+                            listOf(
+                                ScimFlow.ScimUser.Email(
+                                    "alice.basic2@telemark.no",
+                                    primary = true,
+                                ),
+                            ),
+                    ),
+                )
+
+            val usersRogaland =
+                listOf(
+                    ScimFlow.ScimUser(
+                        id = KcAdminClient.findUserByUsername(realmRes, "alice.basic@rogaland.no")?.id,
+                        externalId = "11111111-1111-1111-1111-111111111111",
+                        userName = "alice.basic@rogaland.no",
+                        active = true,
+                        name = ScimFlow.ScimUser.Name("Alice 2", "Basic 2"),
+                        emails =
+                            listOf(
+                                ScimFlow.ScimUser.Email(
+                                    "alice.basic2@rogaland.no",
+                                    primary = true,
+                                ),
+                            ),
+                    ),
+                )
+
+            usersTelemark.forEach { user ->
+                ScimFlow
+                    .updateUser(
+                        "${env.keycloakServiceUrl()}/realms/external/scim/v2/${kcConfig.requireOrg("telemark").id}",
+                        "${env.flaisScimAuthUrl()}/token",
+                        user.id!!,
+                        user,
+                    ).use { resp ->
+                        assertEquals(200, resp.code)
+                    }
+            }
+
+            usersRogaland.forEach { user ->
+                ScimFlow
+                    .updateUser(
+                        "${env.keycloakServiceUrl()}/realms/external/scim/v2/${kcConfig.requireOrg("rogaland").id}",
+                        "${env.flaisScimAuthUrl()}/token",
+                        user.id!!,
+                        user,
+                    ).use { resp ->
+                        assertEquals(200, resp.code)
+                    }
+            }
+
             usersTelemark.forEach { u ->
                 val user = KcAdminClient.findUserByUsername(realmRes, u.userName)
                 assertNotNull(user)
@@ -231,64 +246,41 @@ class ProvisionedTest {
     }
 
     @Test
-    fun `deprovision provisioned users are removed`(
+    fun `deprovision users are removed`(
         env: KcComposeEnvironment,
         kcConfig: KcConfig,
     ) {
         val (kc, realmRes) = KcAdminClient.connect(env, realm)
-        val usersTelemark =
-            listOf(
-                ScimFlow.ScimUser(
-                    externalId = "11111111-1111-1111-1111-111111111111",
-                    userName = "alice.basic@telemark.no",
-                    active = true,
-                    name = ScimFlow.ScimUser.Name("Alice", "Basic"),
-                    emails =
-                        listOf(
-                            ScimFlow.ScimUser.Email(
-                                "alice.basic@telemark.no",
-                                primary = true,
-                            ),
-                        ),
-                    groups = emptyList(),
-                ),
-            )
-
-        val usersRogaland =
-            listOf(
-                ScimFlow.ScimUser(
-                    externalId = "11111111-1111-1111-1111-111111111111",
-                    userName = "alice.basic@rogaland.no",
-                    active = true,
-                    name = ScimFlow.ScimUser.Name("Alice", "Basic"),
-                    emails =
-                        listOf(
-                            ScimFlow.ScimUser.Email(
-                                "alice.basic@rogaland.no",
-                                primary = true,
-                            ),
-                        ),
-                    groups = emptyList(),
-                ),
-            )
-
-        deprovisionUsers(
-            env.scimClientTelemarkUrl(),
-            kcConfig.requireOrg("telemark").id,
-            usersTelemark,
-        ).use { resp ->
-            Assertions.assertEquals(200, resp.code)
-        }
-
-        deprovisionUsers(
-            env.scimClientRogalandUrl(),
-            kcConfig.requireOrg("rogaland").id,
-            usersRogaland,
-        ).use { resp ->
-            Assertions.assertEquals(200, resp.code)
-        }
 
         kc.use {
+            usersTelemark.forEach { user ->
+                val user = KcAdminClient.findUserByUsername(realmRes, user.userName)
+                assertNotNull(user)
+
+                ScimFlow
+                    .deleteUser(
+                        "${env.keycloakServiceUrl()}/realms/external/scim/v2/${kcConfig.requireOrg("telemark").id}",
+                        "${env.flaisScimAuthUrl()}/token",
+                        user.id,
+                    ).use { resp ->
+                        assertEquals(204, resp.code)
+                    }
+            }
+
+            usersRogaland.forEach { user ->
+                val user = KcAdminClient.findUserByUsername(realmRes, user.userName)
+                assertNotNull(user)
+
+                ScimFlow
+                    .deleteUser(
+                        "${env.keycloakServiceUrl()}/realms/external/scim/v2/${kcConfig.requireOrg("rogaland").id}",
+                        "${env.flaisScimAuthUrl()}/token",
+                        user.id,
+                    ).use { resp ->
+                        assertEquals(204, resp.code)
+                    }
+            }
+
             usersTelemark.forEach { u ->
                 val user = KcAdminClient.findUserByUsername(realmRes, u.userName)
                 assertNull(user)

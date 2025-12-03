@@ -15,7 +15,7 @@ export class Issuer {
 
     constructor(app: Express, public opts: IssuerOptions) {
         app.get("/discovery/v2.0/keys", (_req, res) => this.keys(res));
-        app.post("/token", async (req, res) => {
+        app.get("/token", async (req, res) => {
             try {
                 this.token(req, res);
             } catch (e: any) {
@@ -24,7 +24,7 @@ export class Issuer {
         });
 
         logger.info(`JWKS: /discovery/v2.0/keys`);
-        logger.info(`Token: POST /token`);
+        logger.info(`Token: GET /token`);
     }
 
     async init() {

@@ -1,10 +1,10 @@
 package no.fintlabs.utils
 
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 import kotlinx.serialization.json.Json
-import okhttp3.HttpUrl
-import okhttp3.HttpUrl.Companion.toHttpUrl
-import okhttp3.MediaType.Companion.toMediaType
+import kotlinx.serialization.json.JsonElement
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
@@ -25,12 +25,13 @@ object ScimFlow {
 
     @Serializable
     data class ScimUser(
+        @Transient
+        val id: String? = null,
         val externalId: String,
         val userName: String,
         val active: Boolean,
         val name: Name,
         val emails: List<Email>,
-        val groups: List<String> = emptyList(),
     ) {
         @Serializable
         data class Name(
@@ -46,44 +47,83 @@ object ScimFlow {
         )
     }
 
-    private fun resolveClient(httpClient: OkHttpClient?) = httpClient ?: ScimHttpClient.create()
+    @Serializable
+    data class PatchRequest(
+        @SerialName("Operations")
+        val operations: List<PatchOperation>,
+    ) {
+        @Serializable
+        data class PatchOperation(
+            val op: String,
+            val path: String? = null,
+            val value: JsonElement? = null,
+        )
+    }
 
-    private fun postJson(
-        url: HttpUrl,
-        jsonBody: String,
-        client: OkHttpClient,
+    private fun resolveClient(
+        httpClient: OkHttpClient?,
+        tokenUrl: String?,
+    ): OkHttpClient =
+        httpClient ?: run {
+            requireNotNull(tokenUrl) { "tokenUrl is required when httpClient is null" }
+            ScimHttpClient.create(tokenUrl)
+        }
+
+    fun createUser(
+        baseUrl: String,
+        tokenUrl: String,
+        user: ScimUser,
+        httpClient: OkHttpClient? = null,
     ): Response {
-        val mediaType = "application/json; charset=utf-8".toMediaType()
-        val body = jsonBody.toRequestBody(mediaType)
-        val req =
+        val client = resolveClient(httpClient, tokenUrl)
+        val bodyString = json.encodeToString(user)
+        val body = bodyString.toRequestBody()
+
+        val request =
             Request
                 .Builder()
-                .url(url)
+                .url("$baseUrl/Users")
                 .post(body)
                 .build()
 
-        return client.newCall(req).execute()
+        return client.newCall(request).execute()
     }
 
-    fun provisionUsers(
+    fun deleteUser(
         baseUrl: String,
-        orgId: String,
-        users: List<ScimUser>,
+        tokenUrl: String,
+        id: String,
         httpClient: OkHttpClient? = null,
     ): Response {
-        val client = resolveClient(httpClient)
-        val payload = json.encodeToString(users)
-        return postJson("$baseUrl/provision/$orgId".toHttpUrl(), payload, client)
+        val client = resolveClient(httpClient, tokenUrl)
+        val request =
+            Request
+                .Builder()
+                .url("$baseUrl/Users/$id")
+                .delete()
+                .build()
+
+        return client.newCall(request).execute()
     }
 
-    fun deprovisionUsers(
+    fun updateUser(
         baseUrl: String,
-        orgId: String,
-        users: List<ScimUser>,
+        tokenUrl: String,
+        id: String,
+        user: ScimUser,
         httpClient: OkHttpClient? = null,
     ): Response {
-        val client = resolveClient(httpClient)
-        val payload = json.encodeToString(users)
-        return postJson("$baseUrl/deprovision/$orgId".toHttpUrl(), payload, client)
+        val client = resolveClient(httpClient, tokenUrl)
+        val bodyString = json.encodeToString(ScimUser.serializer(), user)
+        val body = bodyString.toRequestBody()
+
+        val request =
+            Request
+                .Builder()
+                .url("$baseUrl/Users/$id")
+                .put(body)
+                .build()
+
+        return client.newCall(request).execute()
     }
 }
