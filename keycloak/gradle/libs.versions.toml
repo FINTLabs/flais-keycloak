@@ -7,6 +7,7 @@ shadow = "9.2.2"
 ktlint = "13.1.0"
 gradle-versions = "0.53.0"
 docker-compose = "0.17.13"
+awaitility = "4.3.0"
 
 junit = "6.0.0"
 junit-platform = "6.0.0"
@@ -26,7 +27,7 @@ keycloak-server-spi-priv = { module = "org.keycloak:keycloak-server-spi-private"
 keycloak-admin-client = { module = "org.keycloak:keycloak-admin-client", version.ref = "kc-admin" }
 
 scim-server-sdk = { module = "com.unboundid.product.scim2:scim2-sdk-server", version = "4.1.0" }
-nimbusds-jwt = { module = "com.nimbusds:nimbus-jose-jwt", version="10.6" }
+nimbusds-jwt = { module = "com.nimbusds:nimbus-jose-jwt", version = "10.6" }
 
 keycloak-scim-server = { module = "fi.metatavu.keycloak.scim.server:keycloak-scim-server", version.ref = "kc-scim-server" }
 
@@ -35,6 +36,8 @@ junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher
 
 testcontainers-core = { module = "org.testcontainers:testcontainers", version.ref = "testcontainers" }
 testcontainers-junit-jupiter = { module = "org.testcontainers:junit-jupiter", version.ref = "testcontainers" }
+
+awaitility-kotlin = { module = "org.awaitility:awaitility-kotlin", version.ref = "awaitility" }
 
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinx-serialization-json" }
 

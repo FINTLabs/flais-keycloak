@@ -23,6 +23,7 @@ dependencies {
     testImplementation(libs.testcontainers.junit.jupiter)
     testImplementation(libs.kotlinx.serialization.json)
     testImplementation(libs.okhttp)
+    testImplementation(libs.awaitility.kotlin)
 }
 
 sourceSets {

@@ -5,6 +5,8 @@ import no.fintlabs.extensions.KcEnvExtension
 import no.fintlabs.utils.KcAdminClient
 import no.fintlabs.utils.KcComposeEnvironment
 import no.fintlabs.utils.ScimHttpClient
+import org.awaitility.Awaitility.await
+import org.awaitility.kotlin.withPollInterval
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.assertNotNull
@@ -16,6 +18,7 @@ import org.testcontainers.images.builder.ImageFromDockerfile
 import org.testcontainers.images.builder.Transferable
 import java.nio.file.Files
 import java.nio.file.Paths
+import java.time.Duration
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @ExtendWith(KcEnvExtension::class)
@@ -59,11 +62,9 @@ class ComplianceTest {
     private fun assertContainerOutput(container: GenericContainer<*>) {
         container.start()
 
-        // We need to wait for scimverify to finish before asserting
-        while (true) {
+        await().withPollInterval(Duration.ofSeconds(1)).atMost(Duration.ofSeconds(60)).until {
             val state = container.currentContainerInfo?.state
-            if (state != null && !state.running!!) break
-            Thread.sleep(200)
+            state != null && !state.running!!
         }
 
         val logs = container.logs
