@@ -69,6 +69,8 @@ class KcComposeEnvironment(
     val keycloakAdminUser: String = "admin"
     val keycloakAdminPassword: String = "admin"
 
+    fun keycloakInternalUrl(): String = "http://keycloak-test:8080"
+
     fun keycloakServiceUrl(): String {
         val host = compose.getServiceHost("keycloak-test", 8080)
         val port = compose.getServicePort("keycloak-test", 8080)
