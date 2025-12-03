@@ -4,7 +4,6 @@ import no.fintlabs.extensions.KcEnvExtension
 import no.fintlabs.utils.KcAdminClient
 import no.fintlabs.utils.KcComposeEnvironment
 import no.fintlabs.utils.KcFlow.loginWithUser
-import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
@@ -21,7 +20,7 @@ class EntraMapperTest {
         val idpAlias = "entra-telemark"
 
         loginWithUser(env, clientId, orgAlias, idpAlias, email, password).use { resp ->
-            Assertions.assertEquals(200, resp.code)
+            assertEquals(200, resp.code)
 
             val (kc, realmRes) = KcAdminClient.connect(env, realm)
 

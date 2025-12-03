@@ -4,7 +4,7 @@ import no.fintlabs.config.KcConfig
 import no.fintlabs.extensions.KcEnvExtension
 import no.fintlabs.utils.KcComposeEnvironment
 import no.fintlabs.utils.ScimFlow
-import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 
@@ -58,7 +58,7 @@ class ProvisionTest {
                     "${env.flaisScimAuthUrl()}/token",
                     user,
                 ).use { resp ->
-                    Assertions.assertEquals(201, resp.code)
+                    assertEquals(201, resp.code)
                 }
         }
     }
@@ -75,7 +75,7 @@ class ProvisionTest {
                     "${env.flaisScimAuthUrl()}/token",
                     user,
                 ).use { resp ->
-                    Assertions.assertEquals(201, resp.code)
+                    assertEquals(201, resp.code)
                 }
         }
     }

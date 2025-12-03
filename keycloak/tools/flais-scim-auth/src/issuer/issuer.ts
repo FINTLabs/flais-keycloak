@@ -1,4 +1,3 @@
-import logger from "../logger/logger";
 import { makeKeys, signToken } from "./keys";
 import { Express, Request, Response } from "express";
 
@@ -22,9 +21,6 @@ export class Issuer {
                 res.status(500).json({ error: e.message });
             }
         });
-
-        logger.info(`JWKS: /discovery/v2.0/keys`);
-        logger.info(`Token: GET /token`);
     }
 
     async init() {

@@ -1,64 +1,64 @@
 version: 2
 updates:
-  - package-ecosystem: "npm"
-    directory: "/keycloak/libs/flais-theme/"
-    schedule:
-      interval: "weekly"
-      day: "sunday"
-    groups:
-      all-npm:
-        patterns:
-          - "*"
-        update-types: ["minor", "patch"]
+    -   package-ecosystem: "npm"
+        directory: "/keycloak/libs/flais-theme/"
+        schedule:
+            interval: "weekly"
+            day: "sunday"
+        groups:
+            all-npm:
+                patterns:
+                    - "*"
+                update-types: [ "minor", "patch" ]
 
-  - package-ecosystem: "npm"
-    directory: "/keycloak/tools/flais-scim-client/"
-    schedule:
-      interval: "weekly"
-      day: "sunday"
-    groups:
-      all-npm:
-        patterns:
-          - "*"
-        update-types: ["minor", "patch"]
+    -   package-ecosystem: "npm"
+        directory: "/keycloak/tools/flais-scim-auth/"
+        schedule:
+            interval: "weekly"
+            day: "sunday"
+        groups:
+            all-npm:
+                patterns:
+                    - "*"
+                update-types: [ "minor", "patch" ]
 
-  - package-ecosystem: "npm"
-    directory: "/apps/flais-keycloak-demo/"
-    schedule:
-      interval: "weekly"
-      day: "sunday"
-    groups:
-      all-npm:
-        patterns:
-          - "*"
-        update-types: ["minor", "patch"]
+    -   package-ecosystem: "npm"
+        directory: "/apps/flais-keycloak-demo/"
+        schedule:
+            interval: "weekly"
+            day: "sunday"
+        groups:
+            all-npm:
+                patterns:
+                    - "*"
+                update-types: [ "minor", "patch" ]
 
-  - package-ecosystem: "gradle"
-    directory: "/keycloak/libs/flais-provider/"
-    schedule:
-      interval: "weekly"
-      day: "sunday"
+    -   package-ecosystem: "gradle"
+        directory: "/keycloak/libs/flais-provider/"
+        schedule:
+            interval: "weekly"
+            day: "sunday"
 
-  - package-ecosystem: "gradle"
-    directory: "/keycloak/libs/scim-server/"
-    schedule:
-      interval: "weekly"
-      day: "sunday"
+    -   package-ecosystem: "gradle"
+        directory: "/keycloak/libs/scim-server/"
+        schedule:
+            interval: "weekly"
+            day: "sunday"
 
-  - package-ecosystem: "github-actions"
-    directory: "/"
-    schedule:
-      interval: "weekly"
-      day: "sunday"
+    -   package-ecosystem: "github-actions"
+        directory: "/"
+        schedule:
+            interval: "weekly"
+            day: "sunday"
 
-  - package-ecosystem: "docker"
-    directory: "/keycloak/"
-    schedule:
-      interval: "weekly"
-      day: "sunday"
+    -   package-ecosystem: "docker"
+        directory: "/keycloak/"
+        schedule:
+            interval: "weekly"
+            day: "sunday"
 
-  - package-ecosystem: "docker"
-    directory: "/keycloak/tools/flais-scim-client/"
-    schedule:
-      interval: "weekly"
-      day: "sunday"
+    -   package-ecosystem: "docker"
+        directory: "/keycloak/tools/flais-scim-client/"
+        schedule:
+            interval: "weekly"
+            day: "sunday"

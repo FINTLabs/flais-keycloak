@@ -6,6 +6,8 @@ ARG KEYCLOAK_VERSION
 FROM gradle:9.2.1-jdk21 AS flais-provider-builder
 WORKDIR /flais-provider
 
+ENV GRADLE_USER_HOME=/home/gradle/.gradle-flais-provider
+
 COPY settings.gradle.kts ./
 COPY build.gradle.kts ./
 COPY gradle gradle
@@ -31,6 +33,8 @@ RUN --mount=type=cache,target=/home/gradle/.gradle \
 # -----------------------------
 FROM gradle:9.2.1-jdk21 AS flais-scim-server-builder
 WORKDIR /flais-scim-server
+
+ENV GRADLE_USER_HOME=/home/gradle/.gradle-flais-scim-server
 
 COPY settings.gradle.kts ./
 COPY build.gradle.kts ./

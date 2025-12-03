@@ -7,8 +7,8 @@ import no.fintlabs.utils.KcHttpClient
 import no.fintlabs.utils.KcToken.exchangeCodeForAccessToken
 import no.fintlabs.utils.KcToken.validateToken
 import no.fintlabs.utils.KcUrl
-import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertNotNull
 import org.junit.jupiter.api.extension.ExtendWith
@@ -66,7 +66,7 @@ class PublicClientTokenTest {
                 assertEquals(200, resp.code)
 
                 val body = resp.body.string()
-                Assertions.assertTrue(body.contains("\"sub\""), "userinfo should contain 'sub': $body")
+                assertTrue(body.contains("\"sub\""))
             }
         }
     }

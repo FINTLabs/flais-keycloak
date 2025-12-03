@@ -1,5 +1,4 @@
 import { Issuer } from "./issuer/issuer";
-import logger from "./logger/logger";
 import express from "express";
 
 const port = 9090;
@@ -14,7 +13,7 @@ app.use(express.json());
 app.get("/healthz", (_req, res) => res.send("ok"));
 
 app.listen(port, () => {
-    logger.info(`Server is running on port ${port}`);
+    console.log(`Server is running on port ${port}`);
 });
 
 const start = async () => {
@@ -30,7 +29,7 @@ const start = async () => {
     try {
         start();
     } catch (e: Error | any) {
-        logger.error("Error during startup:", e);
+        console.log("Error during startup:", e);
         process.exit(1);
     }
 })();
