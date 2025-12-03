@@ -3,7 +3,7 @@ ARG KEYCLOAK_VERSION
 # -----------------------------
 # Stage: FLAIS provider builder
 # -----------------------------
-FROM gradle:9.2.0-jdk21 AS flais-provider-builder
+FROM gradle:9.2.1-jdk21 AS flais-provider-builder
 WORKDIR /flais-provider
 
 COPY settings.gradle.kts ./
@@ -29,7 +29,7 @@ RUN --mount=type=cache,target=/home/gradle/.gradle \
 #-----------------------------
 # Stage: FLAIS scim server builder
 # -----------------------------
-FROM gradle:9.2.0-jdk21 AS flais-scim-server-builder
+FROM gradle:9.2.1-jdk21 AS flais-scim-server-builder
 WORKDIR /flais-scim-server
 
 COPY settings.gradle.kts ./
