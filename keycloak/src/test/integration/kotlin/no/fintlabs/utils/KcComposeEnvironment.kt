@@ -41,15 +41,7 @@ class KcComposeEnvironment(
             )
 
             withExposedService(
-                "flais-scim-client-telemark",
-                9090,
-                Wait
-                    .forHttp("/healthz")
-                    .forPort(9090)
-                    .withStartupTimeout(Duration.ofMinutes(1)),
-            )
-            withExposedService(
-                "flais-scim-client-rogaland",
+                "flais-scim-auth",
                 9090,
                 Wait
                     .forHttp("/healthz")
@@ -83,15 +75,9 @@ class KcComposeEnvironment(
         return "http://$host:$port"
     }
 
-    fun scimClientTelemarkUrl(): String {
-        val host = compose.getServiceHost("flais-scim-client-telemark", 9090)
-        val port = compose.getServicePort("flais-scim-client-telemark", 9090)
-        return "http://$host:$port"
-    }
-
-    fun scimClientRogalandUrl(): String {
-        val host = compose.getServiceHost("flais-scim-client-rogaland", 9090)
-        val port = compose.getServicePort("flais-scim-client-rogaland", 9090)
+    fun flaisScimAuthUrl(): String {
+        val host = compose.getServiceHost("flais-scim-auth", 9090)
+        val port = compose.getServicePort("flais-scim-auth", 9090)
         return "http://$host:$port"
     }
 }

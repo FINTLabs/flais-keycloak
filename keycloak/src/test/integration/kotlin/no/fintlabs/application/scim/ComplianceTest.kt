@@ -4,7 +4,7 @@ import no.fintlabs.config.KcConfig
 import no.fintlabs.extensions.KcEnvExtension
 import no.fintlabs.utils.KcAdminClient
 import no.fintlabs.utils.KcComposeEnvironment
-import no.fintlabs.utils.ScimFlow.getAccessToken
+import no.fintlabs.utils.ScimHttpClient
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
@@ -27,7 +27,7 @@ class ComplianceTest {
         kcConfig: KcConfig,
     ) {
         val orgAlias = "telemark"
-        val token = getAccessToken(env.scimClientTelemarkUrl())
+        val token = ScimHttpClient.getAccessToken("${env.flaisScimAuthUrl()}/token")
         val container = createScimverifyContainer(env, kcConfig, orgAlias, token)
         val (kc, realmRes) = KcAdminClient.connect(env, realm)
 
@@ -60,7 +60,7 @@ class ComplianceTest {
         kcConfig: KcConfig,
     ) {
         val orgAlias = "rogaland"
-        val token = getAccessToken(env.scimClientRogalandUrl())
+        val token = ScimHttpClient.getAccessToken("${env.flaisScimAuthUrl()}/token")
         val container = createScimverifyContainer(env, kcConfig, orgAlias, token)
         val (kc, realmRes) = KcAdminClient.connect(env, realm)
 

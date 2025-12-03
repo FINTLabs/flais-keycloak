@@ -1,5 +1,5 @@
 {
-    "name": "flais-scim-client",
+    "name": "flais-scim-auth",
     "main": "index.js",
     "engines": {
         "node": "25"

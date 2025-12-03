@@ -4,7 +4,6 @@ import no.fintlabs.config.KcConfig
 import no.fintlabs.extensions.KcEnvExtension
 import no.fintlabs.utils.KcComposeEnvironment
 import no.fintlabs.utils.ScimFlow
-import no.fintlabs.utils.ScimFlow.provisionUsers
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
@@ -25,7 +24,7 @@ class ProvisionTest {
                 userName = "jon.basic@telemark.no",
                 active = true,
                 name = ScimFlow.ScimUser.Name("Jon", "Basic"),
-                emails = listOf(ScimFlow.ScimUser.Email("jon.basic@telemark.no")),
+                emails = listOf(ScimFlow.ScimUser.Email("jon.basic@telemark.no", primary = true)),
             ),
         )
 
@@ -43,7 +42,7 @@ class ProvisionTest {
                 userName = "jon.basic@rogaland.no",
                 active = true,
                 name = ScimFlow.ScimUser.Name("Jon", "Basic"),
-                emails = listOf(ScimFlow.ScimUser.Email("jon.basic@rogaland.no")),
+                emails = listOf(ScimFlow.ScimUser.Email("jon.basic@rogaland.no", primary = true)),
             ),
         )
 
@@ -52,12 +51,15 @@ class ProvisionTest {
         env: KcComposeEnvironment,
         kcConfig: KcConfig,
     ) {
-        provisionUsers(
-            env.scimClientTelemarkUrl(),
-            kcConfig.requireOrg("telemark").id,
-            usersTelemark,
-        ).use { resp ->
-            Assertions.assertEquals(200, resp.code)
+        usersTelemark.forEach { user ->
+            ScimFlow
+                .createUser(
+                    "${env.keycloakServiceUrl()}/realms/external/scim/v2/${kcConfig.requireOrg("telemark").id}",
+                    "${env.flaisScimAuthUrl()}/token",
+                    user,
+                ).use { resp ->
+                    Assertions.assertEquals(201, resp.code)
+                }
         }
     }
 
@@ -66,12 +68,15 @@ class ProvisionTest {
         env: KcComposeEnvironment,
         kcConfig: KcConfig,
     ) {
-        provisionUsers(
-            env.scimClientRogalandUrl(),
-            kcConfig.requireOrg("rogaland").id,
-            usersRogaland,
-        ).use { resp ->
-            Assertions.assertEquals(200, resp.code)
+        usersRogaland.forEach { user ->
+            ScimFlow
+                .createUser(
+                    "${env.keycloakServiceUrl()}/realms/external/scim/v2/${kcConfig.requireOrg("rogaland").id}",
+                    "${env.flaisScimAuthUrl()}/token",
+                    user,
+                ).use { resp ->
+                    Assertions.assertEquals(201, resp.code)
+                }
         }
     }
 }

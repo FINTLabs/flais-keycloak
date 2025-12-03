@@ -110,6 +110,13 @@ object KcAdminClient {
         realm.users().delete(userId)
     }
 
+    fun deleteAllUsers(realm: RealmResource) {
+        val users = realm.users().list()
+        users.forEach { user ->
+            realm.users().delete(user.id)
+        }
+    }
+
     fun getFederatedIdentities(
         realm: RealmResource,
         userId: String,
