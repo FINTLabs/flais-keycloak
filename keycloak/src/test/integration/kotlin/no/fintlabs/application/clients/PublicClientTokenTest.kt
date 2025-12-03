@@ -66,7 +66,7 @@ class PublicClientTokenTest {
                 assertEquals(200, resp.code)
 
                 val body = resp.body.string()
-                assertTrue(body.contains("\"sub\""), "userinfo should contain 'sub': $body")
+                assertTrue(body.contains("\"sub\""))
             }
         }
     }

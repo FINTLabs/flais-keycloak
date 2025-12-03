@@ -14,12 +14,12 @@ class KcConfigTest {
     private val commonWebOrigins = listOf("+")
 
     private fun assertCommonFlags(c: KcConfig.Client) {
-        assertTrue(c.enabled, "enabled for ${c.clientId}")
-        assertTrue(c.publicClient, "publicClient for ${c.clientId}")
-        assertEquals("openid-connect", c.protocol, "protocol for ${c.clientId}")
-        assertTrue(c.standardFlowEnabled, "standardFlowEnabled for ${c.clientId}")
-        assertEquals(commonRedirectUris, c.redirectUris, "redirectUris for ${c.clientId}")
-        assertEquals(commonWebOrigins, c.webOrigins, "webOrigins for ${c.clientId}")
+        assertTrue(c.enabled)
+        assertTrue(c.publicClient)
+        assertEquals("openid-connect", c.protocol)
+        assertTrue(c.standardFlowEnabled)
+        assertEquals(commonRedirectUris, c.redirectUris)
+        assertEquals(commonWebOrigins, c.webOrigins)
     }
 
     // --- Realm & aliases ------------------------------------------------------
@@ -89,7 +89,7 @@ class KcConfigTest {
     fun `flais-keycloak-demo should have common flags and empty attributes`(kcConfig: KcConfig) {
         kcConfig.requireClient("flais-keycloak-demo").also { c ->
             assertCommonFlags(c)
-            assertEquals(emptyMap<String, String>(), c.attributes, "attributes for ${c.clientId}")
+            assertEquals(emptyMap<String, String>(), c.attributes)
         }
     }
 
@@ -100,7 +100,6 @@ class KcConfigTest {
             assertEquals(
                 mapOf("permission.whitelisted.organizations" to "telemark"),
                 c.attributes,
-                "attributes for ${c.clientId}",
             )
         }
     }
@@ -112,7 +111,6 @@ class KcConfigTest {
             assertEquals(
                 mapOf("permission.whitelisted.organizations" to "idporten"),
                 c.attributes,
-                "attributes for ${c.clientId}",
             )
         }
     }
@@ -124,7 +122,6 @@ class KcConfigTest {
             assertEquals(
                 mapOf("permission.blacklisted.organizations" to "idporten"),
                 c.attributes,
-                "attributes for ${c.clientId}",
             )
         }
     }
@@ -136,7 +133,6 @@ class KcConfigTest {
             assertEquals(
                 mapOf("permission.whitelisted.organizations" to "invalid-org"),
                 c.attributes,
-                "attributes for ${c.clientId}",
             )
         }
     }

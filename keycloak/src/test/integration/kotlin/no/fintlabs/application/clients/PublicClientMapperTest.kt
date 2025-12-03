@@ -64,7 +64,7 @@ class PublicClientMapperTest {
             assertNotNull(accessToken)
 
             val parts = accessToken.split(".")
-            assertEquals(3, parts.size, "access token must be a valid JWT")
+            assertEquals(3, parts.size)
 
             val payloadBytes = Base64.getUrlDecoder().decode(parts[1])
             val payloadJson = String(payloadBytes, Charsets.UTF_8)
@@ -75,7 +75,7 @@ class PublicClientMapperTest {
                     Map::class.java,
                 ) as Map<*, *>
 
-            assertTrue(json.containsKey("roles"), "access token should contain 'roles': $payloadJson")
+            assertTrue(json.containsKey("roles"))
 
             val roles =
                 json["roles"] as? List<*>
