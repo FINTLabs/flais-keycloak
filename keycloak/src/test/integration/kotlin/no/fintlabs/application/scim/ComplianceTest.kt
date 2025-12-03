@@ -6,10 +6,11 @@ import no.fintlabs.utils.KcAdminClient
 import no.fintlabs.utils.KcComposeEnvironment
 import no.fintlabs.utils.ScimHttpClient
 import org.junit.jupiter.api.Assertions.assertTrue
-import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.assertNotNull
 import org.junit.jupiter.api.extension.ExtendWith
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.ValueSource
 import org.testcontainers.containers.GenericContainer
 import org.testcontainers.images.builder.ImageFromDockerfile
 import org.testcontainers.images.builder.Transferable
@@ -21,52 +22,20 @@ import java.nio.file.Paths
 class ComplianceTest {
     private val realm = "external"
 
-    @Test
-    fun `flais-scim-server for org (Telemark) passes compliance tests`(
+    @ParameterizedTest(name = "flais-scim-server for org ({0}) passes compliance tests")
+    @ValueSource(strings = ["telemark", "rogaland"])
+    fun `flais-scim-server for org passes compliance tests`(
+        orgAlias: String,
         env: KcComposeEnvironment,
         kcConfig: KcConfig,
     ) {
-        val orgAlias = "telemark"
         val token = ScimHttpClient.getAccessToken("${env.flaisScimAuthUrl()}/token")
         val container = createScimverifyContainer(env, kcConfig, orgAlias, token)
         val (kc, realmRes) = KcAdminClient.connect(env, realm)
 
         kc.use {
-            val email = "scimverify.user@telemark.no"
-            val username = "scimverify.user@telemark.no"
-            val firstname = "Scimverify"
-            val lastname = "User"
-
-            val userId =
-                KcAdminClient.createUser(
-                    realmRes,
-                    username,
-                    email,
-                    firstname,
-                    lastname,
-                    realmRoleNames = listOf("scim-managed"),
-                )
-            assertNotNull(userId)
-
-            KcAdminClient.addUserToOrg(realmRes, userId, kcConfig.requireOrg(orgAlias).id)
-
-            assertContainerOutput(container)
-        }
-    }
-
-    @Test
-    fun `flais-scim-server for org (Rogaland) passes compliance tests`(
-        env: KcComposeEnvironment,
-        kcConfig: KcConfig,
-    ) {
-        val orgAlias = "rogaland"
-        val token = ScimHttpClient.getAccessToken("${env.flaisScimAuthUrl()}/token")
-        val container = createScimverifyContainer(env, kcConfig, orgAlias, token)
-        val (kc, realmRes) = KcAdminClient.connect(env, realm)
-
-        kc.use {
-            val email = "scimverify.user@rogaland.no"
-            val username = "scimverify.user@rogaland.no"
+            val email = "scimverify.user@$orgAlias.no"
+            val username = email
             val firstname = "Scimverify"
             val lastname = "User"
 
