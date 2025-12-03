@@ -1,5 +1,6 @@
 package no.fintlabs.keycloak.scim.endpoints
 
+import com.fasterxml.jackson.databind.node.ArrayNode
 import com.unboundid.scim2.common.GenericScimResource
 import com.unboundid.scim2.common.exceptions.ForbiddenException
 import com.unboundid.scim2.common.exceptions.ResourceNotFoundException
@@ -44,13 +45,17 @@ class ScimSchemaEndpoint(
         }
 
         val preparer = ResourcePreparer<GenericScimResource>(RESOURCE_TYPE_DEFINITION, uriInfo)
+
         return ListResponse(
             getSchemas()
                 .map { schema ->
-                    schema.asGenericScimResource().apply {
-                        preparer.setResourceTypeAndLocation(this)
-                    }
-                }.toList(),
+                    schema
+                        .asGenericScimResource()
+                        .also { resource ->
+                            addExternalIdToUserSchemaJson(resource)
+                            preparer.setResourceTypeAndLocation(resource)
+                        }
+                },
         )
     }
 
@@ -94,5 +99,32 @@ class ScimSchemaEndpoint(
 
     companion object {
         private val RESOURCE_TYPE_DEFINITION = createResourceTypeDefinition<ScimSchemaEndpoint>()
+    }
+
+    private fun addExternalIdToUserSchemaJson(resource: GenericScimResource) {
+        val root = resource.objectNode
+
+        val schemaId = root.get("id")?.asText()
+        if (schemaId != "urn:ietf:params:scim:schemas:core:2.0:User") return
+
+        val attributesNode =
+            (root.get("attributes") as? ArrayNode)
+                ?: root.putArray("attributes")
+
+        val factory = attributesNode.objectNode()
+        val external =
+            factory.objectNode().apply {
+                put("name", "externalId")
+                put("type", "string")
+                put("multiValued", false)
+                put("description", "Identifier for the User as defined by the client.")
+                put("required", false)
+                put("caseExact", true)
+                put("mutability", "readWrite")
+                put("returned", "default")
+                put("uniqueness", "none")
+            }
+
+        attributesNode.add(external)
     }
 }
