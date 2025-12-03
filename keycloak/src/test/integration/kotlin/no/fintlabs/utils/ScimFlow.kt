@@ -1,5 +1,6 @@
 package no.fintlabs.utils
 
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import okhttp3.HttpUrl
@@ -30,7 +31,6 @@ object ScimFlow {
         val active: Boolean,
         val name: Name,
         val emails: List<Email>,
-        val groups: List<String> = emptyList(),
     ) {
         @Serializable
         data class Name(
@@ -46,11 +46,24 @@ object ScimFlow {
         )
     }
 
+    @Serializable
+    data class Token(
+        @SerialName("access_token")
+        val accessToken: String,
+        @SerialName("expires_in")
+        val expiresIn: Long,
+        @SerialName("token_type")
+        val tokenType: String,
+        val oid: String,
+        val iss: String,
+        val aud: String,
+    )
+
     private fun resolveClient(httpClient: OkHttpClient?) = httpClient ?: ScimHttpClient.create()
 
     private fun postJson(
         url: HttpUrl,
-        jsonBody: String,
+        jsonBody: String = "",
         client: OkHttpClient,
     ): Response {
         val mediaType = "application/json; charset=utf-8".toMediaType()
@@ -85,5 +98,20 @@ object ScimFlow {
         val client = resolveClient(httpClient)
         val payload = json.encodeToString(users)
         return postJson("$baseUrl/deprovision/$orgId".toHttpUrl(), payload, client)
+    }
+
+    fun getAccessToken(
+        baseUrl: String,
+        httpClient: OkHttpClient? = null,
+    ): String {
+        val client = resolveClient(httpClient)
+
+        val response = postJson("$baseUrl/token".toHttpUrl(), client = client)
+        response.use { res ->
+            val body = res.body.string()
+
+            val token = json.decodeFromString(Token.serializer(), body)
+            return token.accessToken
+        }
     }
 }
