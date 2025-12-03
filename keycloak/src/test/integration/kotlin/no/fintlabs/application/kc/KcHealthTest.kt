@@ -4,7 +4,7 @@ import no.fintlabs.extensions.KcEnvExtension
 import no.fintlabs.utils.KcComposeEnvironment
 import okhttp3.OkHttpClient
 import okhttp3.Request
-import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 
@@ -17,7 +17,7 @@ class KcHealthTest {
         val url = "${env.keycloakManagementUrl()}/health/ready"
         val req = Request.Builder().url(url).build()
         client.newCall(req).execute().use { resp ->
-            Assertions.assertEquals(200, resp.code)
+            assertEquals(200, resp.code)
         }
     }
 }

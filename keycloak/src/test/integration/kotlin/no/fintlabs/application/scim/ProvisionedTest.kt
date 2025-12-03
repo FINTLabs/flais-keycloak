@@ -7,7 +7,6 @@ import no.fintlabs.utils.KcComposeEnvironment
 import no.fintlabs.utils.KcFlow.loginWithUser
 import no.fintlabs.utils.ScimFlow
 import org.junit.jupiter.api.AfterEach
-import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.BeforeAll
@@ -152,9 +151,9 @@ class ProvisionedTest {
 
         usersTelemark.forEach { u ->
             loginWithUser(env, clientId, orgAlias, idpAlias, u.userName, "password").use { resp ->
-                Assertions.assertEquals(200, resp.code)
+                assertEquals(200, resp.code)
 
-                Assertions.assertNotNull(resp.request.url.queryParameter("code"))
+                assertNotNull(resp.request.url.queryParameter("code"))
             }
         }
     }

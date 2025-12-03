@@ -5,7 +5,9 @@ import no.fintlabs.extensions.KcEnvExtension
 import no.fintlabs.utils.KcAdminClient
 import no.fintlabs.utils.KcComposeEnvironment
 import no.fintlabs.utils.KcFlow.loginWithUser
-import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertNotNull
@@ -47,7 +49,7 @@ class FlaisFirstBrokerLoginFlowTest {
 
         kc.use {
             loginWithUser(env, clientId, orgAlias, idpAlias, email, password).use { resp ->
-                Assertions.assertEquals(200, resp.code)
+                assertEquals(200, resp.code)
 
                 val user = KcAdminClient.findUserByUsername(realmRes, email)
                 assertNotNull(user)
@@ -61,8 +63,8 @@ class FlaisFirstBrokerLoginFlowTest {
                 assertNotNull(member)
 
                 val links = KcAdminClient.getFederatedIdentities(realmRes, user.id)
-                Assertions.assertTrue(links.any { it.identityProvider == idpAlias })
-                Assertions.assertEquals(
+                assertTrue(links.any { it.identityProvider == idpAlias })
+                assertEquals(
                     1,
                     links.count { it.identityProvider == idpAlias },
                 )
@@ -84,8 +86,8 @@ class FlaisFirstBrokerLoginFlowTest {
             assertNotNull(userId)
 
             val links = KcAdminClient.getFederatedIdentities(realmRes, userId)
-            Assertions.assertFalse(links.any { it.identityProvider == idpAlias })
-            Assertions.assertEquals(
+            assertFalse(links.any { it.identityProvider == idpAlias })
+            assertEquals(
                 0,
                 links.count { it.identityProvider == idpAlias },
             )
@@ -93,14 +95,14 @@ class FlaisFirstBrokerLoginFlowTest {
             KcAdminClient.addUserToOrg(realmRes, userId, kcConfig.requireOrg(orgAlias).id)
 
             loginWithUser(env, clientId, orgAlias, idpAlias, email, password).use { resp ->
-                Assertions.assertEquals(200, resp.code)
+                assertEquals(200, resp.code)
 
                 val user = KcAdminClient.findUserByUsername(realmRes, email)
                 assertNotNull(user)
 
                 val links = KcAdminClient.getFederatedIdentities(realmRes, user.id)
-                Assertions.assertTrue(links.any { it.identityProvider == idpAlias })
-                Assertions.assertEquals(
+                assertTrue(links.any { it.identityProvider == idpAlias })
+                assertEquals(
                     1,
                     links.count { it.identityProvider == idpAlias },
                 )
@@ -125,7 +127,7 @@ class FlaisFirstBrokerLoginFlowTest {
             assertNull(member)
 
             loginWithUser(env, clientId, orgAlias, idpAlias, email, password).use { resp ->
-                Assertions.assertEquals(200, resp.code)
+                assertEquals(200, resp.code)
 
                 val user = KcAdminClient.findUserByUsername(realmRes, email)
                 assertNotNull(user)
@@ -139,8 +141,8 @@ class FlaisFirstBrokerLoginFlowTest {
                 assertNotNull(member)
 
                 val links = KcAdminClient.getFederatedIdentities(realmRes, user.id)
-                Assertions.assertTrue(links.any { it.identityProvider == idpAlias })
-                Assertions.assertEquals(
+                assertTrue(links.any { it.identityProvider == idpAlias })
+                assertEquals(
                     1,
                     links.count { it.identityProvider == idpAlias },
                 )
