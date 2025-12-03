@@ -7,6 +7,7 @@ import com.unboundid.scim2.common.annotations.NotNull
 import com.unboundid.scim2.common.annotations.Nullable
 import com.unboundid.scim2.common.exceptions.BadRequestException
 import com.unboundid.scim2.common.filters.Filter
+import com.unboundid.scim2.common.messages.ListResponse
 import com.unboundid.scim2.common.messages.SortOrder
 import com.unboundid.scim2.common.utils.ApiConstants
 import com.unboundid.scim2.server.utils.ResourceComparator
@@ -84,7 +85,7 @@ class SearchHandler<T : ScimResource> {
             }
     }
 
-    fun createSearchResult(resources: Sequence<T>): SearchResults<T> {
+    fun createSearchResult(resources: Sequence<T>): ListResponse<T> {
         val resolvedStartIndex = (startIndex ?: 1).coerceAtLeast(1)
         val resolvedCount = count ?: Int.MAX_VALUE
 
@@ -96,8 +97,11 @@ class SearchHandler<T : ScimResource> {
 
         val totalCount = preparedResources.size
         if (totalCount == 0) {
-            return SearchResults(
-                startIndex = resolvedStartIndex,
+            return ListResponse(
+                0,
+                emptyList<T>(),
+                resolvedStartIndex,
+                0,
             )
         }
 
@@ -116,11 +120,11 @@ class SearchHandler<T : ScimResource> {
             }
 
         @Suppress("UNCHECKED_CAST")
-        return SearchResults(
-            page as List<T>,
-            page.size,
+        return ListResponse(
             totalCount,
+            page as List<T>,
             resolvedStartIndex,
+            page.size,
         )
     }
 
