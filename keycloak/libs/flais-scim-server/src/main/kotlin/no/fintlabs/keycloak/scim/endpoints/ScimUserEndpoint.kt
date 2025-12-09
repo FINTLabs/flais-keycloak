@@ -211,6 +211,7 @@ class ScimUserEndpoint(
                     ).throwSchemaExceptions()
                 patchOperations.forEach { it.apply(this) }
             }
+
         val scimUser =
             runCatching {
                 JsonUtils.getObjectReader().treeToValue(node, UserResource::class.java)
@@ -273,10 +274,9 @@ class ScimUserEndpoint(
                 }
             roles =
                 user
-                    .getAttributeStream("roles")
-                    .map {
-                        JsonSerialization.readValue(it, Role::class.java)
-                    }.toList()
+                    .getAttributeStream("rawRoles")
+                    .map { JsonSerialization.readValue(it, Role::class.java) }
+                    .toList()
                     .toMutableList()
         }
 
@@ -298,11 +298,15 @@ class ScimUserEndpoint(
             user.email = email.value
             user.isEmailVerified = true
         }
+
         scimUser.roles?.let {
+            user.removeAttribute("rawRoles")
+            user.setAttribute("rawRoles", it.map(JsonSerialization::writeValueAsString))
+
             user.removeAttribute("roles")
             user.setAttribute(
                 "roles",
-                it.map(JsonSerialization::writeValueAsString).toList(),
+                it.map { it.value },
             )
         }
     }
