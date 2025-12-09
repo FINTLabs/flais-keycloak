@@ -301,7 +301,7 @@ class ScimUserEndpoint(
 
         scimUser.roles?.let {
             user.removeAttribute("rawRoles")
-            user.setAttribute("rawRoles", it.map(JsonSerialization::writeValueAsString).toList())
+            user.setAttribute("rawRoles", it.map(JsonSerialization::writeValueAsString))
 
             user.removeAttribute("roles")
             user.setAttribute(
