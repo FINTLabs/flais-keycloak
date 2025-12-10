@@ -55,6 +55,11 @@ entries:
             client_type: "confidential"
             client_id: "entra-rogaland"
             client_secret: "test-secret"
+            signing_key:
+              !Find [
+                  authentik_crypto.certificatekeypair,
+                  [ name, authentik Self-signed Certificate ],
+              ]
             authorization_flow:
               !Find [
                   authentik_flows.flow,
