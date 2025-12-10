@@ -41,6 +41,11 @@ tasks.test {
     environment("KEYCLOAK_VERSION", libs.versions.keycloak.get())
 
     dependsOn("ktlintCheck")
+    dependsOn(
+        subprojects.mapNotNull { sub ->
+            sub.tasks.findByName("test")
+        },
+    )
 }
 
 allprojects {
