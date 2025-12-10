@@ -17,6 +17,8 @@ java {
 }
 
 dependencies {
+    testRuntimeOnly(libs.junit.platform.launcher)
+
     implementation(libs.kotlin.stdlib)
     implementation(libs.scim.server.sdk)
     implementation(libs.nimbusds.jwt)
@@ -25,6 +27,12 @@ dependencies {
     compileOnly(libs.keycloak.services)
     compileOnly(libs.keycloak.server.spi)
     compileOnly(libs.keycloak.server.spi.priv)
+
+    testImplementation(libs.junit.jupiter)
+    testImplementation(libs.mockk)
+    testImplementation(libs.keycloak.core)
+    testImplementation(libs.keycloak.services)
+    testImplementation(libs.resteasy.core)
 }
 
 tasks.withType<KotlinCompile>().configureEach {
@@ -44,4 +52,15 @@ tasks.shadowJar {
 
 tasks.build {
     dependsOn(tasks.shadowJar)
+}
+
+tasks.test {
+    useJUnitPlatform()
+
+    jvmArgs(
+        "-XX:+EnableDynamicAgentLoading",
+        "-Xshare:off",
+    )
+
+    dependsOn("ktlintCheck")
 }
