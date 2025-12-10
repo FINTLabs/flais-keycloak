@@ -2,12 +2,13 @@
 kotlin = "2.2.20"
 keycloak = "26.4.0"
 kc-admin = "26.0.7"
-kc-scim-server = "1.4.1"
 shadow = "9.2.2"
 ktlint = "13.1.0"
 gradle-versions = "0.53.0"
 docker-compose = "0.17.13"
 awaitility = "4.3.0"
+mockk = "1.14.5"
+resteasy = "6.2.14.Final"
 
 junit = "6.0.0"
 junit-platform = "6.0.0"
@@ -29,7 +30,8 @@ keycloak-admin-client = { module = "org.keycloak:keycloak-admin-client", version
 scim-server-sdk = { module = "com.unboundid.product.scim2:scim2-sdk-server", version = "4.1.0" }
 nimbusds-jwt = { module = "com.nimbusds:nimbus-jose-jwt", version = "10.6" }
 
-keycloak-scim-server = { module = "fi.metatavu.keycloak.scim.server:keycloak-scim-server", version.ref = "kc-scim-server" }
+mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
+resteasy-core = { module = "org.jboss.resteasy:resteasy-core", version.ref = "resteasy" }
 
 junit-jupiter = { module = "org.junit.jupiter:junit-jupiter", version.ref = "junit" }
 junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher", version.ref = "junit-platform" }
