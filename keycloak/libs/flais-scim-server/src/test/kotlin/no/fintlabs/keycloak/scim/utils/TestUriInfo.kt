@@ -25,7 +25,7 @@ class TestUriInfo(
         TODO("Not yet implemented")
     }
 
-    override fun getPathSegments(decode: Boolean): List<PathSegment?>? {
+    override fun getPathSegments(decode: Boolean): List<PathSegment?> {
         TODO("Not yet implemented")
     }
 

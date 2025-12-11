@@ -8,6 +8,7 @@ plugins {
     alias(libs.plugins.gradle.versions)
     alias(libs.plugins.ktlint)
     alias(libs.plugins.kotlin.serialization)
+    alias(libs.plugins.kover)
 }
 
 group = "no.fintlabs"
@@ -24,6 +25,9 @@ dependencies {
     testImplementation(libs.kotlinx.serialization.json)
     testImplementation(libs.okhttp)
     testImplementation(libs.awaitility.kotlin)
+
+    kover(project(":libs:flais-scim-server"))
+    kover(project(":libs:flais-provider"))
 }
 
 sourceSets {
@@ -31,6 +35,27 @@ sourceSets {
     val test by getting {
         kotlin { srcDirs(layout.projectDirectory.dir("src/test/integration/kotlin")) }
         resources { setSrcDirs(listOf("src/test/integration/resources")) }
+    }
+}
+
+allprojects {
+    repositories {
+        gradlePluginPortal()
+        mavenCentral()
+    }
+}
+
+dockerCompose {
+    environment.put("KEYCLOAK_VERSION", libs.versions.keycloak.get())
+}
+
+kover {
+    reports {
+        filters {
+            includes {
+                classes("no.fintlabs.*")
+            }
+        }
     }
 }
 
@@ -46,17 +71,7 @@ tasks.test {
             sub.tasks.findByName("test")
         },
     )
-}
-
-allprojects {
-    repositories {
-        gradlePluginPortal()
-        mavenCentral()
-    }
-}
-
-dockerCompose {
-    environment.put("KEYCLOAK_VERSION", libs.versions.keycloak.get())
+    finalizedBy(tasks.koverHtmlReport)
 }
 
 tasks.register("deployDev") {
