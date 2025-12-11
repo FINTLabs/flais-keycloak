@@ -102,61 +102,59 @@ class OrganizationScimConfigTest {
 
     @Test
     fun `linkIdp is true only when SCIM_LINK_IDP equals true ignoring case`() {
-        val configTrueLower =
+        assertTrue(
             createConfig(
                 mapOf("SCIM_LINK_IDP" to listOf("true")),
-            )
-        assertTrue(configTrueLower.linkIdp)
+            ).linkIdp,
+        )
 
-        val configTrueUpper =
+        assertTrue(
             createConfig(
                 mapOf("SCIM_LINK_IDP" to listOf("TRUE")),
-            )
-        assertTrue(configTrueUpper.linkIdp)
+            ).linkIdp,
+        )
 
-        val configFalse =
+        assertFalse(
             createConfig(
                 mapOf("SCIM_LINK_IDP" to listOf("false")),
-            )
-        assertFalse(configFalse.linkIdp)
+            ).linkIdp,
+        )
 
-        val configMissing = createConfig(emptyMap())
-        assertFalse(configMissing.linkIdp)
+        assertFalse(createConfig(emptyMap()).linkIdp)
     }
 
     @Test
     fun `emailAsUsername is true only when SCIM_EMAIL_AS_USERNAME equals true ignoring case`() {
-        val configTrueLower =
+        assertTrue(
             createConfig(
                 mapOf("SCIM_EMAIL_AS_USERNAME" to listOf("true")),
-            )
-        assertTrue(configTrueLower.emailAsUsername)
+            ).emailAsUsername,
+        )
 
-        val configTrueUpper =
+        assertTrue(
             createConfig(
                 mapOf("SCIM_EMAIL_AS_USERNAME" to listOf("TRUE")),
-            )
-        assertTrue(configTrueUpper.emailAsUsername)
+            ).emailAsUsername,
+        )
 
-        val configFalse =
+        assertFalse(
             createConfig(
                 mapOf("SCIM_EMAIL_AS_USERNAME" to listOf("false")),
-            )
-        assertFalse(configFalse.emailAsUsername)
+            ).emailAsUsername,
+        )
 
-        val configMissing = createConfig(emptyMap())
-        assertFalse(configMissing.emailAsUsername)
+        assertFalse(createConfig(emptyMap()).emailAsUsername)
     }
 
     @Test
     fun `getAttribute uses first value from organization attributes`() {
-        val config =
+        assertEquals(
+            "first",
             createConfig(
                 mapOf(
                     "SCIM_EXTERNAL_ISSUER" to listOf("first", "second"),
                 ),
-            )
-
-        assertEquals("first", config.externalIssuer)
+            ).externalIssuer,
+        )
     }
 }

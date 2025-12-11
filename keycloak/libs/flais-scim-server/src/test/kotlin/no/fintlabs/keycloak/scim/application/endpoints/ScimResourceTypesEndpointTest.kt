@@ -9,7 +9,6 @@ import no.fintlabs.keycloak.scim.endpoints.ScimResourceTypesEndpoint
 import no.fintlabs.keycloak.scim.endpoints.ScimUserEndpoint
 import no.fintlabs.keycloak.scim.utils.TestUriInfo
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertNotNull
 import org.junit.jupiter.api.assertThrows
@@ -41,15 +40,12 @@ class ScimResourceTypesEndpointTest {
     @Test
     fun `get returns resource type when requested by id`() {
         val resourceTypes = endpoint.getResourceTypes()
-        assertFalse(resourceTypes.isEmpty())
-
         val first = resourceTypes.first()
 
         val id = first.id
         val name = first.name
 
-        val resource: GenericScimResource = endpoint.get(id, uriInfo)
-        val node = resource.objectNode
+        val node = endpoint.get(id, uriInfo).objectNode
 
         assertEquals(id, node["id"].asText())
         assertEquals(name, node["name"].asText())
@@ -58,15 +54,12 @@ class ScimResourceTypesEndpointTest {
     @Test
     fun `get returns resource type when requested by name`() {
         val resourceTypes = endpoint.getResourceTypes()
-        assertFalse(resourceTypes.isEmpty())
-
         val first = resourceTypes.first()
 
         val id = first.id
         val name = first.name
 
-        val resource: GenericScimResource = endpoint.get(name, uriInfo)
-        val node = resource.objectNode
+        val node = endpoint.get(name, uriInfo).objectNode
 
         assertEquals(id, node["id"].asText())
         assertEquals(name, node["name"].asText())

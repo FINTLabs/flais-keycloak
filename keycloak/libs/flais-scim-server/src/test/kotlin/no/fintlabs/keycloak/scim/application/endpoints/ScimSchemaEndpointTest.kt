@@ -35,10 +35,7 @@ class ScimSchemaEndpointTest {
             }
         assertNotNull(userSchema)
 
-        val node = userSchema.objectNode
-        val attributesNode = node["attributes"] as ArrayNode
-        assertNotNull(attributesNode)
-
+        val attributesNode = userSchema.objectNode["attributes"] as ArrayNode
         val externalAttr =
             attributesNode.firstOrNull { attr ->
                 attr["name"].asText() == "externalId"
@@ -58,19 +55,16 @@ class ScimSchemaEndpointTest {
     @Test
     fun `get returns schema when requested by id`() {
         val id = "urn:ietf:params:scim:schemas:core:2.0:User"
+        val node = endpoint.get(id, uriInfo).objectNode
 
-        val resource: GenericScimResource = endpoint.get(id, uriInfo)
-
-        val node = resource.objectNode
         assertEquals(id, node["id"].asText())
         assertEquals("User", node["name"].asText())
     }
 
     @Test
     fun `get returns schema when requested by name`() {
-        val resource: GenericScimResource = endpoint.get("User", uriInfo)
+        val node = endpoint.get("User", uriInfo).objectNode
 
-        val node = resource.objectNode
         assertEquals("urn:ietf:params:scim:schemas:core:2.0:User", node["id"].asText())
         assertEquals("User", node["name"].asText())
     }

@@ -72,29 +72,21 @@ class ScimRootEndpointTest {
 
     @Test
     fun `users returns ScimUserEndpoint instance`() {
-        val usersEndpoint = root.users()
-
-        assertNotNull(usersEndpoint)
+        assertNotNull(root.users())
     }
 
     @Test
     fun `schemas returns ScimSchemaEndpoint instance`() {
-        val schemasEndpoint = root.schemas()
-
-        assertNotNull(schemasEndpoint)
+        assertNotNull(root.schemas())
     }
 
     @Test
     fun `serviceProviderConfig returns ScimServiceProviderConfigEndpoint instance`() {
-        val spcEndpoint = root.serviceProviderConfig()
-
-        assertNotNull(spcEndpoint)
+        assertNotNull(root.serviceProviderConfig())
     }
 
     @Test
     fun `resourceTypes returns ScimResourceTypesEndpoint instance`() {
-        val resourceTypesEndpoint = root.resourceTypes()
-
-        assertNotNull(resourceTypesEndpoint)
+        assertNotNull(root.resourceTypes())
     }
 }

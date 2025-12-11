@@ -27,13 +27,12 @@ import java.net.URI
 class SearchHandlerTest {
     private fun mockScimInfrastructure() {
         mockkConstructor(ResourcePreparer::class)
+        mockkConstructor(SchemaAwareFilterEvaluator::class)
+        mockkConstructor(ResourceComparator::class)
+
         every {
             anyConstructed<ResourcePreparer<ScimResource>>().setResourceTypeAndLocation(any())
         } just Runs
-
-        mockkConstructor(SchemaAwareFilterEvaluator::class)
-
-        mockkConstructor(ResourceComparator::class)
     }
 
     fun uriInfoWithParams(params: Map<String, String>): UriInfo {
@@ -65,12 +64,11 @@ class SearchHandlerTest {
 
     @Test
     fun `constructor parses filter when present`() {
-        val handler =
+        assertNotNull(
             createHandler(
                 mapOf(ApiConstants.QUERY_PARAMETER_FILTER to """userName eq "alice""""),
-            )
-
-        assertNotNull(handler.filter)
+            ).filter,
+        )
     }
 
     @Test
@@ -89,29 +87,26 @@ class SearchHandlerTest {
 
     @Test
     fun `constructor creates resourceComparator when sortBy is present`() {
-        val handler =
+        assertNotNull(
             createHandler(
                 mapOf(
                     ApiConstants.QUERY_PARAMETER_SORT_BY to "userName",
                     ApiConstants.QUERY_PARAMETER_SORT_ORDER to "descending",
                 ),
-            )
-
-        assertNotNull(handler.resourceComparator)
+            ).resourceComparator,
+        )
     }
 
     @Test
     fun `createSearchResult with no pagination returns all resources`() {
-        val handler = createHandler(emptyMap())
-
-        val resources =
-            sequenceOf(
-                GenericScimResource(),
-                GenericScimResource(),
-                GenericScimResource(),
+        val result: ListResponse<GenericScimResource> =
+            createHandler(emptyMap()).createSearchResult(
+                sequenceOf(
+                    GenericScimResource(),
+                    GenericScimResource(),
+                    GenericScimResource(),
+                ),
             )
-
-        val result: ListResponse<GenericScimResource> = handler.createSearchResult(resources)
 
         assertEquals(3, result.totalResults)
         assertEquals(3, result.resources.size)
@@ -121,22 +116,19 @@ class SearchHandlerTest {
 
     @Test
     fun `createSearchResult honours pagination when count is zero`() {
-        val handler =
+        val result: ListResponse<GenericScimResource> =
             createHandler(
                 mapOf(
                     ApiConstants.QUERY_PARAMETER_PAGE_START_INDEX to "1",
                     ApiConstants.QUERY_PARAMETER_PAGE_SIZE to "0",
                 ),
+            ).createSearchResult(
+                sequenceOf(
+                    GenericScimResource(),
+                    GenericScimResource(),
+                    GenericScimResource(),
+                ),
             )
-
-        val resources =
-            sequenceOf(
-                GenericScimResource(),
-                GenericScimResource(),
-                GenericScimResource(),
-            )
-
-        val result: ListResponse<GenericScimResource> = handler.createSearchResult(resources)
 
         assertEquals(3, result.totalResults)
         assertEquals(1, result.startIndex)
@@ -146,22 +138,19 @@ class SearchHandlerTest {
 
     @Test
     fun `createSearchResult with high startIndex returns empty page but keeps total`() {
-        val handler =
+        val result: ListResponse<GenericScimResource> =
             createHandler(
                 mapOf(
                     ApiConstants.QUERY_PARAMETER_PAGE_START_INDEX to "10",
                     ApiConstants.QUERY_PARAMETER_PAGE_SIZE to "5",
                 ),
+            ).createSearchResult(
+                sequenceOf(
+                    GenericScimResource(),
+                    GenericScimResource(),
+                    GenericScimResource(),
+                ),
             )
-
-        val resources =
-            sequenceOf(
-                GenericScimResource(),
-                GenericScimResource(),
-                GenericScimResource(),
-            )
-
-        val result: ListResponse<GenericScimResource> = handler.createSearchResult(resources)
 
         assertEquals(3, result.totalResults)
         assertEquals(10, result.startIndex)
@@ -171,11 +160,8 @@ class SearchHandlerTest {
 
     @Test
     fun `createSearchResult returns empty page and zero total when no resources`() {
-        val handler = createHandler(emptyMap())
-
-        val resources = emptySequence<GenericScimResource>()
-
-        val result: ListResponse<GenericScimResource> = handler.createSearchResult(resources)
+        val result: ListResponse<GenericScimResource> =
+            createHandler(emptyMap()).createSearchResult(emptySequence())
 
         assertEquals(0, result.totalResults)
         assertEquals(1, result.startIndex)
