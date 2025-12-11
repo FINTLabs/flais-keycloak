@@ -17,6 +17,8 @@ kotlinx-serialization-json = "1.9.0"
 slf4j = "2.0.16"
 okhttp = "5.1.0"
 
+kover = "0.9.4"
+
 [libraries]
 kotlin-stdlib = { module = "org.jetbrains.kotlin:kotlin-stdlib", version.ref = "kotlin" }
 
@@ -53,3 +55,4 @@ shadow = { id = "com.gradleup.shadow", version.ref = "shadow" }
 ktlint = { id = "org.jlleitschuh.gradle.ktlint", version.ref = "ktlint" }
 gradle-versions = { id = "com.github.ben-manes.versions", version.ref = "gradle-versions" }
 docker-compose = { id = "com.avast.gradle.docker-compose", version.ref = "docker-compose" }
+kover = { id = "org.jetbrains.kotlinx.kover", version.ref = "kover" }
