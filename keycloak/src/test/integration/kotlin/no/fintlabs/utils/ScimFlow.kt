@@ -26,24 +26,33 @@ object ScimFlow {
     @Serializable
     data class ScimUser(
         @Transient
-        val id: String? = null,
-        val externalId: String,
-        val userName: String,
-        val active: Boolean,
-        val name: Name,
-        val emails: List<Email>,
+        var id: String? = null,
+        var externalId: String,
+        var userName: String,
+        var active: Boolean,
+        var name: Name,
+        var emails: List<Email>,
+        var roles: List<Role>? = null,
     ) {
         @Serializable
         data class Name(
-            val givenName: String,
-            val familyName: String,
+            var givenName: String,
+            var familyName: String,
         )
 
         @Serializable
         data class Email(
-            val value: String,
-            val primary: Boolean? = null,
-            val type: String? = null,
+            var value: String,
+            var primary: Boolean? = null,
+            var type: String? = null,
+        )
+
+        @Serializable
+        data class Role(
+            var value: String,
+            var display: String? = null,
+            var type: String? = null,
+            var primary: Boolean? = null,
         )
     }
 
@@ -122,6 +131,27 @@ object ScimFlow {
                 .Builder()
                 .url("$baseUrl/Users/$id")
                 .put(body)
+                .build()
+
+        return client.newCall(request).execute()
+    }
+
+    fun patchUser(
+        baseUrl: String,
+        tokenUrl: String,
+        id: String,
+        operation: PatchRequest,
+        httpClient: OkHttpClient? = null,
+    ): Response {
+        val client = resolveClient(httpClient, tokenUrl)
+        val bodyString = json.encodeToString(PatchRequest.serializer(), operation)
+        val body = bodyString.toRequestBody()
+
+        val request =
+            Request
+                .Builder()
+                .url("$baseUrl/Users/$id")
+                .patch(body)
                 .build()
 
         return client.newCall(request).execute()

@@ -8,6 +8,7 @@ plugins {
     alias(libs.plugins.gradle.versions)
     alias(libs.plugins.ktlint)
     alias(libs.plugins.kotlin.serialization)
+    alias(libs.plugins.kover)
 }
 
 group = "no.fintlabs"
@@ -24,6 +25,9 @@ dependencies {
     testImplementation(libs.kotlinx.serialization.json)
     testImplementation(libs.okhttp)
     testImplementation(libs.awaitility.kotlin)
+
+    kover(project(":libs:flais-scim-server"))
+    kover(project(":libs:flais-provider"))
 }
 
 sourceSets {
@@ -32,15 +36,6 @@ sourceSets {
         kotlin { srcDirs(layout.projectDirectory.dir("src/test/integration/kotlin")) }
         resources { setSrcDirs(listOf("src/test/integration/resources")) }
     }
-}
-
-tasks.test {
-    useJUnitPlatform()
-    systemProperty("org.slf4j.simpleLogger.defaultLogLevel", "warn")
-    systemProperty("project.rootDir", rootProject.projectDir.absolutePath)
-    environment("KEYCLOAK_VERSION", libs.versions.keycloak.get())
-
-    dependsOn("ktlintCheck")
 }
 
 allprojects {
@@ -52,6 +47,31 @@ allprojects {
 
 dockerCompose {
     environment.put("KEYCLOAK_VERSION", libs.versions.keycloak.get())
+}
+
+kover {
+    reports {
+        filters {
+            includes {
+                classes("no.fintlabs.*")
+            }
+        }
+    }
+}
+
+tasks.test {
+    useJUnitPlatform()
+    systemProperty("org.slf4j.simpleLogger.defaultLogLevel", "warn")
+    systemProperty("project.rootDir", rootProject.projectDir.absolutePath)
+    environment("KEYCLOAK_VERSION", libs.versions.keycloak.get())
+
+    dependsOn("ktlintCheck")
+    dependsOn(
+        subprojects.mapNotNull { sub ->
+            sub.tasks.findByName("test")
+        },
+    )
+    finalizedBy(tasks.koverHtmlReport)
 }
 
 tasks.register("deployDev") {

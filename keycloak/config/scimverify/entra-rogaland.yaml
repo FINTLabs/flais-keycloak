@@ -22,7 +22,7 @@ users:
                   "name": { "givenName": "Alice", "familyName": "Basic" },
                   "emails":
                     [ { "value": "alice.basic@rogaland.no", "primary": true } ],
-                  "roles": [ { "value": "read" } ],
+                  "roles": [ { "value": "read","display": "read","type": "WindowsAzureActiveDirectoryRole","primary": false } ],
               }
             response:
               {
@@ -127,7 +127,7 @@ users:
                   "name": { "givenName": "Alice2", "familyName": "Basic2" },
                   "emails":
                     [ { "value": "alice.basic@rogaland.no", "primary": true } ],
-                  "roles": [ { "value": "test" } ],
+                  "roles": [ { "value": "write","display": "write","type": "WindowsAzureActiveDirectoryRole","primary": false } ],
               }
             response:
               {
@@ -188,6 +188,68 @@ users:
                                                   },
                                             },
                                       },
+                                    "roles":
+                                      {
+                                          "type": "array",
+                                          "minItems": 2,
+                                          "maxItems": 2,
+                                          "items": [
+                                              {
+                                                  "type": "object",
+                                                  "properties":
+                                                    {
+                                                        "primary":
+                                                          {
+                                                              "type": "boolean",
+                                                              "const": false,
+                                                          },
+                                                        "type":
+                                                          {
+                                                              "type": "string",
+                                                              "const": "WindowsAzureActiveDirectoryRole",
+                                                          },
+                                                        "display":
+                                                          {
+                                                              "type": "string",
+                                                              "const": "read",
+                                                          },
+                                                        "value":
+                                                          {
+                                                              "type": "string",
+                                                              "const": "read",
+                                                          }
+                                                    },
+                                                  "required": [ "primary", "type", "display", "value" ],
+                                              },
+                                              {
+                                                  "type": "object",
+                                                  "properties":
+                                                    {
+                                                        "primary":
+                                                          {
+                                                              "type": "boolean",
+                                                              "const": false,
+                                                          },
+                                                        "type":
+                                                          {
+                                                              "type": "string",
+                                                              "const": "WindowsAzureActiveDirectoryRole",
+                                                          },
+                                                        "display":
+                                                          {
+                                                              "type": "string",
+                                                              "const": "write",
+                                                          },
+                                                        "value":
+                                                          {
+                                                              "type": "string",
+                                                              "const": "write",
+                                                          }
+                                                    },
+                                                  "required": [ "primary", "type", "display", "value" ],
+                                              }
+                                          ]
+                                      }
                                 },
                               "required": [ "userName" ],
                               "additionalProperties": true,
@@ -262,6 +324,129 @@ users:
                     ],
                   "additionalProperties": true,
               }
+        -   id: AUTO
+            request:
+              {
+                  "schemas": [ "urn:ietf:params:scim:api:messages:2.0:PatchOp" ],
+                  "Operations":
+                    [
+                        {
+                            "op": "replace",
+                            "path": "roles",
+                            "value": [
+                                {
+                                    "primary": false,
+                                    "type": "WindowsAzureActiveDirectoryRole",
+                                    "display": "manager",
+                                    "value": "manager"
+                                },
+                                {
+                                    "primary": false,
+                                    "type": "WindowsAzureActiveDirectoryRole",
+                                    "display": "admin",
+                                    "value": "admin"
+                                }
+                            ],
+                        },
+                    ],
+              }
+            response:
+              {
+                  "type": "object",
+                  "properties":
+                    {
+                        "schemas":
+                          {
+                              "type": "array",
+                              "items": { "type": "string" },
+                              "contains":
+                                {
+                                    "const": "urn:ietf:params:scim:schemas:core:2.0:User",
+                                },
+                          },
+                        "id": { "type": "string" },
+                        "meta": { "type": "object" },
+                        "urn:ietf:params:scim:schemas:core:2.0:User":
+                          {
+                              "type": "object",
+                              "properties":
+                                {
+                                    "roles":
+                                      {
+                                          "type": "array",
+                                          "minItems": 2,
+                                          "maxItems": 2,
+                                          "items": [
+                                              {
+                                                  "type": "object",
+                                                  "properties":
+                                                    {
+                                                        "primary":
+                                                          {
+                                                              "type": "boolean",
+                                                              "const": false,
+                                                          },
+                                                        "type":
+                                                          {
+                                                              "type": "string",
+                                                              "const": "WindowsAzureActiveDirectoryRole",
+                                                          },
+                                                        "display":
+                                                          {
+                                                              "type": "string",
+                                                              "const": "admin",
+                                                          },
+                                                        "value":
+                                                          {
+                                                              "type": "string",
+                                                              "const": "admin",
+                                                          }
+                                                    },
+                                                  "required": [ "primary", "type", "display", "value" ],
+                                              },
+                                              {
+                                                  "type": "object",
+                                                  "properties":
+                                                    {
+                                                        "primary":
+                                                          {
+                                                              "type": "boolean",
+                                                              "const": false,
+                                                          },
+                                                        "type":
+                                                          {
+                                                              "type": "string",
+                                                              "const": "WindowsAzureActiveDirectoryRole",
+                                                          },
+                                                        "display":
+                                                          {
+                                                              "type": "string",
+                                                              "const": "manager",
+                                                          },
+                                                        "value":
+                                                          {
+                                                              "type": "string",
+                                                              "const": "manager",
+                                                          }
+                                                    },
+                                                  "required": [ "primary", "type", "display", "value" ],
+                                              }
+                                          ]
+                                      }
+                                },
+                              "required": [ "roles" ],
+                              "additionalProperties": true,
+                          },
+                    },
+                  "required":
+                    [
+                        "schemas",
+                        "id",
+                        "urn:ietf:params:scim:schemas:core:2.0:User",
+                    ],
+                  "additionalProperties": true,
+              }
 
     delete_tests:
         -   id: AUTO
+
