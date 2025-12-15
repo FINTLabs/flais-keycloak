@@ -167,14 +167,19 @@ object KcFlow {
         password: String,
         httpClient: OkHttpClient? = null,
         httpUrl: HttpUrl? = null,
+        hasIdpSelector: Boolean = true,
     ): Response {
         val client = httpClient ?: KcHttpClient.create(followRedirects = true)
         val url = resolveAuthUrl(httpUrl, env, clientId)
 
-        selectOrgAndContinueToIdpSelector(env, clientId, orgAlias, client, url).use { resp1 ->
-            val kc1 = KcContextParser.parseKcContext(resp1.body.string())
-            continueFromIdpSelector(kc1.url.loginAction!!, idpAlias, client).use { resp2 ->
-                return continueFromAuthentikIdp(resp2.request.url, username, password, client)
+        selectOrgAndContinueToIdpSelector(env, clientId, orgAlias, client, url).use { resp ->
+            if (hasIdpSelector) {
+                val kc = KcContextParser.parseKcContext(resp.body.string())
+                continueFromIdpSelector(kc.url.loginAction!!, idpAlias, client).use { resp ->
+                    return continueFromAuthentikIdp(resp.request.url, username, password, client)
+                }
+            } else {
+                return continueFromAuthentikIdp(resp.request.url, username, password, client)
             }
         }
     }

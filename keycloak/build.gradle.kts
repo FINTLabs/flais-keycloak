@@ -8,6 +8,7 @@ plugins {
     alias(libs.plugins.gradle.versions)
     alias(libs.plugins.ktlint)
     alias(libs.plugins.kotlin.serialization)
+    alias(libs.plugins.kover)
 }
 
 group = "no.fintlabs"
@@ -34,15 +35,6 @@ sourceSets {
     }
 }
 
-tasks.test {
-    useJUnitPlatform()
-    systemProperty("org.slf4j.simpleLogger.defaultLogLevel", "warn")
-    systemProperty("project.rootDir", rootProject.projectDir.absolutePath)
-    environment("KEYCLOAK_VERSION", libs.versions.keycloak.get())
-
-    dependsOn("ktlintCheck")
-}
-
 allprojects {
     repositories {
         gradlePluginPortal()
@@ -52,6 +44,25 @@ allprojects {
 
 dockerCompose {
     environment.put("KEYCLOAK_VERSION", libs.versions.keycloak.get())
+}
+
+kover {
+    reports {
+        filters {
+            includes {
+                classes("no.fintlabs.*")
+            }
+        }
+    }
+}
+
+tasks.test {
+    useJUnitPlatform()
+
+    systemProperty("org.slf4j.simpleLogger.defaultLogLevel", "warn")
+    systemProperty("project.rootDir", rootProject.projectDir.absolutePath)
+
+    environment("KEYCLOAK_VERSION", libs.versions.keycloak.get())
 }
 
 tasks.register("deployDev") {

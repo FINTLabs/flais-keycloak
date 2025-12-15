@@ -93,11 +93,6 @@ object KcAdminClient {
         return userId
     }
 
-    fun findUserByEmail(
-        realm: RealmResource,
-        email: String,
-    ): UserRepresentation? = realm.users().searchByEmail(email, true).firstOrNull()
-
     fun findUserByUsername(
         realm: RealmResource,
         username: String,
