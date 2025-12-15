@@ -44,7 +44,7 @@ jobs:
             yq e -i '.appVersion = "${{ steps.versions.outputs.app_version }}"' ./charts/${{ inputs.chart_name }}/Chart.yaml
 
       - name: Save Chart Meta
-        uses: actions/upload-artifact@v5.0.0
+        uses: actions/upload-artifact@v6.0.0
         with:
           name: ${{ inputs.chart_name }}-chart-metadata
           path: ./charts/${{ inputs.chart_name }}/Chart.yaml
