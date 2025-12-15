@@ -25,9 +25,6 @@ dependencies {
     testImplementation(libs.kotlinx.serialization.json)
     testImplementation(libs.okhttp)
     testImplementation(libs.awaitility.kotlin)
-
-    kover(project(":libs:flais-scim-server"))
-    kover(project(":libs:flais-provider"))
 }
 
 sourceSets {
@@ -61,17 +58,11 @@ kover {
 
 tasks.test {
     useJUnitPlatform()
+
     systemProperty("org.slf4j.simpleLogger.defaultLogLevel", "warn")
     systemProperty("project.rootDir", rootProject.projectDir.absolutePath)
-    environment("KEYCLOAK_VERSION", libs.versions.keycloak.get())
 
-    dependsOn("ktlintCheck")
-    dependsOn(
-        subprojects.mapNotNull { sub ->
-            sub.tasks.findByName("test")
-        },
-    )
-    finalizedBy(tasks.koverHtmlReport)
+    environment("KEYCLOAK_VERSION", libs.versions.keycloak.get())
 }
 
 tasks.register("deployDev") {
