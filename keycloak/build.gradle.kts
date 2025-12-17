@@ -14,6 +14,11 @@ plugins {
 group = "no.fintlabs"
 version = "1.0.0"
 
+val koverCli by configurations.creating {
+    isCanBeConsumed = false
+    isCanBeResolved = true
+}
+
 dependencies {
     testRuntimeOnly(libs.junit.platform.launcher)
     testRuntimeOnly(libs.slf4j.simple)
@@ -25,6 +30,8 @@ dependencies {
     testImplementation(libs.kotlinx.serialization.json)
     testImplementation(libs.okhttp)
     testImplementation(libs.awaitility.kotlin)
+
+    koverCli(libs.kover.cli)
 }
 
 allprojects {
@@ -34,16 +41,10 @@ allprojects {
     }
 }
 
-val coverageMode = providers.gradleProperty("coverageMode").orNull
 kover {
     currentProject {
         instrumentation {
-            if (coverageMode == "unit") {
-                disabledForTestTasks.add("integrationTest")
-            }
-            if (coverageMode == "integration") {
-                disabledForTestTasks.add("test")
-            }
+            disabledForTestTasks.add("integrationTest")
         }
     }
     reports {
@@ -55,23 +56,49 @@ kover {
     }
 }
 
-subprojects {
-    plugins.withId("org.jetbrains.kotlinx.kover") {
-        val coverageMode = providers.gradleProperty("coverageMode").orNull
-        kover {
-            currentProject {
-                instrumentation {
-                    if (coverageMode == "integration") {
-                        disabledForTestTasks.add("test")
-                    }
-                }
-            }
-        }
-    }
-}
-
 dockerCompose {
     environment.put("KEYCLOAK_VERSION", libs.versions.keycloak.get())
+}
+
+tasks.register<Exec>("koverIntegrationXmlReport") {
+    group = "verification"
+    description = "Generates Kover XML report from Keycloak integration test IC data"
+
+    dependsOn(
+        subprojects.mapNotNull { p ->
+            p.tasks.findByName("classes")?.let { p.path + ":classes" }
+        },
+    )
+
+    val kovercliJar = koverCli.elements.map { it.single().asFile }
+    doFirst {
+        val args =
+            mutableListOf(
+                "java",
+                "-jar",
+                kovercliJar.get().absolutePath,
+                "report",
+                layout.buildDirectory
+                    .file("kover/keycloak.ic")
+                    .get()
+                    .asFile.absolutePath,
+                "--classfiles",
+                "$rootDir/libs/flais-provider/build/classes/kotlin/main",
+                "--classfiles",
+                "$rootDir/libs/flais-scim-server/build/classes/kotlin/main",
+                "--src",
+                "$rootDir/libs/flais-provider/src/main/kotlin",
+                "--src",
+                "$rootDir/libs/flais-scim-server/src/main/kotlin",
+                "--xml",
+                layout.buildDirectory
+                    .dir("reports/kover/report.xml")
+                    .get()
+                    .asFile.absolutePath,
+            )
+
+        commandLine(args)
+    }
 }
 
 val integrationTestSourceSet by sourceSets.creating {
@@ -94,8 +121,6 @@ tasks.register<Test>("integrationTest") {
     systemProperty("project.rootDir", rootProject.projectDir.absolutePath)
 
     environment("KEYCLOAK_VERSION", libs.versions.keycloak.get())
-
-    shouldRunAfter(tasks.named("test"))
 }
 
 tasks.register("deployDev") {

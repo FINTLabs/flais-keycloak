@@ -48,6 +48,8 @@ kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serializa
 slf4j-simple = { module = "org.slf4j:slf4j-simple", version.ref = "slf4j" }
 okhttp = { module = "com.squareup.okhttp3:okhttp", version.ref = "okhttp" }
 
+kover-cli = { module = "org.jetbrains.kotlinx:kover-cli", version.ref = "kover" }
+
 [plugins]
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }

@@ -61,7 +61,10 @@ jobs:
                 uses: gradle/actions/setup-gradle@v5
 
             -   name: Run Unit Tests and generate coverage report
-                run: ./gradlew test koverXmlReport -PcoverageMode=unit
+                run: ./gradlew test
+
+            -   name: Generate Code Coverage Report
+                run: ./gradlew koverXmlReport
 
             -   name: Code Coverage Report
                 id: jacoco
@@ -103,13 +106,27 @@ jobs:
                 uses: gradle/actions/setup-gradle@v5
 
             -   name: Run Integration Tests
-                working-directory: keycloak
-                run: ./gradlew test koverXmlReport -PcoverageMode=integration
+                run: ./gradlew integrationTest
+
+            -   name: Generate Code Coverage Report
+                run: ./gradlew koverIntegrationXmlReport
+
+            -   name: Code Coverage Report
+                id: jacoco
+                uses: madrapps/jacoco-report@v1.7.2
+                with:
+                    paths: |
+                        keycloak/build/reports/kover/*.xml
+                    token: ${{ secrets.GITHUB_TOKEN }}
+                    title: Code Coverage Report
+                    comment-type: "summary"
+                    min-coverage-overall: 40
+                    min-coverage-changed-files: 60
 
             -   name: Integration Test Reports
                 uses: dorny/test-reporter@v2.1.1
                 if: always()
                 with:
                     name: Integration Test Reports
-                    path: "keycloak/build/test-results/test/*.xml"
+                    path: "keycloak/build/test-results/integrationTest/*.xml"
                     reporter: java-junit
