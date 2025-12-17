@@ -1,0 +1,115 @@
+name: App Test
+
+on:
+    pull_request:
+        branches:
+            - main
+        paths:
+            - keycloak/libs/**/src/**
+            - keycloak/src/**
+            - keycloak/**/build.gradle.kts
+            - keycloak/**/settings.gradle.kts
+            - keycloak/gradle/**
+
+concurrency:
+    group: app-test-${{ github.ref }}
+    cancel-in-progress: true
+
+permissions:
+    contents: read
+    actions: read
+    checks: write
+
+jobs:
+    check-formatting:
+        name: Check code formatting
+        runs-on: ubuntu-latest
+        steps:
+            -   name: Checkout code
+                uses: actions/checkout@v5
+
+            -   name: Setup Java
+                uses: actions/setup-java@v5
+                with:
+                    distribution: temurin
+                    java-version: 21
+
+            -   name: Setup Gradle
+                uses: gradle/actions/setup-gradle@v5
+
+            -   name: Run ktlint Check
+                working-directory: keycloak
+                run: ./gradlew :ktlintCheck --stacktrace --configuration-cache
+
+    unit-tests:
+        name: Run Unit Tests
+        runs-on: ubuntu-latest
+        defaults:
+            run:
+                working-directory: keycloak
+        steps:
+            -   name: Checkout code
+                uses: actions/checkout@v5
+
+            -   name: Setup Java
+                uses: actions/setup-java@v5
+                with:
+                    distribution: temurin
+                    java-version: 21
+
+            -   name: Setup Gradle
+                uses: gradle/actions/setup-gradle@v5
+
+            -   name: Run Unit Tests and generate coverage report
+                run: ./gradlew test koverXmlReport -PcoverageMode=unit
+
+            -   name: Code Coverage Report
+                id: jacoco
+                uses: madrapps/jacoco-report@v1.7.2
+                with:
+                    paths: |
+                        keycloak/libs/**/build/reports/kover/*.xml
+                    token: ${{ secrets.GITHUB_TOKEN }}
+                    title: Code Coverage Report
+                    comment-type: "summary"
+                    min-coverage-overall: 40
+                    min-coverage-changed-files: 60
+
+            -   name: Unit Test Reports
+                uses: dorny/test-reporter@v2.1.1
+                if: always()
+                with:
+                    name: Unit Test Reports
+                    path: "keycloak/libs/**/build/test-results/test/*.xml"
+                    reporter: java-junit
+
+    integration-tests:
+        name: Run Integration Tests
+        runs-on: ubuntu-latest-8-cores
+        defaults:
+            run:
+                working-directory: keycloak
+        steps:
+            -   name: Checkout code
+                uses: actions/checkout@v5
+
+            -   name: Setup Java
+                uses: actions/setup-java@v5
+                with:
+                    distribution: temurin
+                    java-version: 21
+
+            -   name: Setup Gradle
+                uses: gradle/actions/setup-gradle@v5
+
+            -   name: Run Integration Tests
+                working-directory: keycloak
+                run: ./gradlew test koverXmlReport -PcoverageMode=integration
+
+            -   name: Integration Test Reports
+                uses: dorny/test-reporter@v2.1.1
+                if: always()
+                with:
+                    name: Integration Test Reports
+                    path: "keycloak/build/test-results/test/*.xml"
+                    reporter: java-junit
