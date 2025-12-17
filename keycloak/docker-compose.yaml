@@ -211,7 +211,7 @@ services:
             test: >
                 /bin/sh -c '
                 set -e;
-                curl -fsS http://127.0.0.1:9000/-/health/live/ >/dev/null;
+                curl -fsS http://127.0.0.1:9000/-/health/ready/ >/dev/null;
                 curl -fsS http://127.0.0.1:9000/application/o/entra-telemark-app/.well-known/openid-configuration >/dev/null;
                 curl -fsS http://127.0.0.1:9000/application/o/entra-telemark-alt-app/.well-known/openid-configuration >/dev/null;
                 curl -fsS http://127.0.0.1:9000/application/o/entra-rogaland-app/.well-known/openid-configuration >/dev/null;
