@@ -85,10 +85,11 @@ entries:
                     [ name, "Custom OAuth Mapping: Entra Roles" ],
                 ]
             redirect_uris:
-                -   url: http://keycloak:8080/realms/external/broker/entra-telemark-alt/endpoint
-                    matching_mode: strict
-                -   url: http://localhost:8890/realms/external/broker/entra-telemark-alt/endpoint
-                    matching_mode: strict
+                -   url: "^http://localhost:[0-9]{1,5}/realms/external/broker/entra-telemark-alt/endpoint$"
+                    matching_mode: regex
+
+                -   url: '^http://127\.0\.0\.1:[0-9]{1,5}/realms/external/broker/entra-telemark-alt/endpoint$'
+                    matching_mode: regex
 
     -   model: authentik_core.application
         state: present

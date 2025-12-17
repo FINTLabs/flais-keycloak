@@ -154,32 +154,28 @@ object KcAdminClient {
         env: KcComposeEnvironment,
         realmName: String,
         newBaseUrl: String,
-    ): Int {
+    ) {
         val (kc, realm) = connect(env, realmName)
         kc.use {
-            val idps = realm.identityProviders().findAll()
-            var updated = 0
+            realm
+                .identityProviders()
+                .findAll()
+                .asSequence()
+                .map { it.alias }
+                .forEach { alias ->
+                    val res = realm.identityProviders().get(alias)
+                    val rep = res.toRepresentation()
 
-            for (summary in idps) {
-                val res = realm.identityProviders().get(summary.alias)
-                val rep = res.toRepresentation()
+                    val cfg = (rep.config ?: emptyMap()).toMutableMap()
+                    val oldAuth = cfg["authorizationUrl"] ?: return@forEach
 
-                val cfg = rep.config ?: mutableMapOf()
-                val oldAuth = cfg["authorizationUrl"] ?: continue
+                    val idx = oldAuth.indexOf("/application")
+                    val newAuth = newBaseUrl.trimEnd('/') + oldAuth.substring(idx)
 
-                val idx = oldAuth.indexOf("/application")
-                if (idx <= 0) continue
-
-                val newAuth = newBaseUrl.trimEnd('/') + oldAuth.substring(idx)
-                if (newAuth == oldAuth) continue
-
-                cfg["authorizationUrl"] = newAuth
-                rep.config = cfg
-                res.update(rep)
-                updated++
-            }
-
-            return updated
+                    cfg["authorizationUrl"] = newAuth
+                    rep.config = cfg
+                    res.update(rep)
+                }
         }
     }
 }

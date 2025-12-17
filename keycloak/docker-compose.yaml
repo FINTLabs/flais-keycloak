@@ -16,8 +16,6 @@ services:
         environment:
             KC_HTTP_ENABLED: "true"
             KC_HEALTH_ENABLED: "true"
-            KC_HOSTNAME: "http://localhost:8890"
-            KC_HOSTNAME_STRICT: "true"
             KC_DB: postgres
             KC_DB_URL_HOST: keycloak-pg
             KC_DB_URL_DATABASE: keycloak
@@ -27,8 +25,8 @@ services:
             KC_BOOTSTRAP_ADMIN_USERNAME: admin
             KC_BOOTSTRAP_ADMIN_PASSWORD: admin
         ports:
-            - "8080"
-            - "9000"
+            - "8890:8080"
+            - "9900:9000"
         volumes:
             - ./config/kc:/opt/keycloak/data/import:ro
         depends_on:
