@@ -60,11 +60,11 @@ jobs:
             -   name: Setup Gradle
                 uses: gradle/actions/setup-gradle@v5
 
-            -   name: Run Unit Tests and generate coverage report
-                run: ./gradlew test
+            -   name: Run Unit Tests
+                run: ./gradlew test --stacktrace --configuration-cache
 
             -   name: Generate Code Coverage Report
-                run: ./gradlew koverXmlReport
+                run: ./gradlew koverXmlReport --stacktrace
 
             -   name: Code Coverage Report
                 id: jacoco
@@ -106,10 +106,10 @@ jobs:
                 uses: gradle/actions/setup-gradle@v5
 
             -   name: Run Integration Tests
-                run: ./gradlew integrationTest
+                run: ./gradlew integrationTest --stacktrace --configuration-cache
 
             -   name: Generate Code Coverage Report
-                run: ./gradlew koverIntegrationXmlReport
+                run: ./gradlew koverIntegrationXmlReport --stacktrace
 
             -   name: Code Coverage Report
                 id: jacoco
