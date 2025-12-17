@@ -48,12 +48,12 @@ class KcComposeEnvironment(
                         Wait
                             .forHttp("/health/ready")
                             .forPort(9000)
-                            .withStartupTimeout(Duration.ofMinutes(10)),
+                            .withStartupTimeout(Duration.ofMinutes(15)),
                     ).withStrategy(
                         Wait
                             .forHttp("/")
                             .forPort(8080)
-                            .withStartupTimeout(Duration.ofMinutes(10)),
+                            .withStartupTimeout(Duration.ofMinutes(15)),
                     ),
             )
 
@@ -63,7 +63,7 @@ class KcComposeEnvironment(
                 Wait
                     .forHttp("/-/health/ready/")
                     .forPort(9000)
-                    .withStartupTimeout(Duration.ofMinutes(10)),
+                    .withStartupTimeout(Duration.ofMinutes(15)),
             )
 
             withExposedService(
@@ -72,7 +72,7 @@ class KcComposeEnvironment(
                 Wait
                     .forHttp("/healthz")
                     .forPort(9090)
-                    .withStartupTimeout(Duration.ofMinutes(5)),
+                    .withStartupTimeout(Duration.ofMinutes(15)),
             )
 
             withExposedService(
@@ -81,7 +81,7 @@ class KcComposeEnvironment(
                 Wait
                     .forHttp("/healthz")
                     .forPort(80)
-                    .withStartupTimeout(Duration.ofMinutes(5)),
+                    .withStartupTimeout(Duration.ofMinutes(15)),
             )
         }
 
