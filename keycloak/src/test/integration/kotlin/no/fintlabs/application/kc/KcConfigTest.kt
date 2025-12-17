@@ -10,7 +10,7 @@ import org.junit.jupiter.api.extension.ExtendWith
 
 @ExtendWith(KcEnvExtension::class)
 class KcConfigTest {
-    private val commonRedirectUris = listOf("http://localhost:3000/*")
+    private val commonRedirectUris = listOf("http://localhost*")
     private val commonWebOrigins = listOf("+")
 
     private fun assertCommonFlags(c: KcConfig.Client) {

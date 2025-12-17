@@ -37,7 +37,7 @@ object KcUrl {
     fun authUrl(
         env: KcComposeEnvironment,
         clientId: String,
-        redirectUri: String = "http://localhost:3000/callback",
+        redirectUri: String = "${env.flaisKeycloakDemoUrl()}/callback",
         scope: String = "openid",
         usePkce: Boolean = true,
         pkcePlain: Boolean = false,

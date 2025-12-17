@@ -20,7 +20,7 @@ class PublicClientTokenTest {
         val client = KcHttpClient.create(followRedirects = true)
         val realm = "external"
         val clientId = "flais-keycloak-demo"
-        val redirectUri = "http://localhost:3000/callback"
+        val redirectUri = "${env.flaisKeycloakDemoUrl()}/callback"
         val scope = "openid profile email"
         val orgAlias = "telemark"
         val idpAlias = "entra-telemark"

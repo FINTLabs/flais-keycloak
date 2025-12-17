@@ -27,14 +27,6 @@ dependencies {
     testImplementation(libs.awaitility.kotlin)
 }
 
-sourceSets {
-    @Suppress("UNUSED_VARIABLE")
-    val test by getting {
-        kotlin { srcDirs(layout.projectDirectory.dir("src/test/integration/kotlin")) }
-        resources { setSrcDirs(listOf("src/test/integration/resources")) }
-    }
-}
-
 allprojects {
     repositories {
         gradlePluginPortal()
@@ -42,11 +34,18 @@ allprojects {
     }
 }
 
-dockerCompose {
-    environment.put("KEYCLOAK_VERSION", libs.versions.keycloak.get())
-}
-
+val coverageMode = providers.gradleProperty("coverageMode").orNull
 kover {
+    currentProject {
+        instrumentation {
+            if (coverageMode == "unit") {
+                disabledForTestTasks.add("integrationTest")
+            }
+            if (coverageMode == "integration") {
+                disabledForTestTasks.add("test")
+            }
+        }
+    }
     reports {
         filters {
             includes {
@@ -56,13 +55,47 @@ kover {
     }
 }
 
-tasks.test {
+subprojects {
+    plugins.withId("org.jetbrains.kotlinx.kover") {
+        val coverageMode = providers.gradleProperty("coverageMode").orNull
+        kover {
+            currentProject {
+                instrumentation {
+                    if (coverageMode == "integration") {
+                        disabledForTestTasks.add("test")
+                    }
+                }
+            }
+        }
+    }
+}
+
+dockerCompose {
+    environment.put("KEYCLOAK_VERSION", libs.versions.keycloak.get())
+}
+
+val integrationTestSourceSet by sourceSets.creating {
+    kotlin.srcDir("src/test/integration/kotlin")
+    resources.srcDir("src/test/integration/resources")
+    compileClasspath += sourceSets["main"].output + configurations["testCompileClasspath"]
+    runtimeClasspath += output + compileClasspath + configurations["testRuntimeClasspath"]
+}
+
+tasks.register<Test>("integrationTest") {
+    description = "Runs integration tests."
+    group = "verification"
+
+    testClassesDirs = integrationTestSourceSet.output.classesDirs
+    classpath = integrationTestSourceSet.runtimeClasspath
+
     useJUnitPlatform()
 
     systemProperty("org.slf4j.simpleLogger.defaultLogLevel", "warn")
     systemProperty("project.rootDir", rootProject.projectDir.absolutePath)
 
     environment("KEYCLOAK_VERSION", libs.versions.keycloak.get())
+
+    shouldRunAfter(tasks.named("test"))
 }
 
 tasks.register("deployDev") {

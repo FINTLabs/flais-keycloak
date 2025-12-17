@@ -76,6 +76,7 @@ class KcEnvExtension :
             }
 
         KcAdminClient.resetRealmFromJson(env, kcJson)
+        KcAdminClient.patchIdpAuthorizationUrls(env, "external", env.authentikUrl())
     }
 
     override fun afterAll(context: ExtensionContext) = Unit

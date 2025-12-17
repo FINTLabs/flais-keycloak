@@ -16,13 +16,14 @@ class KcComposeEnvironment(
 ) : AutoCloseable {
     private val compose: ComposeContainer =
         ComposeContainer(composeFile).apply {
+            withLocalCompose(true)
             withBuild(true)
 
             withEnv("COMPOSE_PROFILES", "test")
             withEnv("KEYCLOAK_VERSION", System.getenv("KEYCLOAK_VERSION"))
 
-            withExposedService("keycloak-test", 1, 9000)
-            withExposedService("keycloak-test", 1, 8080)
+            withExposedService("keycloak-test", 9000)
+            withExposedService("keycloak-test", 8080)
 
             waitingFor(
                 "keycloak-test",
@@ -41,11 +42,29 @@ class KcComposeEnvironment(
             )
 
             withExposedService(
+                "authentik",
+                9000,
+                Wait
+                    .forHttp("/-/health/ready/")
+                    .forPort(9000)
+                    .withStartupTimeout(Duration.ofMinutes(5)),
+            )
+
+            withExposedService(
                 "flais-scim-auth",
                 9090,
                 Wait
                     .forHttp("/healthz")
                     .forPort(9090)
+                    .withStartupTimeout(Duration.ofMinutes(1)),
+            )
+
+            withExposedService(
+                "flais-keycloak-demo",
+                80,
+                Wait
+                    .forHttp("/healthz")
+                    .forPort(80)
                     .withStartupTimeout(Duration.ofMinutes(1)),
             )
         }
@@ -78,6 +97,18 @@ class KcComposeEnvironment(
     fun flaisScimAuthUrl(): String {
         val host = compose.getServiceHost("flais-scim-auth", 9090)
         val port = compose.getServicePort("flais-scim-auth", 9090)
+        return "http://$host:$port"
+    }
+
+    fun authentikUrl(): String {
+        val host = compose.getServiceHost("authentik", 9000)
+        val port = compose.getServicePort("authentik", 9000)
+        return "http://$host:$port"
+    }
+
+    fun flaisKeycloakDemoUrl(): String {
+        val host = compose.getServiceHost("flais-keycloak-demo", 80)
+        val port = compose.getServicePort("flais-keycloak-demo", 80)
         return "http://$host:$port"
     }
 }
