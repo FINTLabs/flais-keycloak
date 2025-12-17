@@ -14,11 +14,27 @@ import java.time.Duration
 class KcComposeEnvironment(
     composeFile: File = File("./docker-compose.yaml"),
 ) : AutoCloseable {
+    private fun koverAgentJar(): File? {
+        return File("build/kover")
+            .listFiles { f -> f.isFile && f.extension == "jar" }
+            ?.toList()
+            ?.single()
+    }
+
     private val compose: ComposeContainer =
         ComposeContainer(composeFile).apply {
             withLocalCompose(true)
             withBuild(true)
 
+            File("build/kover/agent.args").writeText(
+                """
+                report.file=/kover/keycloak.ic
+                report.append=false
+                include=no.fintlabs.*
+                """.trimIndent(),
+            )
+
+            withEnv("KOVER_AGENT_JAR_NAME", koverAgentJar()?.name)
             withEnv("COMPOSE_PROFILES", "test")
             withEnv("KEYCLOAK_VERSION", System.getenv("KEYCLOAK_VERSION"))
 
@@ -32,12 +48,12 @@ class KcComposeEnvironment(
                         Wait
                             .forHttp("/health/ready")
                             .forPort(9000)
-                            .withStartupTimeout(Duration.ofMinutes(5)),
+                            .withStartupTimeout(Duration.ofMinutes(10)),
                     ).withStrategy(
                         Wait
                             .forHttp("/")
                             .forPort(8080)
-                            .withStartupTimeout(Duration.ofMinutes(5)),
+                            .withStartupTimeout(Duration.ofMinutes(10)),
                     ),
             )
 
@@ -47,7 +63,7 @@ class KcComposeEnvironment(
                 Wait
                     .forHttp("/-/health/ready/")
                     .forPort(9000)
-                    .withStartupTimeout(Duration.ofMinutes(5)),
+                    .withStartupTimeout(Duration.ofMinutes(10)),
             )
 
             withExposedService(
@@ -56,7 +72,7 @@ class KcComposeEnvironment(
                 Wait
                     .forHttp("/healthz")
                     .forPort(9090)
-                    .withStartupTimeout(Duration.ofMinutes(1)),
+                    .withStartupTimeout(Duration.ofMinutes(5)),
             )
 
             withExposedService(
@@ -65,7 +81,7 @@ class KcComposeEnvironment(
                 Wait
                     .forHttp("/healthz")
                     .forPort(80)
-                    .withStartupTimeout(Duration.ofMinutes(1)),
+                    .withStartupTimeout(Duration.ofMinutes(5)),
             )
         }
 
