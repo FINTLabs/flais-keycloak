@@ -46,6 +46,7 @@ services:
             - keycloak
 
     keycloak-test:
+        user: "0"
         hostname: keycloak-test
         build:
             context: .
@@ -67,11 +68,14 @@ services:
             KC_DB_SCHEMA: public
             KC_BOOTSTRAP_ADMIN_USERNAME: admin
             KC_BOOTSTRAP_ADMIN_PASSWORD: admin
+            JAVA_TOOL_OPTIONS: >-
+                -javaagent:/kover/${KOVER_AGENT_JAR_NAME}=file:/kover/agent.args
         ports:
             - "8080"
             - "9000"
         volumes:
             - ./config/kc:/opt/keycloak/data/import:ro
+            - ./build/kover:/kover
         depends_on:
             keycloak-pg-test:
                 condition: service_healthy
