@@ -18,12 +18,19 @@ java {
 }
 
 dependencies {
+    testRuntimeOnly(libs.junit.platform.launcher)
+
     implementation(libs.kotlin.stdlib)
 
     compileOnly(libs.keycloak.core)
     compileOnly(libs.keycloak.services)
     compileOnly(libs.keycloak.server.spi)
     compileOnly(libs.keycloak.server.spi.priv)
+
+    testImplementation(libs.junit.jupiter)
+    testImplementation(libs.mockk)
+    testImplementation(libs.keycloak.core)
+    testImplementation(libs.keycloak.services)
 }
 
 tasks.withType<KotlinCompile>().configureEach {
@@ -41,4 +48,8 @@ tasks.shadowJar {
 
 tasks.build {
     dependsOn(tasks.shadowJar)
+}
+
+tasks.test {
+    useJUnitPlatform()
 }
