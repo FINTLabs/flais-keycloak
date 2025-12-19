@@ -9,18 +9,27 @@ import org.keycloak.events.Details
 class OrgRedirectorAuthenticator : IdentityProviderAuthenticator() {
     private val logger: Logger = Logger.getLogger(OrgRedirectorAuthenticator::class.java)
 
+    fun doRedirect(
+        context: AuthenticationFlowContext,
+        alias: String,
+    ) {
+        super.redirect(context, alias)
+    }
+
     override fun authenticate(context: AuthenticationFlowContext) {
         val selectedIdp = context.authenticationSession.getAuthNote(Details.IDENTITY_PROVIDER)
         if (selectedIdp == null) {
             context.failure("No identity provider selected selected")
+            return
         }
+
         val idp = context.session.identityProviders().getById(selectedIdp)
-        when {
-            idp == null -> context.failure("Could not find identity provider")
-            else -> {
-                logger.infof("Redirecting to selected provider: %s", idp.alias)
-                super.redirect(context, idp.alias)
-            }
+        if (idp == null) {
+            context.failure("Could not find identity provider")
+            return
         }
+
+        logger.infof("Redirecting to selected provider: %s", idp.alias)
+        doRedirect(context, idp.alias)
     }
 }
