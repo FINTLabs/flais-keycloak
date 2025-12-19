@@ -6,6 +6,8 @@ on:
             - main
         paths:
             - keycloak/libs/**/src/**
+            - keycloak/**/package.json
+            - keycloak/**/package-lock.json
             - keycloak/src/**
             - keycloak/**/build.gradle.kts
             - keycloak/**/settings.gradle.kts
