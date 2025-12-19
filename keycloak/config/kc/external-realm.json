@@ -191,7 +191,7 @@
             "implicitFlowEnabled": false,
             "attributes": {},
             "redirectUris": [
-                "http://localhost:3000/*"
+                "http://localhost*"
             ],
             "webOrigins": [
                 "+"
@@ -231,7 +231,7 @@
                 "permission.whitelisted.organizations": "telemark"
             },
             "redirectUris": [
-                "http://localhost:3000/*"
+                "http://localhost*"
             ],
             "webOrigins": [
                 "+"
@@ -250,7 +250,7 @@
                 "permission.whitelisted.organizations": "idporten"
             },
             "redirectUris": [
-                "http://localhost:3000/*"
+                "http://localhost*"
             ],
             "webOrigins": [
                 "+"
@@ -269,7 +269,7 @@
                 "permission.blacklisted.organizations": "idporten"
             },
             "redirectUris": [
-                "http://localhost:3000/*"
+                "http://localhost*"
             ],
             "webOrigins": [
                 "+"
@@ -288,7 +288,7 @@
                 "permission.whitelisted.organizations": "invalid-org"
             },
             "redirectUris": [
-                "http://localhost:3000/*"
+                "http://localhost*"
             ],
             "webOrigins": [
                 "+"

@@ -57,11 +57,4 @@ tasks.build {
 
 tasks.test {
     useJUnitPlatform()
-
-    jvmArgs(
-        "-XX:+EnableDynamicAgentLoading",
-        "-Xshare:off",
-    )
-
-    dependsOn("ktlintCheck")
 }

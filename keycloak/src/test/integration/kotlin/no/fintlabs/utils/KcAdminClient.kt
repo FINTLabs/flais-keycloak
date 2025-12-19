@@ -149,4 +149,33 @@ object KcAdminClient {
             realms.create(rep)
         }
     }
+
+    fun patchIdpAuthorizationUrls(
+        env: KcComposeEnvironment,
+        realmName: String,
+        newBaseUrl: String,
+    ) {
+        val (kc, realm) = connect(env, realmName)
+        kc.use {
+            realm
+                .identityProviders()
+                .findAll()
+                .asSequence()
+                .map { it.alias }
+                .forEach { alias ->
+                    val res = realm.identityProviders().get(alias)
+                    val rep = res.toRepresentation()
+
+                    val cfg = (rep.config ?: emptyMap()).toMutableMap()
+                    val oldAuth = cfg["authorizationUrl"] ?: return@forEach
+
+                    val idx = oldAuth.indexOf("/application")
+                    val newAuth = newBaseUrl.trimEnd('/') + oldAuth.substring(idx)
+
+                    cfg["authorizationUrl"] = newAuth
+                    rep.config = cfg
+                    res.update(rep)
+                }
+        }
+    }
 }
