@@ -9,33 +9,36 @@ theming, and demo applications for testing.
 
 ```
 flais-keycloak/
-├── keycloak/     # Keycloak
-│   |── config/
-│   |    ├── authentik          # Authentik configuration files
-│   |    ├── nginx              # NGINX configuration files
-│   |    └── kc                 # Keycloak configuration for dev/test
-│   |── libs/
-│   |    ├── flais-provider     # Custom Keycloak SPI provider
-│   |    ├── flais-theme        # Flais Keycloak login theme
-│   |    └── scim-server        # Scim server for Keycloak
-│   |── tools/
-│   |    └── flais-scim-client  # Custom scim client for testing
-│   └── src/                    # Tests for Keycloak
-├── apps/         # Applications for Keycloak
-│   └── flais-keycloak-demo/  # Public client to test Keycloak
-├── charts/       # Helm charts
-│   └── flais-keycloak/       # The Keycloak chart for FLAIS
-└── README.md     # Project documentation
+├── keycloak/                         # Keycloak
+│   ├── config/
+│   │   ├── authentik/                # Authentik configuration files
+│   │   ├── kc/                       # Keycloak configuration for dev/test
+│   │   ├── nginx/                    # NGINX configuration files
+│   │   └── scimverify/               # Config for scimverify (compliance tests)
+│   ├── libs/
+│   │   ├── flais-provider/           # Flais Keycloak provider
+│   │   ├── flais-theme/              # Flais Keycloak login theme
+│   │   └── flais-scim-server/        # Flais SCIM server implementation
+│   ├── tools/
+│   │   ├── flais-scim-auth/          # Custom SCIM auth application for flais-scim-server
+│   │   └── scimverify/               # Dockerfile for scimverify
+│   └── src/
+│       └── test/                     # Tests for Keycloak
+├── apps/
+│   └── flais-keycloak-demo/          # Public client to test Keycloak
+├── charts/
+│   └── flais-keycloak/               # The Keycloak chart for FLAIS
+└── README.md                         # Project documentation
 ```
 
 ## 🛠️ Development
 
 Prerequisites:
 
-- [Java 21](https://www.java.com/)
-- [Gradle](https://gradle.org/)
-- [Docker](https://www.docker.com/)
-- [Node.js](https://nodejs.org/)
+-   [Java 21](https://www.java.com/)
+-   [Gradle](https://gradle.org/)
+-   [Docker](https://www.docker.com/)
+-   [Node.js](https://nodejs.org/)
 
 ### Local development keycloak
 
