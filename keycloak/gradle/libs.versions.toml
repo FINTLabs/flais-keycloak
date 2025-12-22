@@ -7,7 +7,7 @@ ktlint = "13.1.0"
 gradle-versions = "0.53.0"
 docker-compose = "0.17.13"
 awaitility = "4.3.0"
-mockk = "1.14.5"
+mockk = "1.14.7"
 resteasy = "6.2.14.Final"
 
 junit = "6.0.0"
