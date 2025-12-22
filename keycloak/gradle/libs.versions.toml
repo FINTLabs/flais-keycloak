@@ -10,8 +10,7 @@ awaitility = "4.3.0"
 mockk = "1.14.7"
 resteasy = "6.2.14.Final"
 
-junit = "6.0.0"
-junit-platform = "6.0.1"
+junit = "6.0.1"
 testcontainers = "1.21.4"
 kotlinx-serialization-json = "1.9.0"
 slf4j = "2.0.16"
@@ -36,7 +35,7 @@ mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
 resteasy-core = { module = "org.jboss.resteasy:resteasy-core", version.ref = "resteasy" }
 
 junit-jupiter = { module = "org.junit.jupiter:junit-jupiter", version.ref = "junit" }
-junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher", version.ref = "junit-platform" }
+junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher", version.ref = "junit" }
 
 testcontainers-core = { module = "org.testcontainers:testcontainers", version.ref = "testcontainers" }
 testcontainers-junit-jupiter = { module = "org.testcontainers:junit-jupiter", version.ref = "testcontainers" }
