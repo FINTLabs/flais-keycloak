@@ -81,7 +81,7 @@ jobs:
                     min-coverage-changed-files: 60
 
             -   name: Unit Test Reports
-                uses: dorny/test-reporter@v2.1.1
+                uses: dorny/test-reporter@v2.3.0
                 if: always()
                 with:
                     name: Unit Test Reports
@@ -126,7 +126,7 @@ jobs:
                     min-coverage-changed-files: 60
 
             -   name: Integration Test Reports
-                uses: dorny/test-reporter@v2.1.1
+                uses: dorny/test-reporter@v2.3.0
                 if: always()
                 with:
                     name: Integration Test Reports
