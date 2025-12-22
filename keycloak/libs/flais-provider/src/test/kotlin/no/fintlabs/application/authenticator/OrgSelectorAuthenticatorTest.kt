@@ -178,8 +178,12 @@ class OrgSelectorAuthenticatorTest {
                 "organizations",
                 match<List<OrgDto>> { list ->
                     list.size == 2 &&
-                        list[0].alias == "org-1" && list[0].name == "Org 1" && list[0].logo == "logo1.png" &&
-                        list[1].alias == "org-2" && list[1].name == "Org 2" && list[1].logo == null
+                        list[0].alias == "org-1" &&
+                        list[0].name == "Org 1" &&
+                        list[0].logo == "logo1.png" &&
+                        list[1].alias == "org-2" &&
+                        list[1].name == "Org 2" &&
+                        list[1].logo == null
                 },
             )
         }
