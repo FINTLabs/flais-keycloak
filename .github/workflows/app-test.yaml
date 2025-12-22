@@ -41,7 +41,7 @@ jobs:
 
             -   name: Run ktlint Check
                 working-directory: keycloak
-                run: ./gradlew :ktlintCheck --stacktrace --configuration-cache
+                run: ./gradlew ktlintCheck --stacktrace --configuration-cache
 
     unit-tests:
         name: Run Unit Tests
