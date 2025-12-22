@@ -34,13 +34,7 @@ updates:
                 update-types: [ "minor", "patch" ]
 
     -   package-ecosystem: "gradle"
-        directory: "/keycloak/libs/flais-provider/"
-        schedule:
-            interval: "weekly"
-            day: "sunday"
-
-    -   package-ecosystem: "gradle"
-        directory: "/keycloak/libs/scim-server/"
+        directory: "/keycloak/"
         schedule:
             interval: "weekly"
             day: "sunday"
@@ -53,12 +47,6 @@ updates:
 
     -   package-ecosystem: "docker"
         directory: "/keycloak/"
-        schedule:
-            interval: "weekly"
-            day: "sunday"
-
-    -   package-ecosystem: "docker"
-        directory: "/keycloak/tools/flais-scim-client/"
         schedule:
             interval: "weekly"
             day: "sunday"
