@@ -28,7 +28,7 @@ keycloak-server-spi-priv = { module = "org.keycloak:keycloak-server-spi-private"
 
 keycloak-admin-client = { module = "org.keycloak:keycloak-admin-client", version.ref = "kc-admin" }
 
-scim-server-sdk = { module = "com.unboundid.product.scim2:scim2-sdk-server", version = "4.1.0" }
+scim-server-sdk = { module = "com.unboundid.product.scim2:scim2-sdk-server", version = "5.0.0" }
 nimbusds-jwt = { module = "com.nimbusds:nimbus-jose-jwt", version = "10.6" }
 
 mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
