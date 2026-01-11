@@ -10,7 +10,7 @@ awaitility = "4.3.0"
 mockk = "1.14.7"
 resteasy = "6.2.14.Final"
 
-junit = "6.0.1"
+junit = "6.0.2"
 testcontainers = "1.21.4"
 kotlinx-serialization-json = "1.9.0"
 slf4j = "2.0.17"
