@@ -1,13 +1,12 @@
 # Authentication Flow: flais-browser
 
-This document describes the Keycloak Authentication Flow **flais-browser** (Default).
+This document describes the Keycloak Authentication Flow **flais-browser**.
 
 This flow is the entry point for browser-based login
 
 ## Flow type
 
 -   **Type:** Browser Login
--   **Requirement:** Default
 -   **Trigger:** User login via HTTP (Browser)
 
 ## Top-level executions

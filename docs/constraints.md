@@ -21,7 +21,7 @@ This document defines rules that apply globally across the system.
 ## Role
 
 -   Roles are stored as user attributes
--   Native Keycloak roles are not used
+-   Native Keycloak roles are not used in applications
 
 ## Client access
 

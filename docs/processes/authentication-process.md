@@ -24,32 +24,29 @@ The diagram below shows the high-level authentication process
 from the user opening the application to being redirected back
 with an authorization code.
 
-It focuses on _decisions_ and _error conditions_, not Keycloak internals.
-
 ```mermaid
 flowchart TD
     is_client_and_req_valid{Is client and request valid?}
-    is_client_access_to_org{Does client have access to organization?}
-    is_org_multiple_idps{Does organization have multiple IDPs?}
-    is_user_access_ext_idp{Does user have access to client?}
+    is_client_access_to_org{Does client have access<br> to org?}
+    is_org_multiple_idps{Does organization have<br> multiple IDPs?}
+    is_user_access_ext_idp{Does user have access<br> to client?}
 
     user_opens_app[User opens application]
     user_selects_org[User selects organization]
     user_selects_idp[User selects IDP]
-    user_redirected_keycloak[User is redirected to Keycloak]
-    user_logs_in_with_ext_idp[User logs in with external IDP]
+    user_redirected_keycloak["User is redirected to<br> Keycloak"]
+    user_logs_in_with_ext_idp[User logs in with<br> external IDP]
 
     err_access_denied[Access denied error]
     err_client_invalid[Invalid client/request]
 
-    kc_redirects_ext_idp[Keycloak redirects to external IDP]
-    kc_redirects_idp_selector[Keycloak redirects to page with available IDPs]
-    kc_redirects_org_selector[Keycloak redirects to page with available organizations]
-    kc_redirects_app[Keycloak redirects to app with code]
+    kc_redirects_ext_idp[Keycloak redirects to<br> external IDP]
+    kc_redirects_idp_selector[Keycloak redirects to page<br> with available IDPs]
+    kc_redirects_org_selector[Keycloak redirects to page<br> with available orgs]
+    kc_redirects_app[Keycloak redirects to app<br> with code]
 
-    idp_redirect_to_keycloak[IDP redirects back to Keycloak]
+    idp_redirect_to_keycloak[IDP redirects back<br> to Keycloak]
 
-    %% ----- FLOW -----  %%
     user_opens_app --> user_redirected_keycloak
     user_redirected_keycloak --> is_client_and_req_valid
 

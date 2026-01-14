@@ -12,7 +12,6 @@ This flow is responsible for:
 ## Flow type
 
 -   **Type:** First Broker Login
--   **Requirement:** Default
 -   **Trigger:** User authenticates via an external IDP and no existing broker session exists
 
 ## Top-level structure
@@ -70,9 +69,4 @@ This flow ensures that:
 -   Organization onboarding only happens once
 -   Organization membership is applied consistently
 -   Existing users are not re-onboarded
-
-## Notes
-
--   This flow must remain deterministic to avoid duplicate users
--   Organization onboarding must be idempotent
--   Any failure in required steps results in login failure
+-   User will never be prompted to setup account

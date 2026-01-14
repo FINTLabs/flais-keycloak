@@ -13,7 +13,7 @@ In this architecture, SCIM is responsible for:
 -   Deleting users
 -   Supplying user attributes, such as roles
 
-Authentication is **not** handled by SCIM.
+Authentication is not handled by SCIM.
 
 ## Role of SCIM in the system
 

@@ -16,7 +16,7 @@ Roles are implemented as user attributes instead of native Keycloak roles and gi
 
 ## Role sources
 
--   SCIM provisioning (authoritative)
+-   SCIM provisioning
 -   Login token claims
 
 ## Diagram
