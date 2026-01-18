@@ -3,7 +3,7 @@ ARG KEYCLOAK_VERSION
 # -----------------------------
 # Stage: FLAIS Keycloak builder
 # -----------------------------
-FROM gradle:9.2.1-jdk21 AS flais-keycloak-builder
+FROM gradle:9.3.0-jdk21 AS flais-keycloak-builder
 WORKDIR /flais-keycloak
 
 ENV GRADLE_USER_HOME=/home/gradle/.gradle
