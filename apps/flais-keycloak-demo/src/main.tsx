@@ -19,6 +19,6 @@ keycloak.init().then((authenticated) => {
             </StrictMode>
         );
     } else {
-        keycloak.login();
+        keycloak.login({ scope: "organization" });
     }
 });

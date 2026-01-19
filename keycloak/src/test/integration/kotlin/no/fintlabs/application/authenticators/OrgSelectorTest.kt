@@ -71,9 +71,7 @@ class OrgSelectorTest {
     }
 
     @Test
-    fun `client (flais-keycloak-demo-telemark) with 1 org directly to flais-org-idp-selector`(
-        env: KcComposeEnvironment,
-    ) {
+    fun `client (flais-keycloak-demo-telemark) with 1 org directly to flais-org-idp-selector`(env: KcComposeEnvironment) {
         openAuthUrl(env = env, clientId = "flais-keycloak-demo-telemark").use { resp ->
             assertEquals(200, resp.code)
 
