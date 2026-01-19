@@ -4,6 +4,7 @@ import no.fintlabs.extensions.KcEnvExtension
 import no.fintlabs.utils.KcComposeEnvironment
 import no.fintlabs.utils.KcFlow.loginWithUser
 import no.fintlabs.utils.KcHttpClient
+import no.fintlabs.utils.KcToken
 import no.fintlabs.utils.KcToken.exchangeCodeForAccessToken
 import no.fintlabs.utils.KcUrl
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -63,23 +64,11 @@ class PublicClientMapperTest {
                 )
             assertNotNull(accessToken)
 
-            val parts = accessToken.split(".")
-            assertEquals(3, parts.size)
+            val roles = KcToken.decodeClaim(accessToken, "roles")
+            assertNotNull(roles)
 
-            val payloadBytes = Base64.getUrlDecoder().decode(parts[1])
-            val payloadJson = String(payloadBytes, Charsets.UTF_8)
-
-            val json =
-                JsonSerialization.readValue(
-                    payloadJson.byteInputStream(),
-                    Map::class.java,
-                ) as Map<*, *>
-
-            assertTrue(json.containsKey("roles"))
-
-            val roles =
-                json["roles"] as? List<*>
-                    ?: throw AssertionError("roles should be a list: $payloadJson")
+            roles as? List<*>
+                ?: throw AssertionError("roles should be a list: $roles")
 
             assertEquals(listOf("read", "write", "admin"), roles)
         }
