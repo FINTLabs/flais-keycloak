@@ -8,12 +8,9 @@ import no.fintlabs.utils.KcToken
 import no.fintlabs.utils.KcToken.exchangeCodeForAccessToken
 import no.fintlabs.utils.KcUrl
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertNotNull
 import org.junit.jupiter.api.extension.ExtendWith
-import org.keycloak.util.JsonSerialization
-import java.util.Base64
 
 @ExtendWith(KcEnvExtension::class)
 class PublicClientMapperTest {

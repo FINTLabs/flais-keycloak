@@ -17,8 +17,7 @@ import java.util.Base64
  * - Not intended for production use; these URLs are hardcoded to match the test setup.
  */
 object KcUrl {
-    private fun base64UrlNoPadding(bytes: ByteArray): String =
-        Base64.getUrlEncoder().withoutPadding().encodeToString(bytes)
+    private fun base64UrlNoPadding(bytes: ByteArray): String = Base64.getUrlEncoder().withoutPadding().encodeToString(bytes)
 
     private fun generateCodeVerifier(): String {
         val bytes = ByteArray(32)
