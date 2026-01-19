@@ -4,6 +4,8 @@ import okhttp3.FormBody
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
+import org.keycloak.util.JsonSerialization
+import java.util.Base64
 
 /**
  * Utility functions for handling Keycloak token exchange and validation.
@@ -81,6 +83,25 @@ object KcToken {
         }
 
         return response
+    }
+
+    fun decodeClaim(
+        accessToken: String,
+        claim: String,
+    ): Any? {
+        val parts = accessToken.split(".")
+        require(parts.size == 3) { "Invalid JWT" }
+
+        val payloadBytes = Base64.getUrlDecoder().decode(parts[1])
+        val payloadJson = String(payloadBytes, Charsets.UTF_8)
+
+        val json =
+            JsonSerialization.readValue(
+                payloadJson.byteInputStream(),
+                Map::class.java,
+            ) as Map<*, *>
+
+        return json[claim]
     }
 
     private fun extractField(
