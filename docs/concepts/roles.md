@@ -2,22 +2,22 @@
 
 ## Design choice
 
-Roles are implemented as user attributes instead of native Keycloak roles and gives:
+Roles are currently implemented as user attributes instead of native Keycloak roles and gives:
 
--   Integration with external role sources
--   Flexible role formats
--   Consistent internal representation
--   Flexibility with SCIM implementation
+- Integration with external role sources
+- Flexible role formats
+- Consistent internal representation
+- Flexibility with SCIM implementation
 
 ## User attributes
 
--   `rawRoles` – original role payload (JSON string)
--   `roles` – normalized role values
+- `rawRoles` – original role payload (JSON string)
+- `roles` – normalized role values
 
 ## Role sources
 
--   SCIM provisioning
--   Login token claims
+- SCIM provisioning
+- Login token claims
 
 ## Diagram
 

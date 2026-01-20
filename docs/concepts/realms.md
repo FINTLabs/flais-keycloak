@@ -16,8 +16,8 @@ Each service or project is assigned its own realm.
 
 Examples:
 
--   `fint`
--   `flais`
+- `fint`
+- `flais`
 
 ## Organizations
 
@@ -34,13 +34,9 @@ config:
 flowchart TD
   KC[Keycloak instance]
 
-  KC --> master[Realm: master]
   KC --> fint[Realm: fint]
   KC --> other[Realm: other]
 
-  subgraph master[Realm: master]
-    admin[Administration]
-  end
 
   subgraph fint[Realm: fint]
     subgraph fint_orgs[Organizations]
@@ -57,5 +53,4 @@ flowchart TD
   end
 
   fint -. "isolated boundary" .- other
-  master -. "admin realm (separate)" .- fint
 ```
