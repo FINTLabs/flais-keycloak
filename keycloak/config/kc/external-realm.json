@@ -212,7 +212,7 @@
                 "http://localhost*"
             ],
             "webOrigins": [
-                "+"
+                "*"
             ]
         },
         {
@@ -231,7 +231,7 @@
                 "http://localhost*"
             ],
             "webOrigins": [
-                "+"
+                "*"
             ]
         },
         {
@@ -250,7 +250,7 @@
                 "http://localhost*"
             ],
             "webOrigins": [
-                "+"
+                "*"
             ]
         },
         {
@@ -269,7 +269,7 @@
                 "http://localhost*"
             ],
             "webOrigins": [
-                "+"
+                "*"
             ]
         },
         {
@@ -288,7 +288,7 @@
                 "http://localhost*"
             ],
             "webOrigins": [
-                "+"
+                "*"
             ]
         }
     ],
