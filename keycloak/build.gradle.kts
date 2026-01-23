@@ -128,7 +128,17 @@ tasks.register("deployDev") {
     description = "Deploy local dev with compose"
 
     doLast {
-        dockerCompose.dockerExecutor.execute("compose", "up", "-d", "--build", "keycloak")
+        dockerCompose.dockerExecutor.execute(
+            "compose",
+            "-f",
+            "docker-compose.yaml",
+            "-f",
+            "docker-compose.dev.yaml",
+            "up",
+            "-d",
+            "--build",
+            "keycloak",
+        )
         println("Rebuilt & restarted Keycloak")
     }
 }
@@ -139,7 +149,17 @@ tasks.register("restart") {
 
     doLast {
         dockerCompose.dockerExecutor.execute("compose", "build", "--pull", "keycloak")
-        dockerCompose.dockerExecutor.execute("compose", "up", "-d", "--force-recreate", "keycloak")
+        dockerCompose.dockerExecutor.execute(
+            "compose",
+            "-f",
+            "docker-compose.yaml",
+            "-f",
+            "docker-compose.dev.yaml",
+            "up",
+            "-d",
+            "--force-recreate",
+            "keycloak",
+        )
         println("Rebuilt & restarted Keycloak")
     }
 }

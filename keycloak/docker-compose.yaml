@@ -3,7 +3,6 @@ services:
     # Keycloak and its Postgres database
     # ----------------------
     keycloak:
-        hostname: keycloak
         build:
             context: .
             dockerfile: Dockerfile
@@ -24,9 +23,6 @@ services:
             KC_DB_SCHEMA: public
             KC_BOOTSTRAP_ADMIN_USERNAME: admin
             KC_BOOTSTRAP_ADMIN_PASSWORD: admin
-        ports:
-            - "8890:8080"
-            - "9900:9000"
         volumes:
             - ./config/kc:/opt/keycloak/data/import:ro
         depends_on:
@@ -36,83 +32,11 @@ services:
                 condition: service_healthy
             authentik-worker:
                 condition: service_healthy
-            flais-keycloak-demo:
-                condition: service_healthy
-        profiles:
-            - dev
-        networks:
-            - keycloak
-
-    keycloak-test:
-        user: "0"
-        hostname: keycloak-test
-        build:
-            context: .
-            dockerfile: Dockerfile
-            args:
-                KEYCLOAK_VERSION: ${KEYCLOAK_VERSION}
-        command: >
-            start-dev
-            --import-realm
-            --log-level="INFO,org.keycloak.authentication.authenticators:DEBUG,no.fintlabs.authenticator:DEBUG"
-        environment:
-            KC_HTTP_ENABLED: "true"
-            KC_HEALTH_ENABLED: "true"
-            KC_DB: postgres
-            KC_DB_URL_HOST: keycloak-pg-test
-            KC_DB_URL_DATABASE: keycloak
-            KC_DB_USERNAME: keycloak
-            KC_DB_PASSWORD: password
-            KC_DB_SCHEMA: public
-            KC_BOOTSTRAP_ADMIN_USERNAME: admin
-            KC_BOOTSTRAP_ADMIN_PASSWORD: admin
-            JAVA_TOOL_OPTIONS: >-
-                -javaagent:/kover/${KOVER_AGENT_JAR_NAME}=file:/kover/agent.args
-        ports:
-            - "8080"
-            - "9000"
-        volumes:
-            - ./config/kc:/opt/keycloak/data/import:ro
-            - ./build/kover:/kover
-        depends_on:
-            keycloak-pg-test:
-                condition: service_healthy
-            authentik:
-                condition: service_healthy
-            authentik-worker:
-                condition: service_healthy
-            flais-keycloak-demo:
-                condition: service_healthy
-            flais-scim-auth:
-                condition: service_healthy
-        profiles:
-            - test
         networks:
             - keycloak
 
     keycloak-pg:
         image: postgres:17.5
-        volumes:
-            - ./data/pg:/var/lib/postgresql/data
-        environment:
-            POSTGRES_DB: keycloak
-            POSTGRES_USER: keycloak
-            POSTGRES_PASSWORD: password
-        ports:
-            - "5432"
-        healthcheck:
-            test: [ "CMD-SHELL", "sh -c 'pg_isready -U keycloak -d keycloak'" ]
-            interval: 10s
-            timeout: 3s
-            retries: 5
-            start_period: 10s
-        profiles:
-            - dev
-        networks:
-            - keycloak
-
-    keycloak-pg-test:
-        image: postgres:17.5
         environment:
             POSTGRES_DB: keycloak
             POSTGRES_USER: keycloak
@@ -123,63 +47,6 @@ services:
             timeout: 3s
             retries: 5
             start_period: 10s
-        profiles:
-            - test
-        tmpfs:
-            - /var/lib/postgresql/data
-        networks:
-            - keycloak
-
-    # ----------------------
-    # Dummy flais-keycloak-demo to respond to http requests
-    # ----------------------
-    flais-keycloak-demo:
-        image: nginx:1.29.2-alpine
-        hostname: flais-keycloak-demo
-        ports:
-            - "80"
-        volumes:
-            - ./config/nginx/index.html:/usr/share/nginx/html/index.html:ro
-            - ./config/nginx/web.conf:/etc/nginx/nginx.conf:ro
-        restart: unless-stopped
-        healthcheck:
-            test:
-              [
-                  "CMD-SHELL",
-                  "wget -q --spider http://127.0.0.1/healthz || exit 1",
-              ]
-            interval: 10s
-            timeout: 5s
-            retries: 5
-            start_period: 5s
-        networks:
-            - keycloak
-
-    # ----------------------
-    # flais-scim-auth
-    # ----------------------
-    flais-scim-auth:
-        hostname: flais-scim-auth
-        build:
-            context: ./tools/flais-scim-auth
-            dockerfile: Dockerfile
-        ports:
-            - "9090"
-        environment:
-            KEYCLOAK_BASE_URL: http://keycloak-test:8080
-        restart: unless-stopped
-        healthcheck:
-            test:
-              [
-                  "CMD-SHELL",
-                  'node -e "fetch(''http://127.0.0.1:9090/healthz'').then(r=>process.exit(r.status===200?0:1)).catch(()=>process.exit(1))"',
-              ]
-            interval: 10s
-            timeout: 5s
-            retries: 5
-            start_period: 5s
-        profiles:
-            - test
         networks:
             - keycloak
 
@@ -199,7 +66,6 @@ services:
 
     authentik:
         image: ghcr.io/goauthentik/server:2025.10.1
-        hostname: authentik
         command: server
         environment:
             AUTHENTIK_SECRET_KEY: "authentik"
@@ -221,7 +87,6 @@ services:
             timeout: 5s
             retries: 30
             start_period: 10s
-        ports: [ "9000" ]
         depends_on: [ authentik-pg ]
         networks:
             - keycloak
@@ -244,4 +109,3 @@ networks:
     keycloak:
         driver: bridge
         name: keycloak
-

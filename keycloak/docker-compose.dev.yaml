@@ -1,0 +1,14 @@
+services:
+    keycloak:
+        ports:
+            - "8890:8080"
+            - "9900:9000"
+    keycloak-pg:
+        volumes:
+            - ./data/pg:/var/lib/postgresql/data
+        ports:
+            - "5432:5432"
+
+    authentik:
+        ports:
+            - "9000:9000"

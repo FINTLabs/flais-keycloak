@@ -12,7 +12,8 @@ import java.time.Duration
  * Simplifies the process of setting up the environment in tests.
  */
 class KcComposeEnvironment(
-    composeFile: File = File("./docker-compose.yaml"),
+    baseComposeFile: File = File("./docker-compose.yaml"),
+    testComposeFile: File = File("./docker-compose.test.yaml"),
 ) : AutoCloseable {
     private fun koverAgentJar(): File? {
         return File("build/kover")
@@ -22,7 +23,7 @@ class KcComposeEnvironment(
     }
 
     private val compose: ComposeContainer =
-        ComposeContainer(composeFile).apply {
+        ComposeContainer(baseComposeFile, testComposeFile).apply {
             withLocalCompose(true)
             withBuild(true)
 
@@ -38,11 +39,11 @@ class KcComposeEnvironment(
             withEnv("COMPOSE_PROFILES", "test")
             withEnv("KEYCLOAK_VERSION", System.getenv("KEYCLOAK_VERSION"))
 
-            withExposedService("keycloak-test", 9000)
-            withExposedService("keycloak-test", 8080)
+            withExposedService("keycloak", 9000)
+            withExposedService("keycloak", 8080)
 
             waitingFor(
-                "keycloak-test",
+                "keycloak",
                 WaitAllStrategy()
                     .withStrategy(
                         Wait
@@ -96,17 +97,17 @@ class KcComposeEnvironment(
     val keycloakAdminUser: String = "admin"
     val keycloakAdminPassword: String = "admin"
 
-    fun keycloakInternalUrl(): String = "http://keycloak-test:8080"
+    fun keycloakInternalUrl(): String = "http://keycloak:8080"
 
     fun keycloakServiceUrl(): String {
-        val host = compose.getServiceHost("keycloak-test", 8080)
-        val port = compose.getServicePort("keycloak-test", 8080)
+        val host = compose.getServiceHost("keycloak", 8080)
+        val port = compose.getServicePort("keycloak", 8080)
         return "http://$host:$port"
     }
 
     fun keycloakManagementUrl(): String {
-        val host = compose.getServiceHost("keycloak-test", 9000)
-        val port = compose.getServicePort("keycloak-test", 9000)
+        val host = compose.getServiceHost("keycloak", 9000)
+        val port = compose.getServicePort("keycloak", 9000)
         return "http://$host:$port"
     }
 
