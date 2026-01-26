@@ -1,5 +1,5 @@
 [versions]
-kotlin = "2.2.20"
+kotlin = "2.3.0"
 keycloak = "26.5.2"
 kc-admin = "26.0.8"
 shadow = "9.3.1"
