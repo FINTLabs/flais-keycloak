@@ -1,12 +1,11 @@
 package no.fintlabs.mapper
 
+import no.fintlabs.utils.OrgAttributeUtils.getAttributeValue
 import org.jboss.logging.Logger
 import org.keycloak.models.ClientSessionContext
 import org.keycloak.models.KeycloakSession
 import org.keycloak.models.ProtocolMapperModel
-import org.keycloak.models.UserModel
 import org.keycloak.models.UserSessionModel
-import org.keycloak.organization.OrganizationProvider
 import org.keycloak.protocol.oidc.mappers.AbstractOIDCProtocolMapper
 import org.keycloak.protocol.oidc.mappers.OIDCAccessTokenMapper
 import org.keycloak.protocol.oidc.mappers.OIDCAttributeMapperHelper
@@ -66,24 +65,12 @@ class OrgSpecificAttributeMapper :
     ) {
         logger.debugf("Adding org claim to token for %s", userSession.user.username)
 
-        val value = getOrganizationsAttributeValue(keycloakSession, userSession.user, mappingModel)
+        val value =
+            getAttributeValue(
+                keycloakSession,
+                userSession.user,
+                mappingModel.config[CFG_ORG_ATTRIBUTE] ?: return,
+            )
         if (value != null) OIDCAttributeMapperHelper.mapClaim(token, mappingModel, value)
-    }
-
-    fun getOrganizationsAttributeValue(
-        session: KeycloakSession,
-        user: UserModel,
-        mappingModel: ProtocolMapperModel,
-    ): String? {
-        val orgAttrName = mappingModel.config[CFG_ORG_ATTRIBUTE] ?: return null
-        val orgProvider = session.getProvider(OrganizationProvider::class.java)
-
-        return orgProvider
-            .getByMember(user)
-            .map { org -> org.attributes[orgAttrName] }
-            .filter { attrs -> attrs != null && !attrs.isEmpty() }
-            .map { attrs -> attrs[0] }
-            .findFirst()
-            .orElse(null)
     }
 }
