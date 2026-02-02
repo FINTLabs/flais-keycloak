@@ -1,13 +1,11 @@
 package no.fintlabs.test.system.e2e.clients
 
-import com.microsoft.playwright.Page
 import com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat
 import no.fintlabs.test.common.annotations.PwTest
 import no.fintlabs.test.common.utils.kc.KcEnvironment
 import no.fintlabs.test.common.utils.pw.PwEnvironment
 import no.fintlabs.test.system.utils.PwFlow
 import org.junit.jupiter.api.TestTemplate
-import java.util.regex.Pattern
 
 @PwTest
 class BrowserClientLoginTest {
