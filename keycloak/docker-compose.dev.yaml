@@ -1,5 +1,7 @@
 services:
     keycloak:
+        volumes:
+            - ./config/kc:/opt/keycloak/data/import:ro
         ports:
             - "8890:8080"
             - "9900:9000"
