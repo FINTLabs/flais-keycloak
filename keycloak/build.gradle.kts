@@ -30,6 +30,7 @@ dependencies {
     testImplementation(libs.kotlinx.serialization.json)
     testImplementation(libs.okhttp)
     testImplementation(libs.awaitility.kotlin)
+    testImplementation(libs.playwright)
 
     koverCli(libs.kover.cli)
 }
@@ -45,6 +46,7 @@ kover {
     currentProject {
         instrumentation {
             disabledForTestTasks.add("integrationTest")
+            disabledForTestTasks.add("systemTest")
         }
     }
     reports {
@@ -108,6 +110,26 @@ val integrationTestSourceSet by sourceSets.creating {
     runtimeClasspath += output + compileClasspath + configurations["testRuntimeClasspath"]
 }
 
+val systemTestSourceSet by sourceSets.creating {
+    kotlin.srcDir("src/test/system/kotlin")
+    resources.srcDir("src/test/system/resources")
+    compileClasspath += sourceSets["main"].output + configurations["testCompileClasspath"]
+    runtimeClasspath += output + compileClasspath + configurations["testRuntimeClasspath"]
+}
+
+val commonTestSourceSet by sourceSets.creating {
+    kotlin.srcDir("src/test/common/kotlin")
+    resources.srcDir("src/test/common/resources")
+    compileClasspath += sourceSets["main"].output + configurations["testCompileClasspath"]
+    runtimeClasspath += output + compileClasspath + configurations["testRuntimeClasspath"]
+
+    integrationTestSourceSet.compileClasspath += this.output
+    integrationTestSourceSet.runtimeClasspath += this.output
+
+    systemTestSourceSet.compileClasspath += this.output
+    systemTestSourceSet.runtimeClasspath += this.output
+}
+
 tasks.register<Test>("integrationTest") {
     description = "Runs integration tests."
     group = "verification"
@@ -121,6 +143,22 @@ tasks.register<Test>("integrationTest") {
     systemProperty("project.rootDir", rootProject.projectDir.absolutePath)
 
     environment("KEYCLOAK_VERSION", libs.versions.keycloak.get())
+}
+
+tasks.register<Test>("systemTest") {
+    description = "Runs system tests."
+    group = "verification"
+
+    testClassesDirs = systemTestSourceSet.output.classesDirs
+    classpath = systemTestSourceSet.runtimeClasspath
+
+    useJUnitPlatform()
+
+    systemProperty("org.slf4j.simpleLogger.defaultLogLevel", "warn")
+    systemProperty("project.rootDir", rootProject.projectDir.absolutePath)
+
+    environment("KEYCLOAK_VERSION", libs.versions.keycloak.get())
+    environment("PLAYWRIGHT_VERSION", libs.versions.playwright.get())
 }
 
 tasks.register("deployDev") {

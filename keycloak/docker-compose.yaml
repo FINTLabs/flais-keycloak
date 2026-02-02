@@ -23,8 +23,6 @@ services:
             KC_DB_SCHEMA: public
             KC_BOOTSTRAP_ADMIN_USERNAME: admin
             KC_BOOTSTRAP_ADMIN_PASSWORD: admin
-        volumes:
-            - ./config/kc:/opt/keycloak/data/import:ro
         depends_on:
             keycloak-pg:
                 condition: service_healthy
