@@ -147,8 +147,6 @@ jobs:
         runs-on: ubuntu-latest-8-cores
         needs:
             - playwright-version
-        container:
-            image: mcr.microsoft.com/playwright/java:v${{ needs.playwright-version.outputs.version }}-noble
         defaults:
             run:
                 working-directory: keycloak
@@ -164,6 +162,9 @@ jobs:
 
             -   name: Setup Gradle
                 uses: gradle/actions/setup-gradle@v5
+
+            -   name: Install Playwright OS deps
+                run: npx -y playwright@${{ needs.playwright-version.outputs.version }} install-deps
 
             -   name: Run System Tests
                 run: ./gradlew systemTest --stacktrace --configuration-cache
