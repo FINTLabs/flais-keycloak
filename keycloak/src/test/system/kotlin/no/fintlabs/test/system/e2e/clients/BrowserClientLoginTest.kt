@@ -24,13 +24,4 @@ class BrowserClientLoginTest {
         assertThat(errorMessage).isVisible()
         assertThat(errorMessage).hasText("Client not found.")
     }
-
-    private fun assertCallback(
-        env: KcEnvironment,
-        page: Page,
-    ) {
-        assertThat(page).hasURL(
-            Pattern.compile("${env.flaisKeycloakDemoUrl()}/callback"),
-        )
-    }
 }
