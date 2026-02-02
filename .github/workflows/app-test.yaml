@@ -24,6 +24,14 @@ permissions:
     checks: write
 
 jobs:
+    playwright-version:
+        name: Read Playwright version
+        uses: ./.github/workflows/.extract-version.yaml
+        with:
+            libs_versions_path: ./keycloak/gradle/libs.versions.toml
+            lib_name: "playwright"
+        secrets: inherit
+
     check-formatting:
         name: Check code formatting
         runs-on: ubuntu-latest
@@ -137,6 +145,10 @@ jobs:
     system-tests:
         name: Run System Tests
         runs-on: ubuntu-latest-8-cores
+        needs:
+            - playwright-version
+        container:
+            image: mcr.microsoft.com/playwright/java:v${{ needs.playwright-version.outputs.version }}-noble
         defaults:
             run:
                 working-directory: keycloak
