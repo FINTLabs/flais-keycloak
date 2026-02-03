@@ -27,6 +27,7 @@ class QlikRolesMapper :
         const val CFG_PASSTHROUGH_COUNTIES = "passthroughCounty"
         const val CFG_TENANT_ATTRIBUTE = "tenantAttribute"
         const val CFG_ROLES_ATTRIBUTE = "rolesAttribute"
+        const val CFG_ALLOWED_ROLE_PREFIXES = "allowedRolePrefixes"
 
         private val CONFIG_PROPERTIES: List<ProviderConfigProperty> =
             buildList {
@@ -47,6 +48,16 @@ class QlikRolesMapper :
                         helpText = "Multiline list of county values for which role should NOT be prefixed."
                         type = ProviderConfigProperty.TEXT_TYPE
                         isRequired = false
+                    },
+                )
+
+                add(
+                    ProviderConfigProperty().apply {
+                        name = CFG_ALLOWED_ROLE_PREFIXES
+                        label = "Allowed role prefixes"
+                        helpText = "Multiline list of prefixes. Only roles starting with one of these prefixes will be included."
+                        type = ProviderConfigProperty.TEXT_TYPE
+                        isRequired = true
                     },
                 )
 
@@ -118,8 +129,9 @@ class QlikRolesMapper :
 
         val county: String = tenantToCounty(mappingModel, tenantId) ?: return
         val passthroughCounties = passthroughCounties(mappingModel)
+        val allowedRolePrefixes = allowedRolePrefixes(mappingModel)
 
-        val formattedRoles: List<String> = formatRoles(userRoles, county, passthroughCounties)
+        val formattedRoles: List<String> = formatRoles(userRoles, county, passthroughCounties, allowedRolePrefixes)
 
         OIDCAttributeMapperHelper.mapClaim(token, mappingModel, formattedRoles)
     }
@@ -143,6 +155,7 @@ class QlikRolesMapper :
         roles: List<String>,
         county: String,
         passthroughCounties: Set<String>,
+        allowedPrefixes: List<String>,
     ): List<String> {
         if (roles.isEmpty()) return emptyList()
 
@@ -153,7 +166,7 @@ class QlikRolesMapper :
         val result = ArrayList<String>()
 
         for (role in roles) {
-            if (!role.startsWith("https")) {
+            if (allowedPrefixes.none { role.startsWith(it) }) {
                 continue
             }
 
@@ -171,4 +184,12 @@ class QlikRolesMapper :
             ?.filter { it.isNotEmpty() }
             ?.toSet()
             ?: emptySet()
+
+    fun allowedRolePrefixes(mappingModel: ProtocolMapperModel): List<String> =
+        mappingModel.config[CFG_ALLOWED_ROLE_PREFIXES]
+            ?.lineSequence()
+            ?.map { it.trim() }
+            ?.filter { it.isNotEmpty() }
+            ?.toList()
+            ?: emptyList()
 }
