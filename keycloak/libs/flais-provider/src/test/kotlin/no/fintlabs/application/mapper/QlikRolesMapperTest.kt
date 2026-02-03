@@ -5,6 +5,7 @@ import io.mockk.mockk
 import io.mockk.mockkObject
 import io.mockk.verify
 import no.fintlabs.mapper.QlikRolesMapper
+import no.fintlabs.mapper.QlikRolesMapper.Companion.CFG_ALLOWED_ROLE_PREFIXES
 import no.fintlabs.mapper.QlikRolesMapper.Companion.CFG_PASSTHROUGH_COUNTIES
 import no.fintlabs.mapper.QlikRolesMapper.Companion.CFG_ROLES_ATTRIBUTE
 import no.fintlabs.mapper.QlikRolesMapper.Companion.CFG_TENANT_ATTRIBUTE
@@ -40,6 +41,10 @@ class QlikRolesMapperTest {
         novari
         frid
         """.trimIndent()
+    private val defaultAllowedRolePrefixes =
+        """
+        https
+        """.trimIndent()
     private val defaultTenantMap =
         """
         a3d9c6f2-7b41-4e2a-9f8b-1c0e4f6b2a91=1
@@ -69,6 +74,7 @@ class QlikRolesMapperTest {
     private fun mappingModel(
         tenantMap: String? = defaultTenantMap,
         passthroughCounty: String? = defaultPassthroughCounty,
+        allowedRolePrefixes: String? = defaultAllowedRolePrefixes,
         tenantAttribute: String? = defaultTenantAttributeName,
         rolesAttribute: String? = defaultRolesAttributeName,
         tokenClaimName: String = defaultTokenClaimName,
@@ -81,6 +87,7 @@ class QlikRolesMapperTest {
 
             tenantMap?.let { config[CFG_TENANT_COUNTY_MAP] = it }
             passthroughCounty?.let { config[CFG_PASSTHROUGH_COUNTIES] = it }
+            allowedRolePrefixes?.let { config[CFG_ALLOWED_ROLE_PREFIXES] = it }
             tenantAttribute?.let { config[CFG_TENANT_ATTRIBUTE] = it }
             rolesAttribute?.let { config[CFG_ROLES_ATTRIBUTE] = it }
 
@@ -288,6 +295,77 @@ class QlikRolesMapperTest {
             mappingModel(
                 tenantMap = "$defaultTenantId=1",
                 passthroughCounty = null,
+            )
+
+        mapper.transformAccessToken(token, model, session, userSession, clientSessionCtx)
+
+        val roles = token.otherClaims[defaultTokenClaimName]
+        assertEquals(
+            listOf(
+                "1_https://role-catalog.vigoiks.no/vigo/qlik/qliksense/fk-inntak",
+                "https://role-catalog.vigoiks.no/vigo/qlik/qliksense/fk-inntak",
+            ),
+            roles,
+        )
+    }
+
+    @Test
+    fun `allowedRolePrefixes can include multiple prefixes and should include matching roles`() {
+        every { user.attributes } returns
+            mapOf(
+                defaultRolesAttributeName to
+                    listOf(
+                        "urn:qlik:role:editor",
+                        "https://role-catalog.vigoiks.no/vigo/qlik/qliksense/fk-inntak",
+                        "_internal",
+                    ),
+            )
+
+        val token = AccessToken()
+        val model =
+            mappingModel(
+                tenantMap = "$defaultTenantId=1",
+                allowedRolePrefixes =
+                    """
+                    https
+                    urn:
+                    """.trimIndent(),
+            )
+
+        mapper.transformAccessToken(token, model, session, userSession, clientSessionCtx)
+
+        val roles = token.otherClaims[defaultTokenClaimName]
+        assertEquals(
+            listOf(
+                "1_urn:qlik:role:editor",
+                "urn:qlik:role:editor",
+                "1_https://role-catalog.vigoiks.no/vigo/qlik/qliksense/fk-inntak",
+                "https://role-catalog.vigoiks.no/vigo/qlik/qliksense/fk-inntak",
+            ),
+            roles,
+        )
+    }
+
+    @Test
+    fun `allowedRolePrefixes should filter out roles not matching any configured prefix`() {
+        every { user.attributes } returns
+            mapOf(
+                defaultRolesAttributeName to
+                    listOf(
+                        "urn:qlik:role:editor",
+                        "http://not-https.example/role",
+                        "https://role-catalog.vigoiks.no/vigo/qlik/qliksense/fk-inntak",
+                    ),
+            )
+
+        val token = AccessToken()
+        val model =
+            mappingModel(
+                tenantMap = "$defaultTenantId=1",
+                allowedRolePrefixes =
+                    """
+                    https://role-catalog.vigoiks.no/
+                    """.trimIndent(),
             )
 
         mapper.transformAccessToken(token, model, session, userSession, clientSessionCtx)

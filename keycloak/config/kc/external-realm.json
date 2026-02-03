@@ -317,6 +317,7 @@
                     "config": {
                         "tenantToCountyMap": "a3d9c6f2-7b41-4e2a-9f8b-1c0e4f6b2a91=1\nc84f1a9e-2d6b-43c1-b5a2-9e7d4f0c8a3b=22\n7b2f4c1e-91a8-4e63-8d5a-3c0e9f6a42d7=33\n2e6d9c14-7f3a-4b8e-a0d1-5c92f6e7ab43=44",
                         "passthroughCounty": "33\n44",
+                        "allowedRolePrefixes": "https",
                         "multivalued": "true",
                         "rolesAttribute": "roles",
                         "id.token.claim": "false",
