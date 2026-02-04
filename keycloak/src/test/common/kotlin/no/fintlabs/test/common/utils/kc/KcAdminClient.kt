@@ -6,6 +6,7 @@ import org.keycloak.admin.client.KeycloakBuilder
 import org.keycloak.admin.client.resource.RealmResource
 import org.keycloak.representations.idm.FederatedIdentityRepresentation
 import org.keycloak.representations.idm.MemberRepresentation
+import org.keycloak.representations.idm.ProtocolMapperRepresentation
 import org.keycloak.representations.idm.RealmRepresentation
 import org.keycloak.representations.idm.UserRepresentation
 import org.keycloak.util.JsonSerialization
@@ -175,5 +176,35 @@ object KcAdminClient {
                     res.update(rep)
                 }
         }
+    }
+
+    fun setClientProtocolMapperConfig(
+        realm: RealmResource,
+        clientId: String,
+        mapperId: String,
+        configKey: String,
+        configValue: String,
+    ) {
+        val clientUuid =
+            realm
+                .clients()
+                .findByClientId(clientId)
+                .firstOrNull()
+                ?.id
+                ?: throw IllegalArgumentException("Client not found: clientId=$clientId")
+
+        val client = realm.clients().get(clientUuid)
+        val mappers = client.protocolMappers
+
+        val mapper: ProtocolMapperRepresentation =
+            mappers.mappers
+                .firstOrNull { it.id == mapperId }
+                ?: throw IllegalArgumentException("Protocol mapper not found: name=$mapperId (clientId=$clientId)")
+
+        val newConfig = (mapper.config ?: emptyMap()).toMutableMap()
+        newConfig[configKey] = configValue
+        mapper.config = newConfig
+
+        mappers.update(mapper.id, mapper)
     }
 }

@@ -92,7 +92,7 @@
                     "rogaland-no"
                 ],
                 "TENANT_ID": [
-                    "22222222-2222-2222-2222-222222222222"
+                    "c84f1a9e-2d6b-43c1-b5a2-9e7d4f0c8a3b"
                 ]
             },
             "domains": [
@@ -160,7 +160,7 @@
                     "telemark-no"
                 ],
                 "TENANT_ID": [
-                    "11111111-1111-1111-1111-111111111111"
+                    "a3d9c6f2-7b41-4e2a-9f8b-1c0e4f6b2a91"
                 ]
             },
             "domains": [
@@ -289,6 +289,44 @@
             ],
             "webOrigins": [
                 "*"
+            ]
+        },
+        {
+            "clientId": "qlik",
+            "enabled": true,
+            "publicClient": true,
+            "protocol": "openid-connect",
+            "directAccessGrantsEnabled": false,
+            "serviceAccountsEnabled": false,
+            "standardFlowEnabled": true,
+            "implicitFlowEnabled": false,
+            "clientAuthenticatorType": "client-secret",
+            "redirectUris": [
+                "http://localhost*"
+            ],
+            "webOrigins": [
+                "+"
+            ],
+            "protocolMappers": [
+                {
+                    "id": "d928a7f7-0540-43b9-b10f-74b2d384ea8e",
+                    "name": "qlik-roles",
+                    "protocol": "openid-connect",
+                    "protocolMapper": "qlik-roles-mapper",
+                    "consentRequired": false,
+                    "config": {
+                        "tenantToCountyMap": "a3d9c6f2-7b41-4e2a-9f8b-1c0e4f6b2a91=1\nc84f1a9e-2d6b-43c1-b5a2-9e7d4f0c8a3b=22\n7b2f4c1e-91a8-4e63-8d5a-3c0e9f6a42d7=33\n2e6d9c14-7f3a-4b8e-a0d1-5c92f6e7ab43=44",
+                        "passthroughCounty": "33\n44",
+                        "allowedRolePrefixes": "https",
+                        "multivalued": "true",
+                        "rolesAttribute": "roles",
+                        "id.token.claim": "false",
+                        "lightweight.claim": "false",
+                        "access.token.claim": "true",
+                        "claim.name": "qlik",
+                        "tenantAttribute": "TENANT_ID"
+                    }
+                }
             ]
         }
     ],

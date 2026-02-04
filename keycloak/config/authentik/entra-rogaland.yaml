@@ -47,6 +47,25 @@ entries:
                     - "write"
                     - "admin"
 
+    -   model: authentik_core.user
+        state: present
+        identifiers:
+            username: "qlik.basic@rogaland.no"
+        attrs:
+            name: "Qlik Basic"
+            email: "qlik.basic@rogaland.no"
+            is_active: true
+            password: "password"
+            attributes:
+                oid: "33333333-3333-3333-3333-333333333333"
+                given_name: "Qlik"
+                family_name: "Basic"
+                roles:
+                    - "read"
+                    - "https://role-catalog.vigoiks.no/vigo/qlik/qliksense/fk-fagopplaring"
+                    - "https://role-catalog.vigoiks.no/vigo/qlik/qliksense/fk-dokumentasjon"
+                    - "1_https://role-catalog.vigoiks.no/vigo/qlik/qliksense/fk-dokumentasjon"
+
     -   model: authentik_providers_oauth2.oauth2provider
         state: present
         identifiers:
