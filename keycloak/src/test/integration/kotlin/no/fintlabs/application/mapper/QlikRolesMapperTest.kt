@@ -16,6 +16,11 @@ import org.junit.jupiter.params.provider.ValueSource
 
 @ExtendWith(KcEnvExtension::class)
 class QlikRolesMapperTest {
+    val realm = "external"
+    val clientId = "qlik"
+    val scope = "openid profile email"
+    val password = "password"
+
     @ParameterizedTest(name = "qlik-roles-mapper for org ({0}) maps correctly ")
     @ValueSource(strings = ["telemark", "rogaland"])
     fun `qlik-mapper maps attribute correctly to access token`(
@@ -23,13 +28,9 @@ class QlikRolesMapperTest {
         env: KcComposeEnvironment,
     ) {
         val client = KcHttpClient.create(followRedirects = true)
-        val realm = "external"
-        val clientId = "qlik"
         val redirectUri = "${env.flaisKeycloakDemoUrl()}/callback"
-        val scope = "openid profile email"
         val idpAlias = "entra-$orgAlias"
         val email = "qlik.basic@$orgAlias.no"
-        val password = "password"
         val (authUrl, codeVerifier) =
             KcUrl.authUrl(
                 env = env,
@@ -106,18 +107,14 @@ class QlikRolesMapperTest {
 
     @ParameterizedTest(name = "qlik-roles-mapper for org ({0}) for passthrough counties maps correctly`")
     @ValueSource(strings = ["telemark", "rogaland"])
-    fun `qlik-roles-mapper for passthrough counties maps correctly`(
+    fun `qlik-roles-mapper for passthrough counties maps correctly to access token`(
         orgAlias: String,
         env: KcComposeEnvironment,
     ) {
         val client = KcHttpClient.create(followRedirects = true)
-        val realm = "external"
-        val clientId = "qlik"
         val redirectUri = "${env.flaisKeycloakDemoUrl()}/callback"
-        val scope = "openid profile email"
         val idpAlias = "entra-$orgAlias"
         val email = "qlik.basic@$orgAlias.no"
-        val password = "password"
         val (authUrl, codeVerifier) =
             KcUrl.authUrl(
                 env = env,
