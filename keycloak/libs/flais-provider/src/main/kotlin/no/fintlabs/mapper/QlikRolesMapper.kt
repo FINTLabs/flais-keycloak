@@ -35,7 +35,7 @@ class QlikRolesMapper :
                     ProviderConfigProperty().apply {
                         name = CFG_TENANT_COUNTY_MAP
                         label = "Tenant→County (key=value)"
-                        helpText = "Multiline mapping in the form: <tenant-uuid>=<value>"
+                        helpText = "Multiline list of mapping tenant id to county. One entry per line. Format: <tenant-uuid>=<value>"
                         type = ProviderConfigProperty.TEXT_TYPE
                         isRequired = true
                     },
@@ -45,7 +45,7 @@ class QlikRolesMapper :
                     ProviderConfigProperty().apply {
                         name = CFG_PASSTHROUGH_COUNTIES
                         label = "Passthrough counties"
-                        helpText = "Multiline list of county values for which role should NOT be prefixed."
+                        helpText = "Multiline list of counties for which roles should NOT be prefixed. One entry per line."
                         type = ProviderConfigProperty.TEXT_TYPE
                         isRequired = false
                     },
@@ -55,7 +55,8 @@ class QlikRolesMapper :
                     ProviderConfigProperty().apply {
                         name = CFG_ALLOWED_ROLE_PREFIXES
                         label = "Allowed role prefixes"
-                        helpText = "Multiline list of prefixes. Only roles starting with one of these prefixes will be included."
+                        helpText =
+                            "Multiline list of allowed role prefixes. One entry per line. Only roles starting with one of these prefixes will be included."
                         type = ProviderConfigProperty.TEXT_TYPE
                         isRequired = true
                     },
