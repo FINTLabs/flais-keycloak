@@ -11,14 +11,18 @@ const keycloak = new Keycloak({
     clientId: import.meta.env.VITE_CLIENT_ID ?? "flais-keycloak-demo",
 });
 
-keycloak.init().then((authenticated) => {
-    if (authenticated) {
-        createRoot(document.getElementById("root")!).render(
-            <StrictMode>
-                <App keycloak={keycloak} />
-            </StrictMode>
-        );
-    } else {
-        keycloak.login({ scope: "organization" });
-    }
-});
+keycloak
+    .init({
+        onLoad: "check-sso",
+    })
+    .then((authenticated) => {
+        if (authenticated) {
+            createRoot(document.getElementById("root")!).render(
+                <StrictMode>
+                    <App keycloak={keycloak} />
+                </StrictMode>,
+            );
+        } else {
+            keycloak.login({ scope: "organization" });
+        }
+    });
