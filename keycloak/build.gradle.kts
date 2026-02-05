@@ -58,6 +58,7 @@ kover {
 
 dockerCompose {
     environment.put("KEYCLOAK_VERSION", libs.versions.keycloak.get())
+    environment.put("COMPOSE_PROFILES", "dev")
 }
 
 tasks.register<Exec>("koverIntegrationXmlReport") {
