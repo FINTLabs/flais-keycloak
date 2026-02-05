@@ -11,13 +11,15 @@ import org.keycloak.protocol.oidc.mappers.AbstractOIDCProtocolMapper
 import org.keycloak.protocol.oidc.mappers.OIDCAccessTokenMapper
 import org.keycloak.protocol.oidc.mappers.OIDCAttributeMapperHelper
 import org.keycloak.protocol.oidc.mappers.OIDCIDTokenMapper
+import org.keycloak.protocol.oidc.mappers.UserInfoTokenMapper
 import org.keycloak.provider.ProviderConfigProperty
 import org.keycloak.representations.IDToken
 
 class QlikRolesMapper :
     AbstractOIDCProtocolMapper(),
     OIDCAccessTokenMapper,
-    OIDCIDTokenMapper {
+    OIDCIDTokenMapper,
+    UserInfoTokenMapper {
     private val logger: Logger = Logger.getLogger(QlikRolesMapper::class.java)
 
     companion object {
