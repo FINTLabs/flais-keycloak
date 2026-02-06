@@ -58,6 +58,7 @@ kover {
 
 dockerCompose {
     environment.put("KEYCLOAK_VERSION", libs.versions.keycloak.get())
+    environment.put("COMPOSE_PROFILES", "dev")
 }
 
 tasks.register<Exec>("koverIntegrationXmlReport") {
@@ -123,17 +124,17 @@ tasks.register<Test>("integrationTest") {
     environment("KEYCLOAK_VERSION", libs.versions.keycloak.get())
 }
 
-tasks.register("deployDev") {
+tasks.register("runDev") {
     group = "docker"
-    description = "Deploy local dev with compose"
+    description = "Run local dev with compose"
 
     doLast {
         dockerCompose.dockerExecutor.execute("compose", "up", "-d", "--build", "keycloak")
-        println("Rebuilt & restarted Keycloak")
+        println("Built & started Keycloak dev environment")
     }
 }
 
-tasks.register("restart") {
+tasks.register("restartDev") {
     group = "docker"
     description = "Rebuild the keycloak image and recreate the container"
 
@@ -141,6 +142,26 @@ tasks.register("restart") {
         dockerCompose.dockerExecutor.execute("compose", "build", "--pull", "keycloak")
         dockerCompose.dockerExecutor.execute("compose", "up", "-d", "--force-recreate", "keycloak")
         println("Rebuilt & restarted Keycloak")
+    }
+}
+
+tasks.register("stopDev") {
+    group = "docker"
+    description = "Stop local dev"
+
+    doLast {
+        dockerCompose.dockerExecutor.execute("compose", "stop")
+        println("Stopped Keycloak dev environment")
+    }
+}
+
+tasks.register("cleanupDev") {
+    group = "docker"
+    description = "Remove local dev docker"
+
+    doLast {
+        dockerCompose.dockerExecutor.execute("compose", "rm", "-s", "-f")
+        println("Cleaned up Keycloak dev environment")
     }
 }
 
