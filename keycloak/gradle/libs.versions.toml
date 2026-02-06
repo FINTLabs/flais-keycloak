@@ -16,7 +16,7 @@ kotlinx-serialization-json = "1.10.0"
 slf4j = "2.0.17"
 okhttp = "5.3.2"
 
-kover = "0.9.4"
+kover = "0.9.5"
 
 playwright = "1.57.0"
 

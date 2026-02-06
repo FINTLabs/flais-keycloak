@@ -48,13 +48,23 @@ Prerequisites:
     cd keycloak
     ```
 
-2. Run task "deployDev" for full setup
+2. Run task "runDev" for full setup
 
     ```bash
-    gradle deployDev
+    gradle runDev
     ```
 
-3. Run task "restart" to restart Keycloak for changes
+3. Run task "restartDev" to restart Keycloak for changes
     ```bash
-    gradle restart
+    gradle restartDev
     ```
+
+4. Run task "stopDev" to stop Keycloak dev environment
+   ```bash
+   gradle stopDev
+   ```
+
+5. Run task "cleanupDev" to stop and cleanup Keycloak dev environment
+   ```bash
+   gradle cleanupDev
+   ```

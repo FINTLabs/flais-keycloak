@@ -161,9 +161,9 @@ tasks.register<Test>("systemTest") {
     environment("PLAYWRIGHT_VERSION", libs.versions.playwright.get())
 }
 
-tasks.register("deployDev") {
+tasks.register("runDev") {
     group = "docker"
-    description = "Deploy local dev with compose"
+    description = "Run local dev with compose"
 
     doLast {
         dockerCompose.dockerExecutor.execute(
@@ -177,11 +177,11 @@ tasks.register("deployDev") {
             "--build",
             "keycloak",
         )
-        println("Rebuilt & restarted Keycloak")
+        println("Built & started Keycloak dev environment")
     }
 }
 
-tasks.register("restart") {
+tasks.register("restartDev") {
     group = "docker"
     description = "Rebuild the keycloak image and recreate the container"
 
@@ -199,6 +199,26 @@ tasks.register("restart") {
             "keycloak",
         )
         println("Rebuilt & restarted Keycloak")
+    }
+}
+
+tasks.register("stopDev") {
+    group = "docker"
+    description = "Stop local dev"
+
+    doLast {
+        dockerCompose.dockerExecutor.execute("compose", "stop")
+        println("Stopped Keycloak dev environment")
+    }
+}
+
+tasks.register("cleanupDev") {
+    group = "docker"
+    description = "Remove local dev docker"
+
+    doLast {
+        dockerCompose.dockerExecutor.execute("compose", "rm", "-s", "-f")
+        println("Cleaned up Keycloak dev environment")
     }
 }
 
