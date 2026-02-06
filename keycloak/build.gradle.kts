@@ -160,7 +160,7 @@ tasks.register("cleanupDev") {
     description = "Remove local dev docker"
 
     doLast {
-        dockerCompose.dockerExecutor.execute("compose", "rm")
+        dockerCompose.dockerExecutor.execute("compose", "rm", "-s", "-f")
         println("Cleaned up Keycloak dev environment")
     }
 }
