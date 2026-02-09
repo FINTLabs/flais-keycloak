@@ -42,9 +42,10 @@ class KcEnvExtension :
         val store = store(context)
 
         val env: KcEnvironment =
-            store.get(KC_ENV, KcEnvironment::class.java) ?: LocalKcEnvironment().also { it.start() }
-
-        store.put(KC_ENV, env)
+            store.get(KC_ENV, KcEnvironment::class.java) ?: LocalKcEnvironment().also {
+                it.start()
+                store.put(KC_ENV, it)
+            }
 
         val requested = "config/kc/external-realm.json"
         val resolved =
