@@ -62,6 +62,83 @@ dockerCompose {
     environment.put("KEYCLOAK_VERSION", libs.versions.keycloak.get())
 }
 
+@Suppress("UnstableApiUsage")
+fun JvmTestSuite.commonTestSources() {
+    sources {
+        kotlin { srcDir("src/test/common/kotlin") }
+    }
+}
+
+@Suppress("UnstableApiUsage")
+fun JvmTestSuite.addSuiteSources(name: String) {
+    sources {
+        kotlin { srcDir("src/test/$name/kotlin") }
+    }
+}
+
+tasks.withType<Test>().configureEach {
+    systemProperty("org.slf4j.simpleLogger.defaultLogLevel", "debug")
+    systemProperty("project.rootDir", rootProject.projectDir.absolutePath)
+
+    environment("KEYCLOAK_VERSION", libs.versions.keycloak.get())
+    environment("PLAYWRIGHT_VERSION", libs.versions.playwright.get())
+}
+
+@Suppress("UnstableApiUsage", "unused")
+testing {
+    suites {
+        withType<JvmTestSuite> {
+            useJUnitJupiter()
+
+            dependencies {
+                implementation(project())
+            }
+
+            if (name != "test") {
+                configurations {
+                    named("${name}Implementation").configure {
+                        extendsFrom(configurations.testImplementation.get())
+                    }
+                    named("${name}RuntimeOnly").configure {
+                        extendsFrom(configurations.testRuntimeOnly.get())
+                    }
+                    named("${name}CompileOnly").configure {
+                        extendsFrom(configurations.testCompileOnly.get())
+                    }
+                }
+            }
+        }
+
+        val integrationTest by registering(JvmTestSuite::class) {
+            commonTestSources()
+            addSuiteSources("integration")
+
+            targets {
+                all {
+                    testTask.configure {
+                        description = "Runs integration tests."
+                        group = "verification"
+                    }
+                }
+            }
+        }
+
+        val systemTest by registering(JvmTestSuite::class) {
+            commonTestSources()
+            addSuiteSources("system")
+
+            targets {
+                all {
+                    testTask.configure {
+                        description = "Runs system tests."
+                        group = "verification"
+                    }
+                }
+            }
+        }
+    }
+}
+
 tasks.register<Exec>("koverIntegrationXmlReport") {
     group = "verification"
     description = "Generates Kover XML report from Keycloak integration test IC data"
@@ -101,64 +178,6 @@ tasks.register<Exec>("koverIntegrationXmlReport") {
 
         commandLine(args)
     }
-}
-
-val integrationTestSourceSet by sourceSets.creating {
-    kotlin.srcDir("src/test/integration/kotlin")
-    resources.srcDir("src/test/integration/resources")
-    compileClasspath += sourceSets["main"].output + configurations["testCompileClasspath"]
-    runtimeClasspath += output + compileClasspath + configurations["testRuntimeClasspath"]
-}
-
-val systemTestSourceSet by sourceSets.creating {
-    kotlin.srcDir("src/test/system/kotlin")
-    resources.srcDir("src/test/system/resources")
-    compileClasspath += sourceSets["main"].output + configurations["testCompileClasspath"]
-    runtimeClasspath += output + compileClasspath + configurations["testRuntimeClasspath"]
-}
-
-val commonTestSourceSet by sourceSets.creating {
-    kotlin.srcDir("src/test/common/kotlin")
-    resources.srcDir("src/test/common/resources")
-    compileClasspath += sourceSets["main"].output + configurations["testCompileClasspath"]
-    runtimeClasspath += output + compileClasspath + configurations["testRuntimeClasspath"]
-
-    integrationTestSourceSet.compileClasspath += this.output
-    integrationTestSourceSet.runtimeClasspath += this.output
-
-    systemTestSourceSet.compileClasspath += this.output
-    systemTestSourceSet.runtimeClasspath += this.output
-}
-
-tasks.register<Test>("integrationTest") {
-    description = "Runs integration tests."
-    group = "verification"
-
-    testClassesDirs = integrationTestSourceSet.output.classesDirs
-    classpath = integrationTestSourceSet.runtimeClasspath
-
-    useJUnitPlatform()
-
-    systemProperty("org.slf4j.simpleLogger.defaultLogLevel", "warn")
-    systemProperty("project.rootDir", rootProject.projectDir.absolutePath)
-
-    environment("KEYCLOAK_VERSION", libs.versions.keycloak.get())
-}
-
-tasks.register<Test>("systemTest") {
-    description = "Runs system tests."
-    group = "verification"
-
-    testClassesDirs = systemTestSourceSet.output.classesDirs
-    classpath = systemTestSourceSet.runtimeClasspath
-
-    useJUnitPlatform()
-
-    systemProperty("org.slf4j.simpleLogger.defaultLogLevel", "warn")
-    systemProperty("project.rootDir", rootProject.projectDir.absolutePath)
-
-    environment("KEYCLOAK_VERSION", libs.versions.keycloak.get())
-    environment("PLAYWRIGHT_VERSION", libs.versions.playwright.get())
 }
 
 tasks.register("runDev") {
