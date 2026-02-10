@@ -1,7 +1,7 @@
 package no.fintlabs.test.common.utils.kc
 
 /**
- * Testcontainers-based environment for running Keycloak and related providers in integration tests.
+ * Testcontainers-based environment for running Keycloak and related providers in tests.
  *
  * Simplifies the process of setting up the environment in tests.
  */
