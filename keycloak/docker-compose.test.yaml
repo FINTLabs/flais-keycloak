@@ -1,0 +1,70 @@
+services:
+    # ----------------------
+    # Core services
+    # ----------------------
+    keycloak:
+        user: "0"
+        ports:
+            - "8080"
+            - "9000"
+        depends_on:
+            flais-keycloak-demo:
+                condition: service_healthy
+            flais-scim-auth:
+                condition: service_healthy
+
+    keycloak-pg:
+        ports:
+            - "5432"
+        tmpfs:
+            - /var/lib/postgresql/data
+
+    authentik:
+        ports:
+            - "9000"
+
+    # ----------------------
+    # Helper services
+    # ----------------------
+    flais-keycloak-demo:
+        image: nginx:1.29.2-alpine
+        ports:
+            - "80"
+        volumes:
+            - ./config/nginx/index.html:/usr/share/nginx/html/index.html:ro
+            - ./config/nginx/web.conf:/etc/nginx/nginx.conf:ro
+        restart: unless-stopped
+        healthcheck:
+            test:
+              [
+                  "CMD-SHELL",
+                  "wget -q --spider http://127.0.0.1/healthz || exit 1",
+              ]
+            interval: 10s
+            timeout: 5s
+            retries: 5
+            start_period: 5s
+        networks:
+            - keycloak
+
+    flais-scim-auth:
+        build:
+            context: ./tools/flais-scim-auth
+            dockerfile: Dockerfile
+        ports:
+            - "9090"
+        environment:
+            KEYCLOAK_BASE_URL: http://keycloak:8080
+        restart: unless-stopped
+        healthcheck:
+            test:
+              [
+                  "CMD-SHELL",
+                  'node -e "fetch(''http://127.0.0.1:9090/healthz'').then(r=>process.exit(r.status===200?0:1)).catch(()=>process.exit(1))"',
+              ]
+            interval: 10s
+            timeout: 5s
+            retries: 5
+            start_period: 5s
+        networks:
+            - keycloak

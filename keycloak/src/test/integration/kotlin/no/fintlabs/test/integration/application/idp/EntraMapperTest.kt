@@ -1,0 +1,33 @@
+package no.fintlabs.test.integration.application.idp
+
+import no.fintlabs.test.common.extensions.kc.KcEnvExtension
+import no.fintlabs.test.common.utils.kc.KcAdminClient
+import no.fintlabs.test.common.utils.kc.KcEnvironment
+import no.fintlabs.test.integration.utils.KcFlow.loginWithUser
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.ExtendWith
+
+@ExtendWith(KcEnvExtension::class)
+class EntraMapperTest {
+    @Test
+    fun `map_roles_to_user_attribute maps roles from claim to attribute`(env: KcEnvironment) {
+        val realm = "external"
+        val email = "alice.basic@telemark.no"
+        val password = "password"
+        val clientId = "flais-keycloak-demo"
+        val orgAlias = "telemark"
+        val idpAlias = "entra-telemark"
+
+        loginWithUser(env, clientId, orgAlias, idpAlias, email, password).use { resp ->
+            assertEquals(200, resp.code)
+
+            val (kc, realmRes) = KcAdminClient.connect(env, realm)
+
+            kc.use {
+                val user = KcAdminClient.findUserByUsername(realmRes, email)
+                assertEquals(listOf("read", "write", "admin"), user?.attributes["roles"])
+            }
+        }
+    }
+}
