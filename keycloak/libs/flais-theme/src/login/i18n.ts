@@ -12,7 +12,6 @@ const { useI18n, ofTypeI18n } = i18nBuilder
       chooseOrg: 'Velg tilhøringhet',
       chooseOrgSubtitle: 'Velg hvilken organisasjon du ønsker å logge inn hos',
       continue: 'Fortsett',
-      rememberMe: 'Husk meg',
     },
     en: {
       chooseIdp: 'Choose identity provider',
@@ -20,7 +19,6 @@ const { useI18n, ofTypeI18n } = i18nBuilder
       chooseOrg: 'Choose affiliation',
       chooseOrgSubtitle: 'Choose the organization you want to log in with',
       continue: 'Continue',
-      rememberMe: 'Remember me',
     },
   })
   .build()
