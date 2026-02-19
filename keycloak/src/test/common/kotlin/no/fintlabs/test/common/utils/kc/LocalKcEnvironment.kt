@@ -24,7 +24,6 @@ class LocalKcEnvironment(
 
     private val compose: ComposeContainer =
         ComposeContainer(baseComposeFile, testComposeFile).apply {
-            withLocalCompose(true)
             withBuild(true)
 
             File("build/kover/agent.args").writeText(
