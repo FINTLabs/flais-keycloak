@@ -7,11 +7,16 @@ services:
         ports:
             - "8080"
             - "9000"
+        volumes:
+            - ./build/kover:/kover
         depends_on:
             flais-keycloak-demo:
                 condition: service_healthy
             flais-scim-auth:
                 condition: service_healthy
+        environment:
+            JAVA_TOOL_OPTIONS: >-
+                -javaagent:/kover/${KOVER_AGENT_JAR_NAME}=file:/kover/agent.args
 
     keycloak-pg:
         ports:
