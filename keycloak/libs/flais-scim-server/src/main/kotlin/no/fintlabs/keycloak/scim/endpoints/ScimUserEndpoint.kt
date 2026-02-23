@@ -314,8 +314,9 @@ class ScimUserEndpoint(
     private fun updateUserIdpLinking(user: UserModel) {
         val emailDomain =
             user.email
-                .substringAfter('@', missingDelimiterValue = "")
-                .takeIf { it.isNotEmpty() } ?: return
+                ?.substringAfter('@', missingDelimiterValue = "")
+                ?.takeIf { it.isNotEmpty() }
+                ?: return
         val externalId = user.getExternalId() ?: return
 
         val userProvider = scimContext.session.users()
