@@ -29,9 +29,9 @@ import jakarta.ws.rs.core.Response
 import jakarta.ws.rs.core.UriBuilder
 import jakarta.ws.rs.core.UriInfo
 import no.fintlabs.keycloak.scim.context.ScimContext
-import no.fintlabs.keycloak.scim.types.FintUserExtension
 import no.fintlabs.keycloak.scim.resources.SearchHandler
 import no.fintlabs.keycloak.scim.resources.UserResource
+import no.fintlabs.keycloak.scim.types.FintUserExtension
 import no.fintlabs.keycloak.scim.utils.ResourcePath
 import no.fintlabs.keycloak.scim.utils.ResourceTypeDefinitionUtil.createResourceTypeDefinition
 import no.fintlabs.keycloak.scim.utils.ScimRoles

@@ -371,7 +371,8 @@ class ScimUserEndpointTest {
                 .sorted()
 
         val expected: Map<String, String?> =
-            extensionFields.associateWith { propName -> "value-for-$propName" }
+            extensionFields
+                .associateWith { propName -> "value-for-$propName" }
                 .toMutableMap()
                 .apply {
                     if (containsKey("employeeId")) this["employeeId"] = ""
@@ -422,7 +423,8 @@ class ScimUserEndpointTest {
                 .sorted()
 
         val expected =
-            extensionFields.associateWith { "value-for-$it" }
+            extensionFields
+                .associateWith { "value-for-$it" }
                 .toMutableMap()
                 .apply {
                     if (containsKey("employeeId")) this["employeeId"] = ""

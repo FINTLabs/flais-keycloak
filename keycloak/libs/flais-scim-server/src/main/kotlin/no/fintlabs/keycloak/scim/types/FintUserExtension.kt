@@ -7,15 +7,14 @@ import com.unboundid.scim2.common.types.AttributeDefinition
 @Schema(
     id = "urn:ietf:params:scim:schemas:extension:fint:2.0:User",
     name = "FintUser",
-    description = "Fint user extension"
+    description = "Fint user extension",
 )
 class FintUserExtension {
-
     @Attribute(
         description = "Employee ID",
         isRequired = false,
         mutability = AttributeDefinition.Mutability.READ_WRITE,
-        returned = AttributeDefinition.Returned.DEFAULT
+        returned = AttributeDefinition.Returned.DEFAULT,
     )
     var employeeId: String? = null
 
@@ -23,7 +22,7 @@ class FintUserExtension {
         description = "Student number",
         isRequired = false,
         mutability = AttributeDefinition.Mutability.READ_WRITE,
-        returned = AttributeDefinition.Returned.DEFAULT
+        returned = AttributeDefinition.Returned.DEFAULT,
     )
     var studentNumber: String? = null
 
