@@ -29,6 +29,7 @@ import jakarta.ws.rs.core.Response
 import jakarta.ws.rs.core.UriBuilder
 import jakarta.ws.rs.core.UriInfo
 import no.fintlabs.keycloak.scim.context.ScimContext
+import no.fintlabs.keycloak.scim.types.FintUserExtension
 import no.fintlabs.keycloak.scim.resources.SearchHandler
 import no.fintlabs.keycloak.scim.resources.UserResource
 import no.fintlabs.keycloak.scim.utils.ResourcePath
@@ -43,7 +44,7 @@ import kotlin.streams.asSequence
     description = "User Account",
     name = "User",
     schema = UserResource::class,
-    optionalSchemaExtensions = [EnterpriseUserExtension::class],
+    optionalSchemaExtensions = [EnterpriseUserExtension::class, FintUserExtension::class],
 )
 @ResourcePath("Users")
 class ScimUserEndpoint(
@@ -278,6 +279,14 @@ class ScimUserEndpoint(
                     .map { JsonSerialization.readValue(it, Role::class.java) }
                     .toList()
                     .toMutableList()
+
+            setExtension(
+                FintUserExtension().apply {
+                    employeeId = user.getFirstAttribute("employeeId")
+                    studentNumber = user.getFirstAttribute("studentNumber")
+                    userPrincipalName = user.getFirstAttribute("userPrincipalName")
+                },
+            )
         }
 
     private fun updateUserModel(
@@ -308,6 +317,18 @@ class ScimUserEndpoint(
                 "roles",
                 it.map { it.value },
             )
+        }
+
+        scimUser.getExtension(FintUserExtension::class.java)?.let { ext ->
+            ext.employeeId?.let { employeeId ->
+                user.setSingleAttribute("employeeId", employeeId)
+            }
+            ext.studentNumber?.let { studentNumber ->
+                user.setSingleAttribute("studentNumber", studentNumber)
+            }
+            ext.userPrincipalName?.let { upn ->
+                user.setSingleAttribute("userPrincipalName", upn)
+            }
         }
     }
 
