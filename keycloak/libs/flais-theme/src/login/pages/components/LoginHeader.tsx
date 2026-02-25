@@ -1,17 +1,17 @@
-import React from 'react'
+import React from "react";
 
 export interface LoginHeaderProps {
-  title: string
-  subtitle: string
+    title: string;
+    subtitle: string;
 }
 
 const LoginHeaderComponent = ({ title, subtitle }: LoginHeaderProps) => {
-  return (
-    <div className="text-center space-y-2">
-      <h2 className="text-3xl font-semibold text-accent">{title}</h2>
-      <p className="text-sm text-accent/80">{subtitle}</p>
-    </div>
-  )
-}
+    return (
+        <div className="text-center space-y-2">
+            <h2 className="text-3xl font-semibold text-accent">{title}</h2>
+            <p className="text-sm text-gray-700">{subtitle}</p>
+        </div>
+    );
+};
 
-export const LoginHeader = React.memo(LoginHeaderComponent)
+export const LoginHeader = React.memo(LoginHeaderComponent);
