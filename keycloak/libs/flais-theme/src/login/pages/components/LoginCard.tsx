@@ -21,7 +21,7 @@ const LoginCardComponent = ({ logo, children }: LoginCardProps) => {
                 />
             </div>
 
-            <div className="relative bg-white shadow-lg border border-gray-100 overflow-hidden">
+            <div className="relative bg-white shadow-lg border border-gray-100">
                 <div className="pt-6 px-8 pb-8 space-y-6">{children}</div>
             </div>
         </section>
