@@ -30,6 +30,7 @@ dependencies {
     testImplementation(libs.kotlinx.serialization.json)
     testImplementation(libs.okhttp)
     testImplementation(libs.awaitility.kotlin)
+    testImplementation(libs.playwright)
 
     koverCli(libs.kover.cli)
 }
@@ -45,6 +46,7 @@ kover {
     currentProject {
         instrumentation {
             disabledForTestTasks.add("integrationTest")
+            disabledForTestTasks.add("systemTest")
         }
     }
     reports {
@@ -58,7 +60,83 @@ kover {
 
 dockerCompose {
     environment.put("KEYCLOAK_VERSION", libs.versions.keycloak.get())
-    environment.put("COMPOSE_PROFILES", "dev")
+}
+
+@Suppress("UnstableApiUsage")
+fun JvmTestSuite.commonTestSources() {
+    sources {
+        kotlin { srcDir("src/test/common/kotlin") }
+    }
+}
+
+@Suppress("UnstableApiUsage")
+fun JvmTestSuite.addSuiteSources(name: String) {
+    sources {
+        kotlin { srcDir("src/test/$name/kotlin") }
+    }
+}
+
+tasks.withType<Test>().configureEach {
+    systemProperty("org.slf4j.simpleLogger.defaultLogLevel", "debug")
+    systemProperty("project.rootDir", rootProject.projectDir.absolutePath)
+
+    environment("KEYCLOAK_VERSION", libs.versions.keycloak.get())
+    environment("PLAYWRIGHT_VERSION", libs.versions.playwright.get())
+}
+
+@Suppress("UnstableApiUsage", "unused")
+testing {
+    suites {
+        withType<JvmTestSuite> {
+            useJUnitJupiter()
+
+            dependencies {
+                implementation(project())
+            }
+
+            if (name != "test") {
+                configurations {
+                    named("${name}Implementation").configure {
+                        extendsFrom(configurations.testImplementation.get())
+                    }
+                    named("${name}RuntimeOnly").configure {
+                        extendsFrom(configurations.testRuntimeOnly.get())
+                    }
+                    named("${name}CompileOnly").configure {
+                        extendsFrom(configurations.testCompileOnly.get())
+                    }
+                }
+            }
+        }
+
+        val integrationTest by registering(JvmTestSuite::class) {
+            commonTestSources()
+            addSuiteSources("integration")
+
+            targets {
+                all {
+                    testTask.configure {
+                        description = "Runs integration tests."
+                        group = "verification"
+                    }
+                }
+            }
+        }
+
+        val systemTest by registering(JvmTestSuite::class) {
+            commonTestSources()
+            addSuiteSources("system")
+
+            targets {
+                all {
+                    testTask.configure {
+                        description = "Runs system tests."
+                        group = "verification"
+                    }
+                }
+            }
+        }
+    }
 }
 
 tasks.register<Exec>("koverIntegrationXmlReport") {
@@ -102,34 +180,22 @@ tasks.register<Exec>("koverIntegrationXmlReport") {
     }
 }
 
-val integrationTestSourceSet by sourceSets.creating {
-    kotlin.srcDir("src/test/integration/kotlin")
-    resources.srcDir("src/test/integration/resources")
-    compileClasspath += sourceSets["main"].output + configurations["testCompileClasspath"]
-    runtimeClasspath += output + compileClasspath + configurations["testRuntimeClasspath"]
-}
-
-tasks.register<Test>("integrationTest") {
-    description = "Runs integration tests."
-    group = "verification"
-
-    testClassesDirs = integrationTestSourceSet.output.classesDirs
-    classpath = integrationTestSourceSet.runtimeClasspath
-
-    useJUnitPlatform()
-
-    systemProperty("org.slf4j.simpleLogger.defaultLogLevel", "warn")
-    systemProperty("project.rootDir", rootProject.projectDir.absolutePath)
-
-    environment("KEYCLOAK_VERSION", libs.versions.keycloak.get())
-}
-
 tasks.register("runDev") {
     group = "docker"
     description = "Run local dev with compose"
 
     doLast {
-        dockerCompose.dockerExecutor.execute("compose", "up", "-d", "--build", "keycloak")
+        dockerCompose.dockerExecutor.execute(
+            "compose",
+            "-f",
+            "docker-compose.yaml",
+            "-f",
+            "docker-compose.dev.yaml",
+            "up",
+            "-d",
+            "--build",
+            "keycloak",
+        )
         println("Built & started Keycloak dev environment")
     }
 }
@@ -140,7 +206,17 @@ tasks.register("restartDev") {
 
     doLast {
         dockerCompose.dockerExecutor.execute("compose", "build", "--pull", "keycloak")
-        dockerCompose.dockerExecutor.execute("compose", "up", "-d", "--force-recreate", "keycloak")
+        dockerCompose.dockerExecutor.execute(
+            "compose",
+            "-f",
+            "docker-compose.yaml",
+            "-f",
+            "docker-compose.dev.yaml",
+            "up",
+            "-d",
+            "--force-recreate",
+            "keycloak",
+        )
         println("Rebuilt & restarted Keycloak")
     }
 }

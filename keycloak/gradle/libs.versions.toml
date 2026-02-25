@@ -1,6 +1,6 @@
 [versions]
-kotlin = "2.3.0"
-keycloak = "26.5.2"
+kotlin = "2.3.10"
+keycloak = "26.5.4"
 kc-admin = "26.0.8"
 shadow = "9.3.1"
 ktlint = "14.0.1"
@@ -10,13 +10,15 @@ awaitility = "4.3.0"
 mockk = "1.14.9"
 resteasy = "6.2.14.Final"
 
-junit = "6.0.2"
-testcontainers = "1.21.4"
+junit = "6.0.3"
+testcontainers = "2.0.3"
 kotlinx-serialization-json = "1.10.0"
 slf4j = "2.0.17"
 okhttp = "5.3.2"
 
-kover = "0.9.6"
+kover = "0.9.7"
+
+playwright = "1.58.0"
 
 [libraries]
 kotlin-stdlib = { module = "org.jetbrains.kotlin:kotlin-stdlib", version.ref = "kotlin" }
@@ -29,7 +31,7 @@ keycloak-server-spi-priv = { module = "org.keycloak:keycloak-server-spi-private"
 keycloak-admin-client = { module = "org.keycloak:keycloak-admin-client", version.ref = "kc-admin" }
 
 scim-server-sdk = { module = "com.unboundid.product.scim2:scim2-sdk-server", version = "5.0.0" }
-nimbusds-jwt = { module = "com.nimbusds:nimbus-jose-jwt", version = "10.7" }
+nimbusds-jwt = { module = "com.nimbusds:nimbus-jose-jwt", version = "10.8" }
 
 mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
 resteasy-core = { module = "org.jboss.resteasy:resteasy-core", version.ref = "resteasy" }
@@ -38,7 +40,7 @@ junit-jupiter = { module = "org.junit.jupiter:junit-jupiter", version.ref = "jun
 junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher", version.ref = "junit" }
 
 testcontainers-core = { module = "org.testcontainers:testcontainers", version.ref = "testcontainers" }
-testcontainers-junit-jupiter = { module = "org.testcontainers:junit-jupiter", version.ref = "testcontainers" }
+testcontainers-junit-jupiter = { module = "org.testcontainers:testcontainers-junit-jupiter", version.ref = "testcontainers" }
 
 awaitility-kotlin = { module = "org.awaitility:awaitility-kotlin", version.ref = "awaitility" }
 
@@ -48,6 +50,8 @@ slf4j-simple = { module = "org.slf4j:slf4j-simple", version.ref = "slf4j" }
 okhttp = { module = "com.squareup.okhttp3:okhttp", version.ref = "okhttp" }
 
 kover-cli = { module = "org.jetbrains.kotlinx:kover-cli", version.ref = "kover" }
+
+playwright = { module = "com.microsoft.playwright:playwright", version.ref = "playwright" }
 
 [plugins]
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }

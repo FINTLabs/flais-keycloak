@@ -212,7 +212,7 @@
                 "http://localhost*"
             ],
             "webOrigins": [
-                "+"
+                "*"
             ]
         },
         {
@@ -231,7 +231,7 @@
                 "http://localhost*"
             ],
             "webOrigins": [
-                "+"
+                "*"
             ]
         },
         {
@@ -250,7 +250,7 @@
                 "http://localhost*"
             ],
             "webOrigins": [
-                "+"
+                "*"
             ]
         },
         {
@@ -269,7 +269,7 @@
                 "http://localhost*"
             ],
             "webOrigins": [
-                "+"
+                "*"
             ]
         },
         {
@@ -288,7 +288,7 @@
                 "http://localhost*"
             ],
             "webOrigins": [
-                "+"
+                "*"
             ]
         },
         {
@@ -1267,7 +1267,7 @@
             "builtIn": false,
             "authenticationExecutions": [
                 {
-                    "authenticator": "idp-add-organization-member",
+                    "authenticator": "conditional-user-configured",
                     "authenticatorFlow": false,
                     "requirement": "REQUIRED",
                     "priority": 0,
@@ -1275,10 +1275,10 @@
                     "userSetupAllowed": false
                 },
                 {
-                    "authenticator": "conditional-user-configured",
+                    "authenticator": "idp-add-organization-member",
                     "authenticatorFlow": false,
                     "requirement": "REQUIRED",
-                    "priority": 0,
+                    "priority": 1,
                     "autheticatorFlow": false,
                     "userSetupAllowed": false
                 }

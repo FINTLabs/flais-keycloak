@@ -2,7 +2,6 @@ import React from 'react'
 import logo from '../assets/images/novari_logo.png'
 
 import { I18n } from '../i18n.ts'
-import { RememberMe } from './components/RememberMe.tsx'
 import { SubmitButton } from './components/SubmitButton.tsx'
 import { PageWrapper } from './components/PageWrapper.tsx'
 import { OrgSelect } from './components/OrgSelect.tsx'
@@ -32,7 +31,6 @@ const FlaisOrgSelectorComponent = (props: FlaisOrgSelectorProps) => {
           action={url.registrationAction}
         >
           <OrgSelect i18n={i18n} organizations={organizations} />
-          <RememberMe i18n={i18n} />
           <SubmitButton text={i18n.msgStr('continue').toUpperCase()} />
         </form>
       </LoginCard>

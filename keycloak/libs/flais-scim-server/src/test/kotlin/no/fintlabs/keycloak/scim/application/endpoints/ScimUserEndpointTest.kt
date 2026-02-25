@@ -188,6 +188,32 @@ class ScimUserEndpointTest {
     }
 
     @Test
+    fun `createUser does not crash when user email is null and skips idp linking`() {
+        val scimUser =
+            UserResource().apply {
+                userName = "alice.basic@telemark.no"
+                active = true
+                externalId = extId
+            }
+
+        templateUser(user)
+        every { user.email } returns null
+
+        every { userProvider.getUserById(realm, scimUser.userName) } returns null
+        every { userProvider.addUser(realm, scimUser.userName) } returns user
+        every { realm.getRole(ScimRoles.SCIM_MANAGED_ROLE) } returns scimRole
+        every { orgProvider.addManagedMember(scimContext.organization, user) } returns true
+
+        val response = endpoint.createUser(usersUriInfo, scimUser)
+
+        assertEquals(Response.Status.CREATED.statusCode, response.status)
+
+        verify(exactly = 0) { orgProvider.getIdentityProviders(any()) }
+        verify(exactly = 0) { userProvider.getFederatedIdentity(any(), any(), any()) }
+        verify(exactly = 0) { userProvider.addFederatedIdentity(any(), any(), any()) }
+    }
+
+    @Test
     fun `updateUser throws NotFoundException when member lookup fails`() {
         every {
             orgProvider.getMemberById(scimContext.organization, userId)
