@@ -32,6 +32,7 @@ import no.fintlabs.keycloak.scim.context.ScimContext
 import no.fintlabs.keycloak.scim.resources.SearchHandler
 import no.fintlabs.keycloak.scim.resources.UserResource
 import no.fintlabs.keycloak.scim.types.FintUserExtension
+import no.fintlabs.keycloak.scim.utils.EntraScimTransformer
 import no.fintlabs.keycloak.scim.utils.ResourcePath
 import no.fintlabs.keycloak.scim.utils.ResourceTypeDefinitionUtil.createResourceTypeDefinition
 import no.fintlabs.keycloak.scim.utils.ScimRoles
@@ -203,14 +204,14 @@ class ScimUserEndpoint(
         assertUserScimManaged(user)
         assertUserOrganizationManaged(user)
 
+        val normalizedPatch = EntraScimTransformer.normalizePatch(patchOperations)
+
         val node =
             JsonUtils.valueToNode<ObjectNode>(translateUser(user)).apply {
                 SCHEMA_CHECKER
-                    .checkModify(
-                        patchOperations,
-                        SCHEMA_CHECKER.removeReadOnlyAttributes(this),
-                    ).throwSchemaExceptions()
-                patchOperations.forEach { it.apply(this) }
+                    .checkModify(normalizedPatch, SCHEMA_CHECKER.removeReadOnlyAttributes(this))
+                    .throwSchemaExceptions()
+                normalizedPatch.forEach { it.apply(this) }
             }
 
         val scimUser =
