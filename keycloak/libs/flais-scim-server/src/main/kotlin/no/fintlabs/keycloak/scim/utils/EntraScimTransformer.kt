@@ -1,12 +1,39 @@
 package no.fintlabs.keycloak.scim.utils
 
 import com.fasterxml.jackson.databind.JsonNode
+import com.fasterxml.jackson.databind.node.ArrayNode
 import com.fasterxml.jackson.databind.node.ObjectNode
 import com.unboundid.scim2.common.messages.PatchOperation
 import com.unboundid.scim2.common.messages.PatchRequest
 import com.unboundid.scim2.common.utils.JsonUtils
+import com.unboundid.scim2.server.utils.ResourceTypeDefinition
 
 object EntraScimTransformer {
+    fun normalizeSchemasForPresentExtensions(
+        root: ObjectNode,
+        rtd: ResourceTypeDefinition,
+    ) {
+        val extensionSchemaIds: Set<String> =
+            rtd.schemaExtensions
+                .keys
+                .mapNotNull { schemaResource -> schemaResource.id }
+                .toSet()
+
+        val schemasNode = (root.get("schemas") as? ArrayNode) ?: root.putArray("schemas")
+
+        val existing =
+            schemasNode
+                .filter { it.isTextual }
+                .map { it.asText() }
+                .toMutableSet()
+
+        extensionSchemaIds.forEach { urn ->
+            if (root.has(urn) && existing.add(urn)) {
+                schemasNode.add(urn)
+            }
+        }
+    }
+
     fun normalizePatch(request: PatchRequest): PatchRequest {
         val normalizedOps =
             request.operations.map { op ->

@@ -119,10 +119,10 @@ class ScimUserEndpoint(
                 RESOURCE_TYPE_DEFINITION,
                 uriInfo,
             )
-        SCHEMA_CHECKER
-            .checkCreate(
-                SCHEMA_CHECKER.removeReadOnlyAttributes(scimUser.asGenericScimResource().objectNode),
-            ).throwSchemaExceptions()
+        val node = SCHEMA_CHECKER.removeReadOnlyAttributes(scimUser.asGenericScimResource().objectNode)
+        EntraScimTransformer.normalizeSchemasForPresentExtensions(node, RESOURCE_TYPE_DEFINITION)
+
+        SCHEMA_CHECKER.checkCreate(node).throwSchemaExceptions()
 
         val userProvider = scimContext.session.users()
         if (userProvider.getUserById(scimContext.realm, scimUser.userName) != null) {
@@ -164,12 +164,13 @@ class ScimUserEndpoint(
         assertUserScimManaged(user)
         assertUserOrganizationManaged(user)
 
+        val incoming = updatedScimUser.asGenericScimResource().objectNode
+        EntraScimTransformer.normalizeSchemasForPresentExtensions(incoming, RESOURCE_TYPE_DEFINITION)
+
         JsonUtils.valueToNode<ObjectNode>(translateUser(user)).apply {
             SCHEMA_CHECKER
-                .checkReplace(
-                    updatedScimUser.asGenericScimResource().objectNode,
-                    SCHEMA_CHECKER.removeReadOnlyAttributes(this),
-                ).throwSchemaExceptions()
+                .checkReplace(incoming, SCHEMA_CHECKER.removeReadOnlyAttributes(this))
+                .throwSchemaExceptions()
         }
 
         updateUserModel(user, updatedScimUser)
