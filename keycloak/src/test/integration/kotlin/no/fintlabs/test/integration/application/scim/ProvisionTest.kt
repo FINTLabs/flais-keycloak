@@ -17,6 +17,11 @@ class ProvisionTest {
             "telemark" to
                 listOf(
                     ScimUser(
+                        schemas =
+                            listOf(
+                                "urn:ietf:params:scim:schemas:core:2.0:User",
+                                "urn:ietf:params:scim:schemas:extension:fint:2.0:User",
+                            ),
                         externalId = "11111111-1111-1111-1111-111111111111",
                         userName = "alice.basic@telemark.no",
                         active = true,
@@ -27,8 +32,13 @@ class ProvisionTest {
                                 ScimUser.Role("read", "read", "WindowsAzureActiveDirectoryRole", false),
                                 ScimUser.Role("write", "write", "WindowsAzureActiveDirectoryRole", false),
                             ),
+                        fintExtension = ScimUser.FintUserExtension("1234", "1234", "alice.basic@telemark.no"),
                     ),
                     ScimUser(
+                        schemas =
+                            listOf(
+                                "urn:ietf:params:scim:schemas:core:2.0:User",
+                            ),
                         externalId = "22222222-2222-2222-2222-222222222222",
                         userName = "jon.basic@telemark.no",
                         active = true,
@@ -39,11 +49,17 @@ class ProvisionTest {
                                 ScimUser.Role("read", "read", "WindowsAzureActiveDirectoryRole", false),
                                 ScimUser.Role("write", "write", "WindowsAzureActiveDirectoryRole", false),
                             ),
+                        fintExtension = ScimUser.FintUserExtension("1234", "1234", "jon.basic@telemark.no"),
                     ),
                 ),
             "rogaland" to
                 listOf(
                     ScimUser(
+                        schemas =
+                            listOf(
+                                "urn:ietf:params:scim:schemas:core:2.0:User",
+                                "urn:ietf:params:scim:schemas:extension:fint:2.0:User",
+                            ),
                         externalId = "11111111-1111-1111-1111-111111111111",
                         userName = "alice.basic@rogaland.no",
                         active = true,
@@ -54,8 +70,13 @@ class ProvisionTest {
                                 ScimUser.Role("read", "read", "WindowsAzureActiveDirectoryRole", false),
                                 ScimUser.Role("write", "write", "WindowsAzureActiveDirectoryRole", false),
                             ),
+                        fintExtension = ScimUser.FintUserExtension("1234", "1234", "alice.basic@rogaland.no"),
                     ),
                     ScimUser(
+                        schemas =
+                            listOf(
+                                "urn:ietf:params:scim:schemas:core:2.0:User",
+                            ),
                         externalId = "22222222-2222-2222-2222-222222222222",
                         userName = "jon.basic@rogaland.no",
                         active = true,
@@ -66,6 +87,7 @@ class ProvisionTest {
                                 ScimUser.Role("read", "read", "WindowsAzureActiveDirectoryRole", false),
                                 ScimUser.Role("write", "write", "WindowsAzureActiveDirectoryRole", false),
                             ),
+                        fintExtension = ScimUser.FintUserExtension("1234", "1234", "jon.basic@rogaland.no"),
                     ),
                 ),
         )
