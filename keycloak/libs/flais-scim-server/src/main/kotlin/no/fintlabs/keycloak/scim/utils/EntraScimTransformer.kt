@@ -20,7 +20,6 @@ object EntraScimTransformer {
                 .toSet()
 
         val schemasNode = (root.get("schemas") as? ArrayNode) ?: root.putArray("schemas")
-
         val existing =
             schemasNode
                 .filter { it.isTextual }
@@ -40,8 +39,7 @@ object EntraScimTransformer {
                 val node = op.jsonNode ?: return@map op
                 if (!node.isObject) return@map op
 
-                val rewritten = rewriteFlattenedExtensionKeys(node.deepCopy<ObjectNode>())
-
+                val rewritten = rewriteFlattenedExtensionKeys(node.deepCopy())
                 if (rewritten == node) return@map op
 
                 PatchOperation.create(op.opType, op.path, rewritten)
@@ -50,13 +48,13 @@ object EntraScimTransformer {
         return PatchRequest(normalizedOps)
     }
 
-    private fun rewriteFlattenedExtensionKeys(v: ObjectNode): ObjectNode {
+    private fun rewriteFlattenedExtensionKeys(node: ObjectNode): ObjectNode {
         val movedByUrn = mutableMapOf<String, ObjectNode>()
         val keysToRemove = mutableListOf<String>()
 
-        for ((key, valueNode) in v.properties()) {
+        for ((key, value) in node.properties()) {
             if (!key.startsWith("urn:")) continue
-            if (valueNode.isObject) continue
+            if (value.isObject) continue
 
             val lastColon = key.lastIndexOf(':')
             if (lastColon <= "urn:".length) continue
@@ -69,17 +67,17 @@ object EntraScimTransformer {
 
             val extObj =
                 movedByUrn.getOrPut(urnCandidate) {
-                    (v.get(urnCandidate) as? ObjectNode) ?: JsonUtils.getJsonNodeFactory().objectNode()
+                    (node.get(urnCandidate) as? ObjectNode) ?: JsonUtils.getJsonNodeFactory().objectNode()
                 }
 
-            extObj.set<JsonNode>(attrName, valueNode)
+            extObj.set<JsonNode>(attrName, value)
             keysToRemove.add(key)
         }
 
-        if (keysToRemove.isEmpty()) return v
+        if (keysToRemove.isEmpty()) return node
 
-        keysToRemove.forEach(v::remove)
-        movedByUrn.forEach { (urn, obj) -> v.set<ObjectNode>(urn, obj) }
-        return v
+        keysToRemove.forEach(node::remove)
+        movedByUrn.forEach { (urn, obj) -> node.set<ObjectNode>(urn, obj) }
+        return node
     }
 }
