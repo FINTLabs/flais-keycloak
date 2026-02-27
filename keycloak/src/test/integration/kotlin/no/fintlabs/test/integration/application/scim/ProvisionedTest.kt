@@ -46,7 +46,7 @@ class ProvisionedTest {
                                 ScimUser.Role("read", "read", "WindowsAzureActiveDirectoryRole", false),
                                 ScimUser.Role("write", "write", "WindowsAzureActiveDirectoryRole", false),
                             ),
-                        fintExtension = ScimUser.FintUserExtension("1234", "1234", "alice.basic@telemark.no"),
+                        fintUserExtension = ScimUser.FintUserExtension("1234", "1234", "alice.basic@telemark.no"),
                     ),
                     ScimUser(
                         schemas =
@@ -63,7 +63,7 @@ class ProvisionedTest {
                                 ScimUser.Role("read", "read", "WindowsAzureActiveDirectoryRole", false),
                                 ScimUser.Role("write", "write", "WindowsAzureActiveDirectoryRole", false),
                             ),
-                        fintExtension = ScimUser.FintUserExtension("1234", "1234", "jon.basic@telemark.no"),
+                        fintUserExtension = ScimUser.FintUserExtension("1234", "1234", "jon.basic@telemark.no"),
                     ),
                 ),
             "rogaland" to
@@ -84,7 +84,7 @@ class ProvisionedTest {
                                 ScimUser.Role("read", "read", "WindowsAzureActiveDirectoryRole", false),
                                 ScimUser.Role("write", "write", "WindowsAzureActiveDirectoryRole", false),
                             ),
-                        fintExtension = ScimUser.FintUserExtension("1234", "1234", "alice.basic@rogaland.no"),
+                        fintUserExtension = ScimUser.FintUserExtension("1234", "1234", "alice.basic@rogaland.no"),
                     ),
                     ScimUser(
                         schemas =
@@ -101,7 +101,7 @@ class ProvisionedTest {
                                 ScimUser.Role("read", "read", "WindowsAzureActiveDirectoryRole", false),
                                 ScimUser.Role("write", "write", "WindowsAzureActiveDirectoryRole", false),
                             ),
-                        fintExtension = ScimUser.FintUserExtension("1234", "1234", "jon.basic@rogaland.no"),
+                        fintUserExtension = ScimUser.FintUserExtension("1234", "1234", "jon.basic@rogaland.no"),
                     ),
                 ),
         )
@@ -359,23 +359,23 @@ class ProvisionedTest {
 
                 kcUser = KcAdminClient.findUserByUsername(realmRes, user.userName)
                 assertNotNull(kcUser)
-                val fintExtension =
+                val fintUserExtension =
                     standardFintUserExtensionAttributes
                         .jsonObject[urnPrefix]!!
                         .jsonObject
 
                 assertEquals(
-                    fintExtension["employeeId"]!!.jsonPrimitive.content,
+                    fintUserExtension["employeeId"]!!.jsonPrimitive.content,
                     kcUser.attributes["employeeId"]?.first(),
                 )
 
                 assertEquals(
-                    fintExtension["studentNumber"]!!.jsonPrimitive.content,
+                    fintUserExtension["studentNumber"]!!.jsonPrimitive.content,
                     kcUser.attributes["studentNumber"]?.first(),
                 )
 
                 assertEquals(
-                    fintExtension["userPrincipalName"]!!.jsonPrimitive.content,
+                    fintUserExtension["userPrincipalName"]!!.jsonPrimitive.content,
                     kcUser.attributes["userPrincipalName"]?.first(),
                 )
             }

@@ -35,7 +35,7 @@ object ScimFlow {
         var emails: List<Email>,
         var roles: List<Role>? = null,
         @SerialName("urn:ietf:params:scim:schemas:extension:fint:2.0:User")
-        var fintExtension: FintUserExtension? = null,
+        var fintUserExtension: FintUserExtension? = null,
     ) {
         @Serializable
         data class Name(

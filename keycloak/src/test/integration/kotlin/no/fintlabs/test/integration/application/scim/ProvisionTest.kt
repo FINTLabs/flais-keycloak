@@ -32,7 +32,7 @@ class ProvisionTest {
                                 ScimUser.Role("read", "read", "WindowsAzureActiveDirectoryRole", false),
                                 ScimUser.Role("write", "write", "WindowsAzureActiveDirectoryRole", false),
                             ),
-                        fintExtension = ScimUser.FintUserExtension("1234", "1234", "alice.basic@telemark.no"),
+                        fintUserExtension = ScimUser.FintUserExtension("1234", "1234", "alice.basic@telemark.no"),
                     ),
                     ScimUser(
                         schemas =
@@ -49,7 +49,7 @@ class ProvisionTest {
                                 ScimUser.Role("read", "read", "WindowsAzureActiveDirectoryRole", false),
                                 ScimUser.Role("write", "write", "WindowsAzureActiveDirectoryRole", false),
                             ),
-                        fintExtension = ScimUser.FintUserExtension("1234", "1234", "jon.basic@telemark.no"),
+                        fintUserExtension = ScimUser.FintUserExtension("1234", "1234", "jon.basic@telemark.no"),
                     ),
                 ),
             "rogaland" to
@@ -70,7 +70,7 @@ class ProvisionTest {
                                 ScimUser.Role("read", "read", "WindowsAzureActiveDirectoryRole", false),
                                 ScimUser.Role("write", "write", "WindowsAzureActiveDirectoryRole", false),
                             ),
-                        fintExtension = ScimUser.FintUserExtension("1234", "1234", "alice.basic@rogaland.no"),
+                        fintUserExtension = ScimUser.FintUserExtension("1234", "1234", "alice.basic@rogaland.no"),
                     ),
                     ScimUser(
                         schemas =
@@ -87,7 +87,7 @@ class ProvisionTest {
                                 ScimUser.Role("read", "read", "WindowsAzureActiveDirectoryRole", false),
                                 ScimUser.Role("write", "write", "WindowsAzureActiveDirectoryRole", false),
                             ),
-                        fintExtension = ScimUser.FintUserExtension("1234", "1234", "jon.basic@rogaland.no"),
+                        fintUserExtension = ScimUser.FintUserExtension("1234", "1234", "jon.basic@rogaland.no"),
                     ),
                 ),
         )
