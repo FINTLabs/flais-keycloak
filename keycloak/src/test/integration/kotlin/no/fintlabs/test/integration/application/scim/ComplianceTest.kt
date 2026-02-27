@@ -7,6 +7,7 @@ import no.fintlabs.test.common.utils.kc.KcEnvironment
 import no.fintlabs.test.integration.utils.ScimHttpClient
 import org.awaitility.Awaitility.await
 import org.awaitility.kotlin.withPollInterval
+import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.assertNotNull
@@ -71,6 +72,7 @@ class ComplianceTest {
 
         assertTrue(logs.isNotEmpty())
         assertTrue(logs.contains("All tests passed successfully"))
+        assertFalse(logs.contains("failing tests"))
     }
 
     private fun createScimverifyContainer(
