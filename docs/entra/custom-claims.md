@@ -246,7 +246,7 @@ A Service Principal can have **only one Claims Mapping Policy assigned at a time
 
 The application must request a token type that supports custom claims (ID token or Access token depending on scenario).
 
-## 8.4 Propagation Time
+## 8.3 Propagation Time
 
 Changes may take several minutes before appearing in newly issued tokens.
 
