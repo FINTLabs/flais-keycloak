@@ -1,22 +1,20 @@
 package no.fintlabs.keycloak.scim.utils
 
-import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.node.ArrayNode
 import com.fasterxml.jackson.databind.node.ObjectNode
 import com.unboundid.scim2.common.messages.PatchOperation
 import com.unboundid.scim2.common.messages.PatchRequest
-import com.unboundid.scim2.common.utils.JsonUtils
 import com.unboundid.scim2.server.utils.ResourceTypeDefinition
 
 object EntraScimTransformer {
-    fun normalizeSchemasForPresentExtensions(
+    fun normalizeExtensionSchemas(
         root: ObjectNode,
         rtd: ResourceTypeDefinition,
-    ) {
+    ): ObjectNode {
         val extensionSchemaIds: Set<String> =
             rtd.schemaExtensions
                 .keys
-                .mapNotNull { schemaResource -> schemaResource.id }
+                .mapNotNull { it.id }
                 .toSet()
 
         val schemasNode = (root.get("schemas") as? ArrayNode) ?: root.putArray("schemas")
@@ -31,53 +29,71 @@ object EntraScimTransformer {
                 schemasNode.add(urn)
             }
         }
+
+        return root
     }
 
-    fun normalizePatch(request: PatchRequest): PatchRequest {
-        val normalizedOps =
-            request.operations.map { op ->
-                val node = op.jsonNode ?: return@map op
-                if (!node.isObject) return@map op
+    fun normalizePatch(
+        request: PatchRequest,
+        rtd: ResourceTypeDefinition,
+    ): PatchRequest {
+        val schemaIds: Set<String> =
+            rtd.schemaExtensions
+                .keys
+                .mapNotNull { it.id }
+                .plus(rtd.coreSchema.id)
+                .toSet()
 
-                val rewritten = rewriteFlattenedExtensionKeys(node.deepCopy())
-                if (rewritten == node) return@map op
+        val outOps = mutableListOf<PatchOperation>()
 
-                PatchOperation.create(op.opType, op.path, rewritten)
+        for (op in request.operations) {
+            val node = op.jsonNode as? ObjectNode
+
+            if (op.path != null || node == null || !node.isObject) {
+                outOps += op
+                continue
             }
 
-        return PatchRequest(normalizedOps)
-    }
+            val flattened =
+                node
+                    .properties()
+                    .asSequence()
+                    .filter { (key, value) -> key.startsWith("urn:") && !value.isObject }
+                    .toList()
 
-    private fun rewriteFlattenedExtensionKeys(node: ObjectNode): ObjectNode {
-        val movedByUrn = mutableMapOf<String, ObjectNode>()
-        val keysToRemove = mutableListOf<String>()
+            if (flattened.isEmpty()) {
+                outOps += op
+                continue
+            }
 
-        for ((key, value) in node.properties()) {
-            if (!key.startsWith("urn:")) continue
-            if (value.isObject) continue
+            val remaining = node.deepCopy()
+            flattened.forEach { (key, _) -> remaining.remove(key) }
 
-            val lastColon = key.lastIndexOf(':')
-            if (lastColon <= "urn:".length) continue
+            if (remaining.size() > 0) {
+                outOps += PatchOperation.create(op.opType, op.path, remaining)
+            }
 
-            val urnCandidate = key.substring(0, lastColon)
-            val attrName = key.substring(lastColon + 1)
+            for ((key, value) in flattened) {
+                val schemaUrn =
+                    schemaIds
+                        .asSequence()
+                        .filter { key.startsWith("$it:") }
+                        .maxByOrNull { it.length } ?: continue
 
-            if (!urnCandidate.startsWith("urn:")) continue
-            if (attrName.isBlank()) continue
+                val attribute = key.removePrefix("$schemaUrn:").trim()
+                if (attribute.isBlank()) continue
 
-            val extObj =
-                movedByUrn.getOrPut(urnCandidate) {
-                    (node.get(urnCandidate) as? ObjectNode) ?: JsonUtils.getJsonNodeFactory().objectNode()
-                }
+                val normalizedPath =
+                    if (schemaUrn == rtd.coreSchema.id) {
+                        attribute
+                    } else {
+                        "$schemaUrn:$attribute"
+                    }
 
-            extObj.set<JsonNode>(attrName, value)
-            keysToRemove.add(key)
+                outOps += PatchOperation.create(op.opType, normalizedPath, value)
+            }
         }
 
-        if (keysToRemove.isEmpty()) return node
-
-        keysToRemove.forEach(node::remove)
-        movedByUrn.forEach { (urn, obj) -> node.set<ObjectNode>(urn, obj) }
-        return node
+        return PatchRequest(outOps)
     }
 }

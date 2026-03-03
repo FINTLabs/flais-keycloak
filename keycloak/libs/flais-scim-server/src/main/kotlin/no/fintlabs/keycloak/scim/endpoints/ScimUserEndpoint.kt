@@ -120,9 +120,9 @@ class ScimUserEndpoint(
                 uriInfo,
             )
         val node = SCHEMA_CHECKER.removeReadOnlyAttributes(scimUser.asGenericScimResource().objectNode)
-        EntraScimTransformer.normalizeSchemasForPresentExtensions(node, RESOURCE_TYPE_DEFINITION)
+        val normalizedNode = EntraScimTransformer.normalizeExtensionSchemas(node, RESOURCE_TYPE_DEFINITION)
 
-        SCHEMA_CHECKER.checkCreate(node).throwSchemaExceptions()
+        SCHEMA_CHECKER.checkCreate(normalizedNode).throwSchemaExceptions()
 
         val userProvider = scimContext.session.users()
         if (userProvider.getUserById(scimContext.realm, scimUser.userName) != null) {
@@ -164,12 +164,12 @@ class ScimUserEndpoint(
         assertUserScimManaged(user)
         assertUserOrganizationManaged(user)
 
-        val incoming = updatedScimUser.asGenericScimResource().objectNode
-        EntraScimTransformer.normalizeSchemasForPresentExtensions(incoming, RESOURCE_TYPE_DEFINITION)
+        val node = updatedScimUser.asGenericScimResource().objectNode
+        val normalizedNode = EntraScimTransformer.normalizeExtensionSchemas(node, RESOURCE_TYPE_DEFINITION)
 
         JsonUtils.valueToNode<ObjectNode>(translateUser(user)).apply {
             SCHEMA_CHECKER
-                .checkReplace(incoming, SCHEMA_CHECKER.removeReadOnlyAttributes(this))
+                .checkReplace(normalizedNode, SCHEMA_CHECKER.removeReadOnlyAttributes(this))
                 .throwSchemaExceptions()
         }
 
@@ -205,7 +205,7 @@ class ScimUserEndpoint(
         assertUserScimManaged(user)
         assertUserOrganizationManaged(user)
 
-        val normalizedPatch = EntraScimTransformer.normalizePatch(patchOperations)
+        val normalizedPatch = EntraScimTransformer.normalizePatch(patchOperations, RESOURCE_TYPE_DEFINITION)
 
         val node =
             JsonUtils.valueToNode<ObjectNode>(translateUser(user)).apply {

@@ -303,23 +303,34 @@ class ProvisionedTest {
         }
     }
 
-    @ParameterizedTest(name = "patching provisioned users in org ({0}) using extension patches users with new info")
+    @ParameterizedTest(name = "patching provisioned users in org ({0}) using full urn definition patches users with new info")
     @ValueSource(strings = ["telemark", "rogaland"])
-    fun `patching provisioned users in org using extension patches users with new info`(
+    fun `patching provisioned users in org using full urn definition patches users with new info`(
         orgAlias: String,
         env: KcEnvironment,
         kcConfig: KcConfig,
     ) {
         val (kc, realmRes) = KcAdminClient.connect(env, realm)
-        val urnPrefix = "urn:ietf:params:scim:schemas:extension:fint:2.0:User"
+        val coreUrn = "urn:ietf:params:scim:schemas:core:2.0:User"
+
+        val entraCoreUserAttributes =
+            JsonObject(
+                mapOf(
+                    "$coreUrn:name.givenName" to JsonPrimitive("Jeanette"),
+                    "$coreUrn:name.familyName" to JsonPrimitive("Bergersen"),
+                ),
+            )
+
+        val extensionUrnPrefix = "urn:ietf:params:scim:schemas:extension:fint:2.0:User"
         val standardFintUserExtensionAttributes =
             JsonObject(
                 mapOf(
-                    urnPrefix to
+                    extensionUrnPrefix to
                         JsonObject(
                             mapOf(
                                 "employeeId" to JsonPrimitive("111111111111"),
                                 "studentNumber" to JsonPrimitive("111111111111"),
+                                "userPrincipalName" to JsonPrimitive("test@test.no"),
                                 "userPrincipalName" to JsonPrimitive("test@test.no"),
                             ),
                         ),
@@ -329,9 +340,9 @@ class ProvisionedTest {
         val entraFintUserExtensionAttributes =
             JsonObject(
                 mapOf(
-                    "$urnPrefix:employeeId" to JsonPrimitive("111111111111"),
-                    "$urnPrefix:studentNumber" to JsonPrimitive("111111111111"),
-                    "$urnPrefix:userPrincipalName" to JsonPrimitive("test@test.no"),
+                    "$extensionUrnPrefix:employeeId" to JsonPrimitive("111111111111"),
+                    "$extensionUrnPrefix:studentNumber" to JsonPrimitive("111111111111"),
+                    "$extensionUrnPrefix:userPrincipalName" to JsonPrimitive("test@test.no"),
                 ),
             )
 
@@ -361,7 +372,7 @@ class ProvisionedTest {
                 assertNotNull(kcUser)
                 val fintUserExtension =
                     standardFintUserExtensionAttributes
-                        .jsonObject[urnPrefix]!!
+                        .jsonObject[extensionUrnPrefix]!!
                         .jsonObject
 
                 assertEquals(
@@ -404,7 +415,7 @@ class ProvisionedTest {
                 kcUser = KcAdminClient.findUserByUsername(realmRes, user.userName)
                 assertNotNull(kcUser)
                 entraFintUserExtensionAttributes
-                    .filterKeys { it.startsWith(urnPrefix) }
+                    .filterKeys { it.startsWith(extensionUrnPrefix) }
                     .forEach { (key, value) ->
                         val attributeName = key.substringAfterLast(":")
 
@@ -414,6 +425,34 @@ class ProvisionedTest {
                             "Mismatch for attribute $attributeName",
                         )
                     }
+            }
+
+            users[orgAlias]?.forEach { user ->
+                var kcUser = KcAdminClient.findUserByUsername(realmRes, user.userName)
+                assertNotNull(kcUser)
+
+                ScimFlow
+                    .patchUser(
+                        "${env.keycloakServiceUrl()}/realms/external/scim/v2/${kcConfig.requireOrg(orgAlias).id}",
+                        "${env.flaisScimAuthUrl()}/token",
+                        kcUser.id,
+                        ScimFlow.PatchRequest(
+                            listOf(
+                                ScimFlow.PatchRequest.PatchOperation(
+                                    "replace",
+                                    value = entraCoreUserAttributes,
+                                ),
+                            ),
+                        ),
+                    ).use { resp ->
+                        assertEquals(200, resp.code)
+                    }
+
+                kcUser = KcAdminClient.findUserByUsername(realmRes, user.userName)
+                assertNotNull(kcUser)
+
+                assertEquals("Jeanette", kcUser.firstName, "Mismatch for givenName/firstName")
+                assertEquals("Bergersen", kcUser.lastName, "Mismatch for familyName/lastName")
             }
         }
     }
