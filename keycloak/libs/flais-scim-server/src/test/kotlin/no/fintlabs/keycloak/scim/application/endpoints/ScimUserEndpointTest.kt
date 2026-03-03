@@ -361,6 +361,64 @@ class ScimUserEndpointTest {
     }
 
     @Test
+    fun `patchUser REMOVE extension attributes removes keycloak extension attributes and returns 200`() {
+        templateUser(user)
+
+        every { orgProvider.getMemberById(scimContext.organization, userId) } returns user
+        every { realm.getRole(ScimRoles.SCIM_MANAGED_ROLE) } returns scimRole
+        every { orgProvider.isManagedMember(scimContext.organization, user) } returns true
+        every { orgProvider.getIdentityProviders(scimContext.organization) } returns
+            emptyList<IdentityProviderModel>().stream()
+        every { userProvider.getFederatedIdentitiesStream(realm, user) } returns
+            emptyList<FederatedIdentityModel>().stream()
+
+        val response =
+            endpoint.patchUser(
+                userUriInfo,
+                userId,
+                PatchRequest(
+                    listOf(
+                        PatchOperation.remove("urn:ietf:params:scim:schemas:extension:fint:2.0:User:employeeId"),
+                    ),
+                ),
+            )
+
+        assertEquals(Response.Status.OK.statusCode, response.status)
+
+        verify(exactly = 1) { user.removeAttribute("employeeId") }
+        verify(exactly = 0) { user.setAttribute(eq("employeeId"), any<List<String>>()) }
+    }
+
+    @Test
+    fun `patchUser REMOVE roles removes keycloak roles attribute and returns 200`() {
+        templateUser(user)
+
+        every { orgProvider.getMemberById(scimContext.organization, userId) } returns user
+        every { realm.getRole(ScimRoles.SCIM_MANAGED_ROLE) } returns scimRole
+        every { orgProvider.isManagedMember(scimContext.organization, user) } returns true
+        every { orgProvider.getIdentityProviders(scimContext.organization) } returns
+            emptyList<IdentityProviderModel>().stream()
+        every { userProvider.getFederatedIdentitiesStream(realm, user) } returns
+            emptyList<FederatedIdentityModel>().stream()
+
+        val response =
+            endpoint.patchUser(
+                userUriInfo,
+                userId,
+                PatchRequest(
+                    listOf(
+                        PatchOperation.remove("roles"),
+                    ),
+                ),
+            )
+
+        assertEquals(Response.Status.OK.statusCode, response.status)
+
+        verify(exactly = 1) { user.removeAttribute("roles") }
+        verify(exactly = 0) { user.setAttribute(eq("roles"), any<List<String>>()) }
+    }
+
+    @Test
     fun `getUser returns all attributes from fint extension`() {
         templateUser(user)
 

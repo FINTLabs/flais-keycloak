@@ -19,7 +19,7 @@ class FintUserExtension {
     var employeeId: String? = null
 
     @Attribute(
-        description = "Student number",
+        description = "Student Number",
         isRequired = false,
         mutability = AttributeDefinition.Mutability.READ_WRITE,
         returned = AttributeDefinition.Returned.DEFAULT,

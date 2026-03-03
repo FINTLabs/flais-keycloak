@@ -1,6 +1,7 @@
 package no.fintlabs.keycloak.scim.endpoints
 
 import com.fasterxml.jackson.databind.node.ObjectNode
+import com.unboundid.scim2.common.annotations.Attribute
 import com.unboundid.scim2.common.messages.PatchRequest
 import com.unboundid.scim2.common.types.Email
 import com.unboundid.scim2.common.types.EnterpriseUserExtension
@@ -303,11 +304,17 @@ class ScimUserEndpoint(
         scimUser.name?.let { name ->
             user.firstName = name.givenName
             user.lastName = name.familyName
+        } ?: run {
+            user.firstName = null
+            user.lastName = null
         }
 
         scimUser.emails?.find { it.primary }?.let { email ->
             user.email = email.value
             user.isEmailVerified = true
+        } ?: run {
+            user.email = null
+            user.isEmailVerified = false
         }
 
         scimUser.roles?.let {
@@ -319,17 +326,29 @@ class ScimUserEndpoint(
                 "roles",
                 it.map { it.value },
             )
+        } ?: run {
+            user.removeAttribute("rawRoles")
+            user.removeAttribute("roles")
         }
 
-        scimUser.getExtension(FintUserExtension::class.java)?.let { ext ->
-            ext.employeeId?.let { employeeId ->
-                user.setSingleAttribute("employeeId", employeeId)
+        val fintUserExt = FintUserExtension::class.java
+        val attributeFields =
+            fintUserExt.declaredFields
+                .filter { it.isAnnotationPresent(Attribute::class.java) }
+        scimUser.getExtension(fintUserExt)?.let { ext ->
+            attributeFields.forEach { field ->
+                field.isAccessible = true
+                val value = field.get(ext)
+
+                if (value != null) {
+                    user.setSingleAttribute(field.name, value.toString())
+                } else {
+                    user.removeAttribute(field.name)
+                }
             }
-            ext.studentNumber?.let { studentNumber ->
-                user.setSingleAttribute("studentNumber", studentNumber)
-            }
-            ext.userPrincipalName?.let { upn ->
-                user.setSingleAttribute("userPrincipalName", upn)
+        } ?: run {
+            attributeFields.forEach { field ->
+                user.removeAttribute(field.name)
             }
         }
     }
