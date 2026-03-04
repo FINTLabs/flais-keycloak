@@ -119,6 +119,12 @@ Write-Host "  Name: $($Policy.DisplayName)"
 Write-Host "  Id:   $($Policy.Id)"
 
 # ==========================
+# Small Delay (Graph propagation)
+# ==========================
+Write-Host "Waiting for policy propagation..."
+Start-Sleep -Seconds 5
+
+# ==========================
 # Assign Policy to Service Principal
 # ==========================
 $Body = @{
