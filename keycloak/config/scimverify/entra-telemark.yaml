@@ -15,7 +15,7 @@ users:
     post_tests:
         -   request:
               {
-                  "schemas": [ "urn:ietf:params:scim:schemas:core:2.0:User" ],
+                  "schemas": [ "urn:ietf:params:scim:schemas:core:2.0:User", "urn:ietf:params:scim:schemas:extension:fint:2.0:User" ],
                   "externalId": "11111111-1111-1111-1111-111111111111",
                   "userName": "alice.basic@telemark.no",
                   "active": true,
@@ -23,21 +23,31 @@ users:
                   "emails":
                     [ { "value": "alice.basic@telemark.no", "primary": true } ],
                   "roles": [ { "value": "read","display": "read","type": "WindowsAzureActiveDirectoryRole","primary": false } ],
+                  "urn:ietf:params:scim:schemas:extension:fint:2.0:User": {
+                      "employeeId": "1234", "studentNumber": "1234", "userPrincipalName": "alice.basic@telemark.no"
+                  }
               }
             response:
               {
                   "type": "object",
                   "properties":
                     {
-                        "schemas":
-                          {
-                              "type": "array",
-                              "items": { "type": "string" },
-                              "contains":
+                        "schemas": {
+                            "type": "array",
+                            "items": { "type": "string" },
+                            "allOf": [
                                 {
-                                    "const": "urn:ietf:params:scim:schemas:core:2.0:User",
+                                    "contains": {
+                                        "const": "urn:ietf:params:scim:schemas:core:2.0:User"
+                                    }
                                 },
-                          },
+                                {
+                                    "contains": {
+                                        "const": "urn:ietf:params:scim:schemas:extension:fint:2.0:User"
+                                    }
+                                }
+                            ]
+                        },
                         "id": { "type": "string" },
                         "meta": { "type": "object" },
                         "urn:ietf:params:scim:schemas:core:2.0:User":
@@ -66,16 +76,37 @@ users:
                                                   },
                                             },
                                       },
+
                                 },
                               "required": [ "userName" ],
                               "additionalProperties": true,
                           },
+                        "urn:ietf:params:scim:schemas:extension:fint:2.0:User": {
+                            "type": "object",
+                            "properties": {
+                                "employeeId": {
+                                    "type": "string",
+                                    "const": "1234"
+                                },
+                                "studentNumber": {
+                                    "type": "string",
+                                    "const": "1234"
+                                },
+                                "userPrincipalName": {
+                                    "type": "string",
+                                    "const": "alice.basic@telemark.no"
+                                }
+                            },
+                            "required": [ "employeeId", "studentNumber", "userPrincipalName" ],
+                            "additionalProperties": true,
+                        },
                     },
                   "required":
                     [
                         "schemas",
                         "id",
                         "urn:ietf:params:scim:schemas:core:2.0:User",
+                        "urn:ietf:params:scim:schemas:extension:fint:2.0:User"
                     ],
                   "additionalProperties": true,
               }
@@ -120,29 +151,41 @@ users:
         -   id: AUTO
             request:
               {
-                  "schemas": [ "urn:ietf:params:scim:schemas:core:2.0:User" ],
+                  "schemas": [ "urn:ietf:params:scim:schemas:core:2.0:User", "urn:ietf:params:scim:schemas:extension:fint:2.0:User" ],
                   "externalId": "11111111-1111-1111-1111-111111111111",
                   "userName": "alice.basic@telemark.no",
                   "active": true,
                   "name": { "givenName": "Alice2", "familyName": "Basic2" },
                   "emails":
                     [ { "value": "alice.basic@telemark.no", "primary": true } ],
-                  "roles": [ { "value": "write","display": "write","type": "WindowsAzureActiveDirectoryRole","primary": false } ],
+                  "roles": [ { "value": "read","display": "read","type": "WindowsAzureActiveDirectoryRole","primary": false }, { "value": "write","display": "write","type": "WindowsAzureActiveDirectoryRole","primary": false } ],
+                  "urn:ietf:params:scim:schemas:extension:fint:2.0:User": {
+                      "employeeId": "12_34",
+                      "studentNumber": "12_34",
+                      "userPrincipalName": "alice.basic@telemark.no"
+                  }
               }
             response:
               {
                   "type": "object",
                   "properties":
                     {
-                        "schemas":
-                          {
-                              "type": "array",
-                              "items": { "type": "string" },
-                              "contains":
+                        "schemas": {
+                            "type": "array",
+                            "items": { "type": "string" },
+                            "allOf": [
                                 {
-                                    "const": "urn:ietf:params:scim:schemas:core:2.0:User",
+                                    "contains": {
+                                        "const": "urn:ietf:params:scim:schemas:core:2.0:User"
+                                    }
                                 },
-                          },
+                                {
+                                    "contains": {
+                                        "const": "urn:ietf:params:scim:schemas:extension:fint:2.0:User"
+                                    }
+                                }
+                            ]
+                        },
                         "id": { "type": "string" },
                         "meta": { "type": "object" },
                         "urn:ietf:params:scim:schemas:core:2.0:User":
@@ -249,17 +292,37 @@ users:
                                                   "required": [ "primary", "type", "display", "value" ],
                                               }
                                           ]
-                                      }
+                                      },
                                 },
                               "required": [ "userName" ],
                               "additionalProperties": true,
                           },
+                        "urn:ietf:params:scim:schemas:extension:fint:2.0:User": {
+                            "type": "object",
+                            "properties": {
+                                "employeeId": {
+                                    "type": "string",
+                                    "const": "12_34"
+                                },
+                                "studentNumber": {
+                                    "type": "string",
+                                    "const": "12_34"
+                                },
+                                "userPrincipalName": {
+                                    "type": "string",
+                                    "const": "alice.basic@telemark.no"
+                                }
+                            },
+                            "required": [ "employeeId", "studentNumber", "userPrincipalName" ],
+                            "additionalProperties": true,
+                        },
                     },
                   "required":
                     [
                         "schemas",
                         "id",
                         "urn:ietf:params:scim:schemas:core:2.0:User",
+                        "urn:ietf:params:scim:schemas:extension:fint:2.0:User"
                     ],
                   "additionalProperties": true,
               }
@@ -332,19 +395,157 @@ users:
                     [
                         {
                             "op": "replace",
+                            "path": "urn:ietf:params:scim:schemas:extension:fint:2.0:User:employeeId",
+                            "value": "123456"
+                        },
+                        {
+                            "op": "replace",
+                            "path": "urn:ietf:params:scim:schemas:extension:fint:2.0:User:studentNumber",
+                            "value": "123456"
+                        },
+                    ],
+              }
+            response:
+              {
+                  "type": "object",
+                  "properties":
+                    {
+                        "schemas": {
+                            "type": "array",
+                            "items": { "type": "string" },
+                            "allOf": [
+                                {
+                                    "contains": {
+                                        "const": "urn:ietf:params:scim:schemas:core:2.0:User"
+                                    }
+                                },
+                                {
+                                    "contains": {
+                                        "const": "urn:ietf:params:scim:schemas:extension:fint:2.0:User"
+                                    }
+                                }
+                            ]
+                        },
+                        "id": { "type": "string" },
+                        "meta": { "type": "object" },
+                        "urn:ietf:params:scim:schemas:extension:fint:2.0:User":
+                          {
+                              "type": "object",
+                              "properties":
+                                {
+                                    "employeeId":
+                                      {
+                                          "type": "string",
+                                          "const": "123456"
+                                      },
+                                    "studentNumber":
+                                      {
+                                          "type": "string",
+                                          "const": "123456"
+                                      },
+                                },
+                              "required": [ "employeeId", "studentNumber" ],
+                              "additionalProperties": true,
+                          },
+                    },
+                  "required":
+                    [
+                        "schemas",
+                        "id",
+                        "urn:ietf:params:scim:schemas:extension:fint:2.0:User",
+                    ],
+                  "additionalProperties": true,
+              }
+        -   id: AUTO
+            request:
+              {
+                  "schemas": [ "urn:ietf:params:scim:api:messages:2.0:PatchOp" ],
+                  "Operations":
+                    [
+                        {
+                            "op": "replace",
+                            "value": {
+                                "urn:ietf:params:scim:schemas:extension:fint:2.0:User":
+                                  {
+                                      "employeeId": "43-21",
+                                      "studentNumber": "43-21"
+                                  }
+                            }
+                        },
+                    ],
+              }
+            response:
+              {
+                  "type": "object",
+                  "properties":
+                    {
+                        "schemas": {
+                            "type": "array",
+                            "items": { "type": "string" },
+                            "allOf": [
+                                {
+                                    "contains": {
+                                        "const": "urn:ietf:params:scim:schemas:core:2.0:User"
+                                    }
+                                },
+                                {
+                                    "contains": {
+                                        "const": "urn:ietf:params:scim:schemas:extension:fint:2.0:User"
+                                    }
+                                }
+                            ]
+                        },
+                        "id": { "type": "string" },
+                        "meta": { "type": "object" },
+                        "urn:ietf:params:scim:schemas:extension:fint:2.0:User":
+                          {
+                              "type": "object",
+                              "properties":
+                                {
+                                    "employeeId":
+                                      {
+                                          "type": "string",
+                                          "const": "43-21"
+                                      },
+                                    "studentNumber":
+                                      {
+                                          "type": "string",
+                                          "const": "43-21"
+                                      },
+                                },
+                              "required": [ "employeeId", "studentNumber" ],
+                              "additionalProperties": true,
+                          },
+                    },
+                  "required":
+                    [
+                        "schemas",
+                        "id",
+                        "urn:ietf:params:scim:schemas:extension:fint:2.0:User",
+                    ],
+                  "additionalProperties": true,
+              }
+        -   id: AUTO
+            request:
+              {
+                  "schemas": [ "urn:ietf:params:scim:api:messages:2.0:PatchOp" ],
+                  "Operations":
+                    [
+                        {
+                            "op": "replace",
                             "path": "roles",
                             "value": [
                                 {
                                     "primary": false,
                                     "type": "WindowsAzureActiveDirectoryRole",
-                                    "display": "manager",
-                                    "value": "manager"
+                                    "display": "admin",
+                                    "value": "admin"
                                 },
                                 {
                                     "primary": false,
                                     "type": "WindowsAzureActiveDirectoryRole",
-                                    "display": "admin",
-                                    "value": "admin"
+                                    "display": "manager",
+                                    "value": "manager"
                                 }
                             ],
                         },

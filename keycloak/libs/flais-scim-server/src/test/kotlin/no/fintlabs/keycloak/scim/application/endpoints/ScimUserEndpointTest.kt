@@ -1,5 +1,6 @@
 package no.fintlabs.keycloak.scim.application.endpoints
 
+import com.fasterxml.jackson.databind.JsonNode
 import com.unboundid.scim2.common.GenericScimResource
 import com.unboundid.scim2.common.messages.PatchOperation
 import com.unboundid.scim2.common.messages.PatchRequest
@@ -16,6 +17,7 @@ import jakarta.ws.rs.core.Response
 import no.fintlabs.keycloak.scim.context.ScimContext
 import no.fintlabs.keycloak.scim.endpoints.ScimUserEndpoint
 import no.fintlabs.keycloak.scim.resources.UserResource
+import no.fintlabs.keycloak.scim.types.FintUserExtension
 import no.fintlabs.keycloak.scim.utils.ScimRoles
 import no.fintlabs.keycloak.scim.utils.TestUriInfo
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -356,5 +358,158 @@ class ScimUserEndpointTest {
             user.setAttribute("roles", capture(rolesSlot))
         }
         assertEquals(listOf("admin", "manager"), rolesSlot.captured)
+    }
+
+    @Test
+    fun `patchUser REMOVE extension attributes removes keycloak extension attributes and returns 200`() {
+        templateUser(user)
+
+        every { orgProvider.getMemberById(scimContext.organization, userId) } returns user
+        every { realm.getRole(ScimRoles.SCIM_MANAGED_ROLE) } returns scimRole
+        every { orgProvider.isManagedMember(scimContext.organization, user) } returns true
+        every { orgProvider.getIdentityProviders(scimContext.organization) } returns
+            emptyList<IdentityProviderModel>().stream()
+        every { userProvider.getFederatedIdentitiesStream(realm, user) } returns
+            emptyList<FederatedIdentityModel>().stream()
+
+        val response =
+            endpoint.patchUser(
+                userUriInfo,
+                userId,
+                PatchRequest(
+                    listOf(
+                        PatchOperation.remove("urn:ietf:params:scim:schemas:extension:fint:2.0:User:employeeId"),
+                    ),
+                ),
+            )
+
+        assertEquals(Response.Status.OK.statusCode, response.status)
+
+        verify(exactly = 1) { user.removeAttribute("employeeId") }
+        verify(exactly = 0) { user.setAttribute(eq("employeeId"), any<List<String>>()) }
+    }
+
+    @Test
+    fun `patchUser REMOVE roles removes keycloak roles attribute and returns 200`() {
+        templateUser(user)
+
+        every { orgProvider.getMemberById(scimContext.organization, userId) } returns user
+        every { realm.getRole(ScimRoles.SCIM_MANAGED_ROLE) } returns scimRole
+        every { orgProvider.isManagedMember(scimContext.organization, user) } returns true
+        every { orgProvider.getIdentityProviders(scimContext.organization) } returns
+            emptyList<IdentityProviderModel>().stream()
+        every { userProvider.getFederatedIdentitiesStream(realm, user) } returns
+            emptyList<FederatedIdentityModel>().stream()
+
+        val response =
+            endpoint.patchUser(
+                userUriInfo,
+                userId,
+                PatchRequest(
+                    listOf(
+                        PatchOperation.remove("roles"),
+                    ),
+                ),
+            )
+
+        assertEquals(Response.Status.OK.statusCode, response.status)
+
+        verify(exactly = 1) { user.removeAttribute("roles") }
+        verify(exactly = 0) { user.setAttribute(eq("roles"), any<List<String>>()) }
+    }
+
+    @Test
+    fun `getUser returns all attributes from fint extension`() {
+        templateUser(user)
+
+        val extensionFields =
+            FintUserExtension::class.java.declaredFields
+                .filter { !it.isSynthetic }
+                .map { it.name }
+                .sorted()
+
+        val expected: Map<String, String?> =
+            extensionFields
+                .associateWith { propName -> "value-for-$propName" }
+                .toMutableMap()
+                .apply {
+                    if (containsKey("employeeId")) this["employeeId"] = ""
+                }
+
+        extensionFields.forEach { prop ->
+            every { user.getFirstAttribute(prop) } returns expected[prop]
+        }
+
+        every { orgProvider.getMemberById(scimContext.organization, userId) } returns user
+        every { realm.getRole(ScimRoles.SCIM_MANAGED_ROLE) } returns scimRole
+
+        val response = endpoint.getUser(userId, userUriInfo)
+        assertEquals(Response.Status.OK.statusCode, response.status)
+
+        val resource = response.entity as GenericScimResource
+        val extNode = resource.objectNode["urn:ietf:params:scim:schemas:extension:fint:2.0:User"]
+        assertTrue(extNode != null && extNode.isObject)
+
+        extensionFields.forEach { prop ->
+            val jsonValue: String? =
+                extNode.get(prop)?.takeUnless(JsonNode::isNull)?.asText()
+
+            assertEquals(expected[prop], jsonValue)
+        }
+
+        val jsonFields = extNode.fieldNames().asSequence().toSet()
+        assertEquals(extensionFields.toSet(), jsonFields)
+    }
+
+    @Test
+    fun `updateUser maps all fint extension attributes to keycloak user attributes`() {
+        templateUser(user)
+
+        every { orgProvider.getMemberById(scimContext.organization, userId) } returns user
+        every { realm.getRole(ScimRoles.SCIM_MANAGED_ROLE) } returns scimRole
+        every { user.hasRole(scimRole) } returns true
+        every { orgProvider.isManagedMember(scimContext.organization, user) } returns true
+
+        every { orgProvider.getIdentityProviders(scimContext.organization) } returns emptyList<IdentityProviderModel>().stream()
+        every { userProvider.getFederatedIdentitiesStream(realm, user) } returns emptyList<FederatedIdentityModel>().stream()
+
+        val extensionFields =
+            FintUserExtension::class.java.declaredFields
+                .filter { !it.isSynthetic }
+                .onEach { it.isAccessible = true }
+                .map { it.name }
+                .sorted()
+
+        val expected =
+            extensionFields
+                .associateWith { "value-for-$it" }
+                .toMutableMap()
+                .apply {
+                    if (containsKey("employeeId")) this["employeeId"] = ""
+                }
+
+        val ext = FintUserExtension()
+        FintUserExtension::class.java.declaredFields
+            .filter { !it.isSynthetic }
+            .onEach { it.isAccessible = true }
+            .forEach { field ->
+                field.set(ext, expected[field.name])
+            }
+
+        val updatedScimUser =
+            UserResource().apply {
+                userName = "alice.basic@telemark.no"
+                active = true
+                externalId = extId
+
+                setExtension(ext)
+            }
+
+        val response = endpoint.updateUser(userUriInfo, userId, updatedScimUser)
+        assertEquals(Response.Status.OK.statusCode, response.status)
+
+        extensionFields.forEach { attr ->
+            verify { user.setSingleAttribute(attr, expected[attr]) }
+        }
     }
 }

@@ -1,6 +1,7 @@
 package no.fintlabs.keycloak.scim.endpoints
 
 import com.fasterxml.jackson.databind.node.ObjectNode
+import com.unboundid.scim2.common.annotations.Attribute
 import com.unboundid.scim2.common.messages.PatchRequest
 import com.unboundid.scim2.common.types.Email
 import com.unboundid.scim2.common.types.EnterpriseUserExtension
@@ -31,6 +32,8 @@ import jakarta.ws.rs.core.UriInfo
 import no.fintlabs.keycloak.scim.context.ScimContext
 import no.fintlabs.keycloak.scim.resources.SearchHandler
 import no.fintlabs.keycloak.scim.resources.UserResource
+import no.fintlabs.keycloak.scim.types.FintUserExtension
+import no.fintlabs.keycloak.scim.utils.EntraScimTransformer
 import no.fintlabs.keycloak.scim.utils.ResourcePath
 import no.fintlabs.keycloak.scim.utils.ResourceTypeDefinitionUtil.createResourceTypeDefinition
 import no.fintlabs.keycloak.scim.utils.ScimRoles
@@ -43,7 +46,7 @@ import kotlin.streams.asSequence
     description = "User Account",
     name = "User",
     schema = UserResource::class,
-    optionalSchemaExtensions = [EnterpriseUserExtension::class],
+    optionalSchemaExtensions = [EnterpriseUserExtension::class, FintUserExtension::class],
 )
 @ResourcePath("Users")
 class ScimUserEndpoint(
@@ -117,10 +120,10 @@ class ScimUserEndpoint(
                 RESOURCE_TYPE_DEFINITION,
                 uriInfo,
             )
-        SCHEMA_CHECKER
-            .checkCreate(
-                SCHEMA_CHECKER.removeReadOnlyAttributes(scimUser.asGenericScimResource().objectNode),
-            ).throwSchemaExceptions()
+        val node = SCHEMA_CHECKER.removeReadOnlyAttributes(scimUser.asGenericScimResource().objectNode)
+        val normalizedNode = EntraScimTransformer.normalizeExtensionSchemas(node, RESOURCE_TYPE_DEFINITION)
+
+        SCHEMA_CHECKER.checkCreate(normalizedNode).throwSchemaExceptions()
 
         val userProvider = scimContext.session.users()
         if (userProvider.getUserById(scimContext.realm, scimUser.userName) != null) {
@@ -162,12 +165,13 @@ class ScimUserEndpoint(
         assertUserScimManaged(user)
         assertUserOrganizationManaged(user)
 
+        val node = updatedScimUser.asGenericScimResource().objectNode
+        val normalizedNode = EntraScimTransformer.normalizeExtensionSchemas(node, RESOURCE_TYPE_DEFINITION)
+
         JsonUtils.valueToNode<ObjectNode>(translateUser(user)).apply {
             SCHEMA_CHECKER
-                .checkReplace(
-                    updatedScimUser.asGenericScimResource().objectNode,
-                    SCHEMA_CHECKER.removeReadOnlyAttributes(this),
-                ).throwSchemaExceptions()
+                .checkReplace(normalizedNode, SCHEMA_CHECKER.removeReadOnlyAttributes(this))
+                .throwSchemaExceptions()
         }
 
         updateUserModel(user, updatedScimUser)
@@ -202,14 +206,14 @@ class ScimUserEndpoint(
         assertUserScimManaged(user)
         assertUserOrganizationManaged(user)
 
+        val normalizedPatch = EntraScimTransformer.normalizePatch(patchOperations, RESOURCE_TYPE_DEFINITION)
+
         val node =
             JsonUtils.valueToNode<ObjectNode>(translateUser(user)).apply {
                 SCHEMA_CHECKER
-                    .checkModify(
-                        patchOperations,
-                        SCHEMA_CHECKER.removeReadOnlyAttributes(this),
-                    ).throwSchemaExceptions()
-                patchOperations.forEach { it.apply(this) }
+                    .checkModify(normalizedPatch, SCHEMA_CHECKER.removeReadOnlyAttributes(this))
+                    .throwSchemaExceptions()
+                normalizedPatch.forEach { it.apply(this) }
             }
 
         val scimUser =
@@ -278,6 +282,14 @@ class ScimUserEndpoint(
                     .map { JsonSerialization.readValue(it, Role::class.java) }
                     .toList()
                     .toMutableList()
+
+            setExtension(
+                FintUserExtension().apply {
+                    employeeId = user.getFirstAttribute("employeeId")
+                    studentNumber = user.getFirstAttribute("studentNumber")
+                    userPrincipalName = user.getFirstAttribute("userPrincipalName")
+                },
+            )
         }
 
     private fun updateUserModel(
@@ -292,11 +304,17 @@ class ScimUserEndpoint(
         scimUser.name?.let { name ->
             user.firstName = name.givenName
             user.lastName = name.familyName
+        } ?: run {
+            user.firstName = null
+            user.lastName = null
         }
 
         scimUser.emails?.find { it.primary }?.let { email ->
             user.email = email.value
             user.isEmailVerified = true
+        } ?: run {
+            user.email = null
+            user.isEmailVerified = false
         }
 
         scimUser.roles?.let {
@@ -308,6 +326,30 @@ class ScimUserEndpoint(
                 "roles",
                 it.map { it.value },
             )
+        } ?: run {
+            user.removeAttribute("rawRoles")
+            user.removeAttribute("roles")
+        }
+
+        val fintUserExt = FintUserExtension::class.java
+        val attributeFields =
+            fintUserExt.declaredFields
+                .filter { it.isAnnotationPresent(Attribute::class.java) }
+        scimUser.getExtension(fintUserExt)?.let { ext ->
+            attributeFields.forEach { field ->
+                field.isAccessible = true
+                val value = field.get(ext)
+
+                if (value != null) {
+                    user.setSingleAttribute(field.name, value.toString())
+                } else {
+                    user.removeAttribute(field.name)
+                }
+            }
+        } ?: run {
+            attributeFields.forEach { field ->
+                user.removeAttribute(field.name)
+            }
         }
     }
 

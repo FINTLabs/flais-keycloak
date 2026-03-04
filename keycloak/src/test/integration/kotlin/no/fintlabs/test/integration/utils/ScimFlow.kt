@@ -25,6 +25,7 @@ object ScimFlow {
 
     @Serializable
     data class ScimUser(
+        var schemas: List<String>,
         @Transient
         var id: String? = null,
         var externalId: String,
@@ -33,6 +34,8 @@ object ScimFlow {
         var name: Name,
         var emails: List<Email>,
         var roles: List<Role>? = null,
+        @SerialName("urn:ietf:params:scim:schemas:extension:fint:2.0:User")
+        var fintUserExtension: FintUserExtension? = null,
     ) {
         @Serializable
         data class Name(
@@ -53,6 +56,13 @@ object ScimFlow {
             var display: String? = null,
             var type: String? = null,
             var primary: Boolean? = null,
+        )
+
+        @Serializable
+        data class FintUserExtension(
+            var employeeId: String? = null,
+            var studentNumber: String? = null,
+            var userPrincipalName: String? = null,
         )
     }
 
