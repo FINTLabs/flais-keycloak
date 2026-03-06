@@ -2,7 +2,7 @@
 
 Configuration of a single **Identity Provider (IDP)**.
 
-This configuration is based on an Entra ID OpenID Connect connection and serves as a template.
+This configuration is based on an OpenID Connect v1.0 for Entra ID and serves as a template.
 Some settings may differ depending on the vendor or specific integration.
 
 # Settings

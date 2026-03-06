@@ -1,6 +1,6 @@
 # Clients
 
-Configuration of the clients **Clients**.
+Configuration of the **Clients**.
 
 Configuration for a single Client serves as a template.
 Some settings may differ depending on the use-case.

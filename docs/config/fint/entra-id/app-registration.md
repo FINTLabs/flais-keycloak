@@ -1,6 +1,6 @@
 # App registration
 
-Configuration snapshot for **Microsoft Entra App Registration** used for integration with Keycloak.
+Configuration for **Microsoft Entra App Registration**.
 
 > The App Registration is automatically created when creating an **Enterprise Application** (required for SCIM provisioning).
 
