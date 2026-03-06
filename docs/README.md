@@ -31,6 +31,7 @@ If you are new to this setup, start with these pages:
 ## Document structure
 
 -   `concepts/` – what the main entities are and how they relate
+-   `config/` – documents how *projects* (like FINT) is configured in the different platforms that are used.
 -   `auth-flows/` – custom Keycloak authentication flows (as seen in the Admin UI)
 -   `processes/` – high-level system behavior (login, provisioning, role lifecycle)
 -   `constraints.md` – rules and invariants that apply across the system
