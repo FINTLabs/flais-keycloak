@@ -80,10 +80,14 @@ This process:
 # ==========================
 # Configurable Variables
 # ==========================
-$DisplayName        = "NAME_HERE"
-$ServicePrincipalId = "SERVICE_PRINCIPAL_ID_HERE"
+$DisplayName         = "NAME_HERE"
+$ServicePrincipalId  = "SERVICE_PRINCIPAL_ID_HERE"
 $EmployeeIdSource    = "extensionAttributeXX"
 $StudentNumberSource = "extensionAttributeXX"
+
+# Retry settings
+$MaxRetries  = 5
+$RetryDelayS = 3
 
 # ==========================
 # Build Claims Mapping JSON
@@ -119,23 +123,40 @@ Write-Host "  Name: $($Policy.DisplayName)"
 Write-Host "  Id:   $($Policy.Id)"
 
 # ==========================
-# Small Delay (Graph propagation)
-# ==========================
-Write-Host "Waiting for policy propagation..."
-Start-Sleep -Seconds 5
-
-# ==========================
-# Assign Policy to Service Principal
+# Assign Policy to Service Principal with Retry
 # ==========================
 $Body = @{
     "@odata.id" = "https://graph.microsoft.com/v1.0/policies/claimsMappingPolicies/$($Policy.Id)"
 }
 
-New-MgServicePrincipalClaimMappingPolicyByRef `
-    -ServicePrincipalId $ServicePrincipalId `
-    -BodyParameter $Body
+$Assigned = $false
 
-Write-Host "Assigned policy $($Policy.Id) to service principal $ServicePrincipalId"
+for ($Attempt = 1; $Attempt -le $MaxRetries; $Attempt++) {
+    try {
+        Write-Host "Assigning policy to service principal (attempt $Attempt of $MaxRetries)..."
+
+        New-MgServicePrincipalClaimMappingPolicyByRef `
+            -ServicePrincipalId $ServicePrincipalId `
+            -BodyParameter $Body `
+            -ErrorAction Stop
+
+        $Assigned = $true
+        Write-Host "Assigned policy $($Policy.Id) to service principal $ServicePrincipalId"
+        break
+    }
+    catch {
+        Write-Warning "Assignment failed on attempt $Attempt: $($_.Exception.Message)"
+
+        if ($Attempt -lt $MaxRetries) {
+            Write-Host "Retrying in $RetryDelayS seconds..."
+            Start-Sleep -Seconds $RetryDelayS
+        }
+    }
+}
+
+if (-not $Assigned) {
+    throw "Failed to assign policy $($Policy.Id) to service principal $ServicePrincipalId after $MaxRetries attempts."
+}
 ```
 
 # 4. Update an Existing Claims Mapping Policy
