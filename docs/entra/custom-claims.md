@@ -86,8 +86,8 @@ $EmployeeIdSource    = "extensionAttributeXX"
 $StudentNumberSource = "extensionAttributeXX"
 
 # Retry settings
-$MaxRetries  = 5
-$RetryDelayS = 3
+$MaxRetries  = 10
+$RetryDelayS = 5
 
 # ==========================
 # Build Claims Mapping JSON
@@ -145,7 +145,7 @@ for ($Attempt = 1; $Attempt -le $MaxRetries; $Attempt++) {
         break
     }
     catch {
-        Write-Warning "Assignment failed on attempt $Attempt: $($_.Exception.Message)"
+        Write-Warning "Assignment failed on attempt $($Attempt): $($_.Exception.Message)"
 
         if ($Attempt -lt $MaxRetries) {
             Write-Host "Retrying in $RetryDelayS seconds..."
