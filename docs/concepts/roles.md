@@ -11,7 +11,7 @@ Roles are currently implemented as user attributes instead of native Keycloak ro
 
 ## User attributes
 
-- `rawRoles` – original role payload (JSON string)
+- `rawRoles` – original role payload from SCIM (JSON string)
 - `roles` – normalized role values
 
 ## Role sources
