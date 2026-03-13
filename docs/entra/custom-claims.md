@@ -263,21 +263,21 @@ Remove-MgPolicyClaimMappingPolicy `
     -ClaimsMappingPolicyId $PolicyId
 ```
 
-# 8. Important Notes
+# 7. Important Notes
 
-## 8.1 One Policy Per Service Principal
+## 7.1 One Policy Per Service Principal
 
 A Service Principal can have **only one Claims Mapping Policy assigned at a time**.
 
-## 8.2 Token Configuration
+## 7.2 Token Configuration
 
 The application must request a token type that supports custom claims (ID token or Access token depending on scenario).
 
-## 8.3 Propagation Time
+## 7.3 Propagation Time
 
 Changes may take several minutes before appearing in newly issued tokens.
 
-# 9. Quick Command Reference
+# 8. Quick Command Reference
 
 | Action            | Command                                            |
 | ----------------- | -------------------------------------------------- |
