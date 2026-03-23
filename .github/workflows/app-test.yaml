@@ -90,7 +90,7 @@ jobs:
                     min-coverage-changed-files: 60
 
             -   name: Unit Test Reports
-                uses: dorny/test-reporter@v2.6.0
+                uses: dorny/test-reporter@v3.0.0
                 if: always()
                 with:
                     name: Unit Test Reports
@@ -135,7 +135,7 @@ jobs:
                     min-coverage-changed-files: 60
 
             -   name: Integration Test Reports
-                uses: dorny/test-reporter@v2.6.0
+                uses: dorny/test-reporter@v3.0.0
                 if: always()
                 with:
                     name: Integration Test Reports
@@ -170,7 +170,7 @@ jobs:
                 run: ./gradlew systemTest --stacktrace --configuration-cache
 
             -   name: System Test Reports
-                uses: dorny/test-reporter@v2.6.0
+                uses: dorny/test-reporter@v3.0.0
                 if: always()
                 with:
                     name: System Test Reports
