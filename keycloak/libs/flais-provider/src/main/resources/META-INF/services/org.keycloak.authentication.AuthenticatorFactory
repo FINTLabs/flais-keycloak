@@ -1,3 +1,4 @@
-no.fintlabs.authenticator.OrgSelectorAuthenticatorFactory
-no.fintlabs.authenticator.OrgRedirectorAuthenticatorFactory
-no.fintlabs.authenticator.OrgIdpSelectorAuthenticatorFactory
+no.fintlabs.authenticator.org.OrgSelectionUiAuthenticatorFactory
+no.fintlabs.authenticator.org.OrgRedirectorAuthenticatorFactory
+no.fintlabs.authenticator.org.OrgIdpSelectionUiAuthenticatorFactory
+no.fintlabs.authenticator.client.ClientOrgAccessAuthenticatorFactory

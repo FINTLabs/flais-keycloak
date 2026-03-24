@@ -1,4 +1,4 @@
-package no.fintlabs.application.authenticator
+package no.fintlabs.application.authenticator.org
 
 import io.mockk.Runs
 import io.mockk.every
@@ -7,7 +7,7 @@ import io.mockk.mockk
 import io.mockk.spyk
 import io.mockk.verify
 import jakarta.ws.rs.core.Response
-import no.fintlabs.authenticator.OrgRedirectorAuthenticator
+import no.fintlabs.authenticator.org.OrgRedirectorAuthenticator
 import org.junit.jupiter.api.Test
 import org.keycloak.authentication.AuthenticationFlowContext
 import org.keycloak.events.Details

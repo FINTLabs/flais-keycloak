@@ -1,4 +1,4 @@
-package no.fintlabs.authenticator
+package no.fintlabs.authenticator.org
 
 import org.keycloak.Config
 import org.keycloak.authentication.Authenticator
@@ -9,13 +9,13 @@ import org.keycloak.models.KeycloakSession
 import org.keycloak.models.KeycloakSessionFactory
 import org.keycloak.provider.ProviderConfigProperty
 
-class OrgSelectorAuthenticatorFactory :
+class OrgIdpSelectionUiAuthenticatorFactory :
     AuthenticatorFactory,
     ConfigurableAuthenticatorFactory {
-    private val providerId: String = "org-selector-authenticator"
-    private val orgSelectorAuthenticator: OrgSelectorAuthenticator = OrgSelectorAuthenticator()
+    private val providerId: String = "org-idp-selection-ui-authenticator"
+    private val orgIdpSelectorAuthenticator = OrgIdpSelectionUiAuthenticator()
 
-    override fun create(session: KeycloakSession): Authenticator = orgSelectorAuthenticator
+    override fun create(session: KeycloakSession): Authenticator = orgIdpSelectorAuthenticator
 
     override fun init(config: Config.Scope) {
         // No required actions needed
@@ -31,21 +31,21 @@ class OrgSelectorAuthenticatorFactory :
 
     override fun getId(): String = providerId
 
-    override fun getDisplayType(): String = "Org Selector"
+    override fun getDisplayType(): String = "Org Idp Selector"
 
     override fun getReferenceCategory(): String = "organization"
 
-    override fun isConfigurable(): Boolean = true
+    override fun isConfigurable(): Boolean = false
 
     override fun getRequirementChoices(): Array<out AuthenticationExecutionModel.Requirement> =
         arrayOf(
             AuthenticationExecutionModel.Requirement.REQUIRED,
-            AuthenticationExecutionModel.Requirement.ALTERNATIVE,
+            AuthenticationExecutionModel.Requirement.DISABLED,
         )
 
-    override fun isUserSetupAllowed(): Boolean = true
+    override fun isUserSetupAllowed(): Boolean = false
 
-    override fun getHelpText(): String = "Allows selecting an organization that user should log in with"
+    override fun getHelpText(): String = "Allows selecting an identity provider user should log in with"
 
     override fun getConfigProperties(): List<ProviderConfigProperty> = mutableListOf()
 }

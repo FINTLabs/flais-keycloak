@@ -13,7 +13,7 @@ import org.junit.jupiter.api.assertNotNull
 import org.junit.jupiter.api.extension.ExtendWith
 
 @ExtendWith(KcEnvExtension::class)
-class OrgIdpSelectorTest {
+class OrgIdpSelectionUiAuthenticatorTest {
     @Test
     fun `org (telemark) login with unlinked idp returns error`(env: KcEnvironment) {
         val client = KcHttpClient.create()

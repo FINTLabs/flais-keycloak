@@ -1,4 +1,4 @@
-package no.fintlabs.application.authenticator
+package no.fintlabs.application.authenticator.org
 
 import io.mockk.Runs
 import io.mockk.every
@@ -7,11 +7,12 @@ import io.mockk.mockk
 import io.mockk.verify
 import jakarta.ws.rs.core.MultivaluedHashMap
 import jakarta.ws.rs.core.Response
-import no.fintlabs.access.ClientAccess.CLIENT_BLACKLIST_ORGANIZATIONS_ATTRIBUTE
-import no.fintlabs.access.ClientAccess.CLIENT_WHITELIST_ORGANIZATIONS_ATTRIBUTE
-import no.fintlabs.access.OrgAccess
-import no.fintlabs.authenticator.OrgSelectorAuthenticator
+import no.fintlabs.attributes.ClientPermissionAttribute.PERMISSION_BLACKLISTED_ORGANIZATIONS
+import no.fintlabs.attributes.ClientPermissionAttribute.PERMISSION_WHITELISTED_ORGANIZATIONS
+import no.fintlabs.attributes.OrgAttribute
+import no.fintlabs.authenticator.org.OrgSelectionUiAuthenticator
 import no.fintlabs.dtos.OrgDto
+import no.fintlabs.service.ClientOrgAccessService
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.keycloak.authentication.AuthenticationFlowContext
@@ -26,12 +27,12 @@ import org.keycloak.organization.OrganizationProvider
 import org.keycloak.sessions.AuthenticationSessionModel
 import java.util.stream.Stream
 
-class OrgSelectorAuthenticatorTest {
-    private lateinit var authenticator: OrgSelectorAuthenticator
+class OrgSelectionUiAuthenticatorTest {
+    private lateinit var authenticator: OrgSelectionUiAuthenticator
 
     @BeforeEach
     fun setUp() {
-        authenticator = OrgSelectorAuthenticator()
+        authenticator = OrgSelectionUiAuthenticator(ClientOrgAccessService())
     }
 
     private fun mockOrg(
@@ -50,7 +51,7 @@ class OrgSelectorAuthenticatorTest {
         every { idp.isEnabled } returns true
 
         val attrs: MutableMap<String, List<String>> = mutableMapOf()
-        if (logo != null) attrs[OrgAccess.ORG_LOGO_ATTRIBUTE] = listOf(logo)
+        if (logo != null) attrs[OrgAttribute.ORGANIZATION_LOGO] = listOf(logo)
         every { org.attributes } returns attrs
 
         if (enabledIdps) {
@@ -215,7 +216,7 @@ class OrgSelectorAuthenticatorTest {
 
         authenticator.action(context)
 
-        verify(exactly = 1) { formProvider.setError("You must select a organization to continue") }
+        verify(exactly = 1) { formProvider.setError("You must select an organization to continue") }
         verify(exactly = 1) { formProvider.createForm("flais-org-selector.ftl") }
         verify(exactly = 1) { context.challenge(formResponse) }
         verify(exactly = 0) { context.success() }
@@ -306,8 +307,8 @@ class OrgSelectorAuthenticatorTest {
             authSession,
             client,
             mapOf(
-                CLIENT_WHITELIST_ORGANIZATIONS_ATTRIBUTE to "${whitelisted.alias},${noEnabledIdps.alias}",
-                CLIENT_BLACKLIST_ORGANIZATIONS_ATTRIBUTE to blacklisted.alias,
+                PERMISSION_WHITELISTED_ORGANIZATIONS to "${whitelisted.alias},${noEnabledIdps.alias}",
+                PERMISSION_BLACKLISTED_ORGANIZATIONS to blacklisted.alias,
             ),
         )
         mockOrgProvider(context, session, orgProvider, listOf(whitelisted, blacklisted, noEnabledIdps))

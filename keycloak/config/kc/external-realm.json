@@ -1345,7 +1345,7 @@
             "builtIn": false,
             "authenticationExecutions": [
                 {
-                    "authenticator": "org-selector-authenticator",
+                    "authenticator": "org-selection-ui-authenticator",
                     "authenticatorFlow": false,
                     "requirement": "REQUIRED",
                     "priority": 0,
@@ -1353,7 +1353,7 @@
                     "userSetupAllowed": false
                 },
                 {
-                    "authenticator": "org-idp-selector-authenticator",
+                    "authenticator": "org-idp-selection-ui-authenticator",
                     "authenticatorFlow": false,
                     "requirement": "REQUIRED",
                     "priority": 1,

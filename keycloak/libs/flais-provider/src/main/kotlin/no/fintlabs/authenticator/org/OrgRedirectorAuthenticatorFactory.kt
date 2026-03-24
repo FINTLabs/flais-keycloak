@@ -1,4 +1,4 @@
-package no.fintlabs.authenticator
+package no.fintlabs.authenticator.org
 
 import org.keycloak.Config
 import org.keycloak.authentication.Authenticator
@@ -9,13 +9,13 @@ import org.keycloak.models.KeycloakSession
 import org.keycloak.models.KeycloakSessionFactory
 import org.keycloak.provider.ProviderConfigProperty
 
-class OrgIdpSelectorAuthenticatorFactory :
+class OrgRedirectorAuthenticatorFactory :
     AuthenticatorFactory,
     ConfigurableAuthenticatorFactory {
-    private val providerId: String = "org-idp-selector-authenticator"
-    private val orgIdpSelectorAuthenticator = OrgIdpSelectorAuthenticator()
+    private val providerId: String = "org-redirector-authenticator"
+    private val orgRedirectorAuthenticator = OrgRedirectorAuthenticator()
 
-    override fun create(session: KeycloakSession): Authenticator = orgIdpSelectorAuthenticator
+    override fun create(session: KeycloakSession): Authenticator = orgRedirectorAuthenticator
 
     override fun init(config: Config.Scope) {
         // No required actions needed
@@ -31,18 +31,21 @@ class OrgIdpSelectorAuthenticatorFactory :
 
     override fun getId(): String = providerId
 
-    override fun getDisplayType(): String = "Org Idp Selector"
+    override fun getDisplayType(): String = "Org Redirector"
 
     override fun getReferenceCategory(): String = "organization"
 
     override fun isConfigurable(): Boolean = false
 
     override fun getRequirementChoices(): Array<out AuthenticationExecutionModel.Requirement> =
-        arrayOf(AuthenticationExecutionModel.Requirement.REQUIRED)
+        arrayOf(
+            AuthenticationExecutionModel.Requirement.REQUIRED,
+            AuthenticationExecutionModel.Requirement.DISABLED,
+        )
 
     override fun isUserSetupAllowed(): Boolean = false
 
-    override fun getHelpText(): String = "Allows selecting an identity provider user should log in with"
+    override fun getHelpText(): String = "Redirects to identity provider from org selector"
 
     override fun getConfigProperties(): List<ProviderConfigProperty> = mutableListOf()
 }

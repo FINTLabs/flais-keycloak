@@ -1,4 +1,4 @@
-package no.fintlabs.authenticator
+package no.fintlabs.authenticator.org
 
 import no.fintlabs.flow.AuthenticationErrorHandler.failure
 import org.jboss.logging.Logger

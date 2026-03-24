@@ -12,7 +12,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 
 @ExtendWith(KcEnvExtension::class)
-class OrgSelectorTest {
+class OrgSelectionUiAuthenticatorTest {
     @Test
     fun `client (flais-keycloak-demo) returns page flais-org-selector`(env: KcEnvironment) {
         openAuthUrl(env = env, clientId = "flais-keycloak-demo").use { resp ->
