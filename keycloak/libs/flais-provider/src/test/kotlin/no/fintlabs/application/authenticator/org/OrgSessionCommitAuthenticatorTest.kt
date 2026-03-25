@@ -19,7 +19,7 @@ import org.keycloak.models.OrganizationModel
 import org.keycloak.organization.OrganizationProvider
 import org.keycloak.sessions.AuthenticationSessionModel
 
-class OrgSessionAuthenticatorTest {
+class OrgSessionCommitAuthenticatorTest {
     private lateinit var authenticator: OrgSessionCommitAuthenticator
 
     @BeforeEach
@@ -155,7 +155,7 @@ class OrgSessionAuthenticatorTest {
         val formProvider = mockk<LoginFormsProvider>()
         val errorResponse = mockk<Response>()
         val organization =
-            mockOrg()
+            mockOrg(enabled = false)
 
         every { context.authenticationSession } returns authSession
         every { context.session } returns session

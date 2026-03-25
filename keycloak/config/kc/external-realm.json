@@ -1319,7 +1319,7 @@
             "builtIn": false,
             "authenticationExecutions": [
                 {
-                    "authenticator": "auth-cookie",
+                    "authenticator": "org-cookie-authenticator",
                     "authenticatorFlow": false,
                     "requirement": "ALTERNATIVE",
                     "priority": 10,
@@ -1361,10 +1361,18 @@
                     "userSetupAllowed": false
                 },
                 {
-                    "authenticator": "org-redirector-authenticator",
+                    "authenticator": "org-session-commit-authenticator",
                     "authenticatorFlow": false,
                     "requirement": "REQUIRED",
                     "priority": 2,
+                    "autheticatorFlow": false,
+                    "userSetupAllowed": false
+                },
+                {
+                    "authenticator": "org-redirector-authenticator",
+                    "authenticatorFlow": false,
+                    "requirement": "REQUIRED",
+                    "priority": 3,
                     "autheticatorFlow": false,
                     "userSetupAllowed": false
                 }
