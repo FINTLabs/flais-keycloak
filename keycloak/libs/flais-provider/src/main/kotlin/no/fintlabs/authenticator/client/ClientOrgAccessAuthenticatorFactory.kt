@@ -22,7 +22,7 @@ class ClientOrgAccessAuthenticatorFactory : AuthenticatorFactory {
 
     override fun getId(): String = providerId
 
-    override fun getDisplayType(): String = "Client Organization Access Authenticator"
+    override fun getDisplayType(): String = "FLAIS Organization Client Access"
 
     override fun getReferenceCategory(): String = "client"
 
@@ -43,18 +43,6 @@ class ClientOrgAccessAuthenticatorFactory : AuthenticatorFactory {
 
     override fun create(session: KeycloakSession): Authenticator = clientOrgAccessAuthenticator
 
-    override fun init(config: Config.Scope) {
-        // No-op
-    }
-
-    override fun postInit(factory: KeycloakSessionFactory) {
-        // No-op
-    }
-
-    override fun close() {
-        // No-op
-    }
-
     override fun getConfigProperties(): MutableList<ProviderConfigProperty> =
         mutableListOf(
             ProviderConfigProperty().apply {
@@ -66,4 +54,16 @@ class ClientOrgAccessAuthenticatorFactory : AuthenticatorFactory {
                 helpText = "post-login = use brokered identity context. browser = use browser/cookie logic."
             },
         )
+
+    override fun init(config: Config.Scope) {
+        // No required actions needed
+    }
+
+    override fun postInit(factory: KeycloakSessionFactory) {
+        // No required actions needed
+    }
+
+    override fun close() {
+        // No required actions needed
+    }
 }

@@ -1,6 +1,5 @@
 package no.fintlabs.authenticator.org
 
-import no.fintlabs.service.ClientOrgAccessService
 import org.keycloak.Config
 import org.keycloak.authentication.Authenticator
 import org.keycloak.authentication.AuthenticatorFactory
@@ -10,24 +9,21 @@ import org.keycloak.models.KeycloakSession
 import org.keycloak.models.KeycloakSessionFactory
 import org.keycloak.provider.ProviderConfigProperty
 
-class OrgSelectionUiAuthenticatorFactory :
+class OrgCookieAuthenticatorFactory :
     AuthenticatorFactory,
     ConfigurableAuthenticatorFactory {
-    private val providerId: String = "org-selection-ui-authenticator"
-    private val orgSelectorAuthenticator: OrgSelectionUiAuthenticator =
-        OrgSelectionUiAuthenticator(
-            ClientOrgAccessService(),
-        )
+    private val providerId: String = "org-cookie-authenticator"
+    private val orgCookieAuthenticator = OrgCookieAuthenticator()
 
-    override fun create(session: KeycloakSession): Authenticator = orgSelectorAuthenticator
+    override fun create(session: KeycloakSession): Authenticator = orgCookieAuthenticator
 
     override fun getId(): String = providerId
 
-    override fun getDisplayType(): String = "FLAIS Organization Selection"
+    override fun getDisplayType(): String = "FLAIS Organization SSO Cookie"
 
     override fun getReferenceCategory(): String = "organization"
 
-    override fun isConfigurable(): Boolean = true
+    override fun isConfigurable(): Boolean = false
 
     override fun getRequirementChoices(): Array<out AuthenticationExecutionModel.Requirement> =
         arrayOf(
@@ -36,10 +32,11 @@ class OrgSelectionUiAuthenticatorFactory :
             AuthenticationExecutionModel.Requirement.DISABLED,
         )
 
-    override fun isUserSetupAllowed(): Boolean = true
+    override fun isUserSetupAllowed(): Boolean = false
 
     override fun getHelpText(): String =
-        "Presents the user with a list of organizations they are permitted to log in with for the current client."
+        "Validates the Keycloak SSO cookie and restores the FLAIS organization context from the existing user session. " +
+            "Should be placed at the top of the browser flow to enable SSO for organization-aware clients."
 
     override fun getConfigProperties(): List<ProviderConfigProperty> = mutableListOf()
 

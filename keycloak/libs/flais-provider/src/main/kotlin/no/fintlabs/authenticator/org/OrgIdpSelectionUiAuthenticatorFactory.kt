@@ -17,21 +17,9 @@ class OrgIdpSelectionUiAuthenticatorFactory :
 
     override fun create(session: KeycloakSession): Authenticator = orgIdpSelectorAuthenticator
 
-    override fun init(config: Config.Scope) {
-        // No required actions needed
-    }
-
-    override fun postInit(sessionFactory: KeycloakSessionFactory) {
-        // No required actions needed
-    }
-
-    override fun close() {
-        // No required actions needed
-    }
-
     override fun getId(): String = providerId
 
-    override fun getDisplayType(): String = "Org Idp Selector"
+    override fun getDisplayType(): String = "FLAIS Organization Identity Provider Selection"
 
     override fun getReferenceCategory(): String = "organization"
 
@@ -45,7 +33,21 @@ class OrgIdpSelectionUiAuthenticatorFactory :
 
     override fun isUserSetupAllowed(): Boolean = false
 
-    override fun getHelpText(): String = "Allows selecting an identity provider user should log in with"
+    override fun getHelpText(): String =
+        "Presents the user with a selection of identity providers associated with the chosen organization. " +
+            "If only one identity provider is available, the selection is skipped and the user is redirected automatically."
 
     override fun getConfigProperties(): List<ProviderConfigProperty> = mutableListOf()
+
+    override fun init(config: Config.Scope) {
+        // No required actions needed
+    }
+
+    override fun postInit(sessionFactory: KeycloakSessionFactory) {
+        // No required actions needed
+    }
+
+    override fun close() {
+        // No required actions needed
+    }
 }

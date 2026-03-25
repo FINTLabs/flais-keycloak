@@ -23,7 +23,7 @@ class OrgSelectionUiAuthenticator(
         logger.debugf("Found orgs: %s", organizations)
 
         context.authenticationSession.getAuthNote(Details.ORG_ID)?.let {
-            organizations.find { org -> org.alias == it }?.let { org ->
+            organizations.find { org -> org.id == it }?.let { org ->
                 logger.debugf("Already selected org: %s", org.alias)
                 context.success()
                 return

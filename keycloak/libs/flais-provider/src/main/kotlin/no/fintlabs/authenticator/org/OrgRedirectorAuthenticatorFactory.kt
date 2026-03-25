@@ -17,21 +17,9 @@ class OrgRedirectorAuthenticatorFactory :
 
     override fun create(session: KeycloakSession): Authenticator = orgRedirectorAuthenticator
 
-    override fun init(config: Config.Scope) {
-        // No required actions needed
-    }
-
-    override fun postInit(sessionFactory: KeycloakSessionFactory) {
-        // No required actions needed
-    }
-
-    override fun close() {
-        // No required actions needed
-    }
-
     override fun getId(): String = providerId
 
-    override fun getDisplayType(): String = "Org Redirector"
+    override fun getDisplayType(): String = "FLAIS Organization Identity Provider Redirector"
 
     override fun getReferenceCategory(): String = "organization"
 
@@ -45,7 +33,19 @@ class OrgRedirectorAuthenticatorFactory :
 
     override fun isUserSetupAllowed(): Boolean = false
 
-    override fun getHelpText(): String = "Redirects to identity provider from org selector"
+    override fun getHelpText(): String = "Redirects the user to the identity provider selected during organization-based IdP selection."
 
     override fun getConfigProperties(): List<ProviderConfigProperty> = mutableListOf()
+
+    override fun init(config: Config.Scope) {
+        // No required actions needed
+    }
+
+    override fun postInit(sessionFactory: KeycloakSessionFactory) {
+        // No required actions needed
+    }
+
+    override fun close() {
+        // No required actions needed
+    }
 }

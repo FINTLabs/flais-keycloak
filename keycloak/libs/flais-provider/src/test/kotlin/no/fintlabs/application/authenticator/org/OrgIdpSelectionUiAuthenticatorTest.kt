@@ -72,7 +72,7 @@ class OrgIdpSelectionUiAuthenticatorTest {
         val errorMessage = "The selected organization does not have any login options"
 
         every { context.authenticationSession } returns authSession
-        every { authSession.getAuthNote(Details.ORG_ID) } returns "org-1"
+        every { authSession.getAuthNote(Details.ORG_ID) } returns "id-1"
         every { context.session } returns session
         every { session.identityProviders() } returns idpStorageProvider
         every { idpStorageProvider.getAllStream(any()) } returns Stream.empty()
@@ -176,7 +176,7 @@ class OrgIdpSelectionUiAuthenticatorTest {
         val errorMessage = "No identity provider selected"
 
         every { context.authenticationSession } returns authSession
-        every { authSession.getAuthNote(Details.ORG_ID) } returns "org-1"
+        every { authSession.getAuthNote(Details.ORG_ID) } returns "id-1"
         every { context.httpRequest } returns httpRequest
         every { httpRequest.decodedFormParameters } returns
             MultivaluedHashMap<String, String>().apply {
@@ -204,7 +204,7 @@ class OrgIdpSelectionUiAuthenticatorTest {
         val errorMessage = "Could not find the selected identity provider"
 
         every { context.authenticationSession } returns authSession
-        every { authSession.getAuthNote(Details.ORG_ID) } returns "org-1"
+        every { authSession.getAuthNote(Details.ORG_ID) } returns "id-1"
         every { context.httpRequest } returns httpRequest
         every { httpRequest.decodedFormParameters } returns
             MultivaluedHashMap<String, String>().apply {
@@ -237,7 +237,7 @@ class OrgIdpSelectionUiAuthenticatorTest {
         val errorMessage = "The selected identity provider is not enabled"
 
         every { context.authenticationSession } returns authSession
-        every { authSession.getAuthNote(Details.ORG_ID) } returns "org-1"
+        every { authSession.getAuthNote(Details.ORG_ID) } returns "id-1"
         every { context.httpRequest } returns httpRequest
         every { httpRequest.decodedFormParameters } returns
             MultivaluedHashMap<String, String>().apply {
@@ -271,7 +271,7 @@ class OrgIdpSelectionUiAuthenticatorTest {
         val errorMessage = "The selected identity provider is not registered to the selected organization"
 
         every { context.authenticationSession } returns authSession
-        every { authSession.getAuthNote(Details.ORG_ID) } returns "org-1"
+        every { authSession.getAuthNote(Details.ORG_ID) } returns "id-1"
         every { context.httpRequest } returns httpRequest
         every { httpRequest.decodedFormParameters } returns
             MultivaluedHashMap<String, String>().apply {

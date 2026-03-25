@@ -14,7 +14,7 @@ const keycloak = new Keycloak({
 keycloak
     .init({
         onLoad: "check-sso",
-        scope: "organization",
+        scope: "organization:*",
     })
     .then((authenticated) => {
         if (authenticated) {
@@ -24,6 +24,6 @@ keycloak
                 </StrictMode>,
             );
         } else {
-            keycloak.login({ scope: "organization" });
+            keycloak.login();
         }
     });

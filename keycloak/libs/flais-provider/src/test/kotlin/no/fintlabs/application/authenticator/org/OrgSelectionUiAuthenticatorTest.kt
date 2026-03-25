@@ -118,7 +118,7 @@ class OrgSelectionUiAuthenticatorTest {
         val org2 = mockOrg("id-2", "org-2", "Org 2")
 
         every { context.authenticationSession } returns authSession
-        every { authSession.getAuthNote(Details.ORG_ID) } returns org2.alias
+        every { authSession.getAuthNote(Details.ORG_ID) } returns org2.id
 
         mockClientAttributes(authSession, client, emptyMap())
         mockOrgProvider(context, session, orgProvider, listOf(org1, org2))
