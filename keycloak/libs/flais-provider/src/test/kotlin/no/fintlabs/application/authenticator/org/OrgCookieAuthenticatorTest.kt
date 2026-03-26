@@ -9,6 +9,7 @@ import io.mockk.mockkStatic
 import io.mockk.unmockkAll
 import io.mockk.verify
 import no.fintlabs.authenticator.org.OrgCookieAuthenticator
+import no.fintlabs.service.ClientOrgAccessService
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -37,7 +38,7 @@ class OrgCookieAuthenticatorTest {
 
     @BeforeEach
     fun setUp() {
-        authenticator = OrgCookieAuthenticator()
+        authenticator = OrgCookieAuthenticator(ClientOrgAccessService())
     }
 
     @AfterEach
@@ -395,6 +396,7 @@ class OrgCookieAuthenticatorTest {
         val user = mockk<UserModel>()
         val topLevelFlow = mockk<AuthenticationFlowModel>()
         val executionModel = mockk<org.keycloak.models.AuthenticationExecutionModel>()
+        val orgProvider = mockk<OrganizationProvider>()
 
         every { context.session } returns session
         every { context.realm } returns realm
@@ -411,6 +413,7 @@ class OrgCookieAuthenticatorTest {
         every { userSession.getNote(OrganizationModel.ORGANIZATION_ATTRIBUTE) } returns null
 
         every { session.getProvider(LoginProtocol::class.java, "openid-connect") } returns protocol
+        every { session.getProvider(OrganizationProvider::class.java) } returns orgProvider
         every { protocol.requireReauthentication(userSession, authSession) } returns false
         every { context.user = user } just Runs
         every { context.attachUserSession(userSession) } just Runs

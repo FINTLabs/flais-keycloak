@@ -19,7 +19,7 @@ class OrgSelectionUiAuthenticator(
     private val logger: Logger = Logger.getLogger(OrgSelectionUiAuthenticator::class.java)
 
     override fun authenticate(context: AuthenticationFlowContext) {
-        val organizations = clientOrgAccessService.getAllowedOrganizations(context)
+        val organizations = clientOrgAccessService.getAllowedOrgs(context)
         logger.debugf("Found orgs: %s", organizations)
 
         context.authenticationSession.getAuthNote(Details.ORG_ID)?.let {
@@ -49,7 +49,7 @@ class OrgSelectionUiAuthenticator(
         val selectedOrg = formData.getFirst("selected_org")
         logger.infof("Selected Organization: %s", selectedOrg)
 
-        val organizations = clientOrgAccessService.getAllowedOrganizations(context)
+        val organizations = clientOrgAccessService.getAllowedOrgs(context)
         if (selectedOrg.isNullOrEmpty()) {
             createOrgSelectForm(
                 context,

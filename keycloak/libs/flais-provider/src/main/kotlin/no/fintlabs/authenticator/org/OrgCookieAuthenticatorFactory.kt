@@ -1,5 +1,6 @@
 package no.fintlabs.authenticator.org
 
+import no.fintlabs.service.ClientOrgAccessService
 import org.keycloak.Config
 import org.keycloak.authentication.Authenticator
 import org.keycloak.authentication.AuthenticatorFactory
@@ -13,7 +14,7 @@ class OrgCookieAuthenticatorFactory :
     AuthenticatorFactory,
     ConfigurableAuthenticatorFactory {
     private val providerId: String = "org-cookie-authenticator"
-    private val orgCookieAuthenticator = OrgCookieAuthenticator()
+    private val orgCookieAuthenticator = OrgCookieAuthenticator(ClientOrgAccessService())
 
     override fun create(session: KeycloakSession): Authenticator = orgCookieAuthenticator
 

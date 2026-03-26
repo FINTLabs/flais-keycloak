@@ -1,5 +1,6 @@
 package no.fintlabs.authenticator.org
 
+import no.fintlabs.service.ClientOrgAccessService
 import org.jboss.logging.Logger
 import org.keycloak.authentication.AuthenticationFlowContext
 import org.keycloak.authentication.Authenticator
@@ -11,7 +12,6 @@ import org.keycloak.models.KeycloakSession
 import org.keycloak.models.OrganizationModel
 import org.keycloak.models.RealmModel
 import org.keycloak.models.UserModel
-import org.keycloak.organization.OrganizationProvider
 import org.keycloak.organization.protocol.mappers.oidc.OrganizationScope
 import org.keycloak.organization.utils.Organizations
 import org.keycloak.protocol.LoginProtocol
@@ -19,7 +19,9 @@ import org.keycloak.services.managers.AuthenticationManager
 import org.keycloak.services.messages.Messages
 import org.keycloak.sessions.AuthenticationSessionModel
 
-class OrgCookieAuthenticator : Authenticator {
+class OrgCookieAuthenticator(
+    private val orgAccessService: ClientOrgAccessService,
+) : Authenticator {
     private val logger: Logger = Logger.getLogger(OrgCookieAuthenticator::class.java)
 
     override fun requiresUser(): Boolean = false
@@ -88,12 +90,64 @@ class OrgCookieAuthenticator : Authenticator {
             return
         }
 
-        if (restoreOrganizationContext(context, authResult.session())) {
-            context.success()
-        } else {
-            logger.debug("Organization scope detected, but no organization could be restored from user session")
+        val orgId = authResult.session().getNote(OrganizationModel.ORGANIZATION_ATTRIBUTE)
+        if (orgId == null) {
+            logger.debug("Could not resolve organization id from user session")
             context.attempted()
+            return
         }
+
+        val organization = orgAccessService.getOrganizationModel(context, orgId)
+        if (organization == null) {
+            logger.debug("Could not resolve organization from user session")
+            context.attempted()
+            return
+        }
+
+        if (orgAccessService.isOrgAllowed(context, organization)) {
+            logger.debugf(
+                "Access granted for organization '%s' (%s) for client %s",
+                organization.alias,
+                organization.id,
+                context.authenticationSession.client.clientId,
+            )
+
+            restoreOrganizationContext(context, organization)
+
+            context.success()
+            return
+        }
+
+        logger.debugf(
+            "Organization scope detected, but access could not be granted for organization %s for client %s",
+            organization.alias,
+            context.authenticationSession.client.clientId,
+        )
+
+        context.attempted()
+    }
+
+    private fun isOrganizationContext(context: AuthenticationFlowContext): Boolean {
+        val session = context.session
+        return Organizations.isEnabledAndOrganizationsPresent(session) &&
+            OrganizationScope.valueOfScope(session) != null
+    }
+
+    private fun restoreOrganizationContext(
+        context: AuthenticationFlowContext,
+        organization: OrganizationModel,
+    ) {
+        val authSession: AuthenticationSessionModel = context.authenticationSession
+
+        authSession.setAuthNote(OrganizationModel.ORGANIZATION_ATTRIBUTE, organization.id)
+        authSession.setClientNote(OrganizationModel.ORGANIZATION_ATTRIBUTE, organization.id)
+        context.session.context.organization = organization
+
+        logger.debugf(
+            "Restored organization '%s' (%s) from user session",
+            organization.alias,
+            organization.id,
+        )
     }
 
     override fun action(context: AuthenticationFlowContext) {
@@ -116,45 +170,5 @@ class OrgCookieAuthenticator : Authenticator {
 
     override fun close() {
         // no-op
-    }
-
-    private fun isOrganizationContext(context: AuthenticationFlowContext): Boolean {
-        val session = context.session
-        return Organizations.isEnabledAndOrganizationsPresent(session) &&
-            OrganizationScope.valueOfScope(session) != null
-    }
-
-    private fun restoreOrganizationContext(
-        context: AuthenticationFlowContext,
-        userSession: org.keycloak.models.UserSessionModel,
-    ): Boolean {
-        val orgId =
-            userSession.getNote(OrganizationModel.ORGANIZATION_ATTRIBUTE)
-                ?: return false
-
-        val provider = context.session.getProvider(OrganizationProvider::class.java)
-        val organization = provider.getById(orgId) ?: return false
-
-        if (!organization.isEnabled) {
-            logger.debugf(
-                "Stored organization %s exists but is disabled",
-                orgId,
-            )
-            return false
-        }
-
-        val authSession: AuthenticationSessionModel = context.authenticationSession
-
-        authSession.setAuthNote(OrganizationModel.ORGANIZATION_ATTRIBUTE, organization.id)
-        authSession.setClientNote(OrganizationModel.ORGANIZATION_ATTRIBUTE, organization.id)
-        context.session.context.organization = organization
-
-        logger.debugf(
-            "Restored organization '%s' (%s) from user session",
-            organization.alias,
-            organization.id,
-        )
-
-        return true
     }
 }
