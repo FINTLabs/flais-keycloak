@@ -8,6 +8,7 @@ import org.keycloak.authentication.Authenticator
 import org.keycloak.authentication.authenticators.broker.util.PostBrokerLoginConstants
 import org.keycloak.authentication.authenticators.broker.util.SerializedBrokeredIdentityContext
 import org.keycloak.models.KeycloakSession
+import org.keycloak.models.OrganizationModel
 import org.keycloak.models.RealmModel
 import org.keycloak.models.UserModel
 import org.keycloak.organization.OrganizationProvider
@@ -82,11 +83,6 @@ class ClientOrgAccessAuthenticator(
             return
         }
 
-        context.authenticationSession.setClientNote(
-            ClientOrgAccessAuthenticatorFactory.CLIENT_NOTE_ORG_ALIAS,
-            orgAlias,
-        )
-
         logger.infof(
             "Access granted. client=%s, idp=%s, org=%s",
             client.clientId,
@@ -98,14 +94,11 @@ class ClientOrgAccessAuthenticator(
 
     private fun authenticateBrowser(context: AuthenticationFlowContext) {
         val client = context.authenticationSession.client
-        val orgAlias =
-            context.authenticationSession.getClientNote(
-                ClientOrgAccessAuthenticatorFactory.CLIENT_NOTE_ORG_ALIAS,
-            )
+        val orgAlias = resolveCurrentOrgAlias(context)
 
         if (orgAlias.isNullOrBlank()) {
             logger.debugf(
-                "No client-bound org found for client=%s. Continuing browser flow.",
+                "No resolved organization found for client=%s. Continuing browser flow.",
                 client.clientId,
             )
             context.attempted()
@@ -143,11 +136,32 @@ class ClientOrgAccessAuthenticator(
             ?.alias
     }
 
-    override fun action(context: AuthenticationFlowContext) {
-        // No-op: this authenticator performs only server-side validation
+    private fun resolveCurrentOrgAlias(context: AuthenticationFlowContext): String? {
+        val authSession = context.authenticationSession
+        val session = context.session
+
+        session.context.organization?.let { return it.alias }
+
+        val orgId =
+            authSession.getAuthNote(OrganizationModel.ORGANIZATION_ATTRIBUTE)
+                ?: authSession.getClientNote(OrganizationModel.ORGANIZATION_ATTRIBUTE)
+
+        if (!orgId.isNullOrBlank()) {
+            val orgProvider = session.getProvider(OrganizationProvider::class.java)
+            val org = orgProvider.getById(orgId)
+            if (org != null && org.isEnabled) {
+                return org.alias
+            }
+        }
+
+        return null
     }
 
     override fun requiresUser(): Boolean = true
+
+    override fun action(context: AuthenticationFlowContext) {
+        // No-op: this authenticator performs only server-side validation
+    }
 
     override fun configuredFor(
         session: KeycloakSession,
