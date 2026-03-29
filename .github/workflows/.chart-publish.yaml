@@ -68,7 +68,7 @@ jobs:
           name: ${{ inputs.chart_name }}-chart-metadata
           path: ./charts/${{ inputs.chart_name }}
 
-      - uses: azure/setup-helm@v4.3.1
+      - uses: azure/setup-helm@v5.0.0
         name: Setup Helm
 
       - name: Login to Flais Helm Repository
