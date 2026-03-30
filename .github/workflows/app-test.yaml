@@ -46,7 +46,7 @@ jobs:
                     java-version: 21
 
             -   name: Setup Gradle
-                uses: gradle/actions/setup-gradle@v5
+                uses: gradle/actions/setup-gradle@v6
 
             -   name: Run ktlint Check
                 working-directory: keycloak
@@ -69,7 +69,7 @@ jobs:
                     java-version: 21
 
             -   name: Setup Gradle
-                uses: gradle/actions/setup-gradle@v5
+                uses: gradle/actions/setup-gradle@v6
 
             -   name: Run Unit Tests
                 run: ./gradlew test --stacktrace --configuration-cache
@@ -114,7 +114,7 @@ jobs:
                     java-version: 21
 
             -   name: Setup Gradle
-                uses: gradle/actions/setup-gradle@v5
+                uses: gradle/actions/setup-gradle@v6
 
             -   name: Run Integration Tests
                 run: ./gradlew integrationTest --stacktrace --configuration-cache
@@ -161,7 +161,7 @@ jobs:
                     java-version: 21
 
             -   name: Setup Gradle
-                uses: gradle/actions/setup-gradle@v5
+                uses: gradle/actions/setup-gradle@v6
 
             -   name: Install Playwright OS deps
                 run: npx -y playwright@${{ needs.playwright-version.outputs.version }} install-deps
