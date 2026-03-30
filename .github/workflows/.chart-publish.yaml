@@ -25,7 +25,7 @@ jobs:
           fetch-depth: 0
 
       - id: commit-hash
-        uses: prompt/actions-commit-hash@v3
+        uses: prompt/actions-commit-hash@v4
 
       - id: versions
         run: |
