@@ -6,11 +6,9 @@ import io.mockk.just
 import io.mockk.mockk
 import io.mockk.mockkConstructor
 import io.mockk.mockkStatic
-import io.mockk.unmockkAll
 import io.mockk.verify
 import no.fintlabs.authenticator.org.OrgCookieAuthenticator
 import no.fintlabs.service.ClientOrgAccessService
-import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.keycloak.authentication.AuthenticationFlowContext
@@ -39,11 +37,6 @@ class OrgCookieAuthenticatorTest {
     @BeforeEach
     fun setUp() {
         authenticator = OrgCookieAuthenticator(ClientOrgAccessService())
-    }
-
-    @AfterEach
-    fun tearDown() {
-        unmockkAll()
     }
 
     private fun mockOrg(
