@@ -37,12 +37,19 @@ object KcUrl {
         env: KcEnvironment,
         clientId: String,
         redirectUri: String = "${env.flaisKeycloakDemoUrl()}/callback",
-        scope: String = "openid",
+        scope: String? = null,
         usePkce: Boolean = true,
         pkcePlain: Boolean = false,
     ): Pair<HttpUrl, String?> {
         val base = env.keycloakServiceUrl()
         val url = "$base/realms/external/protocol/openid-connect/auth"
+
+        val effectiveScope =
+            ("openid " + (scope ?: ""))
+                .trim()
+                .split("\\s+".toRegex())
+                .distinct()
+                .joinToString(" ")
 
         val builder =
             url
@@ -51,7 +58,7 @@ object KcUrl {
                 .addQueryParameter("client_id", clientId)
                 .addQueryParameter("redirect_uri", redirectUri)
                 .addQueryParameter("response_type", "code")
-                .addQueryParameter("scope", scope)
+                .addQueryParameter("scope", effectiveScope)
 
         var codeVerifier: String? = null
 
