@@ -60,9 +60,13 @@ Some settings may differ depending on the vendor or specific integration.
 | Show in account console   | Always                      |
 | Verify essential claim    | Off                         |
 | First login flow override | `First login flow override` |
-| Post login flow           | None                        |
+| Post login flow           | `flais-post-login-flow`     |
 | Sync mode                 | Force                       |
 | Case-sensitive username   | Off                         |
+
+> **Note:** The **Post login flow** must be set to `flais-post-login-flow` on every IDP.
+> This is what runs `ClientOrgAccessAuthenticator` after every broker callback and
+> prevents broker URL tampering attacks. See [flais-post-login-flow](../../../auth-flows/flais-post-login-flow.md).
 
 # Mappers
 
