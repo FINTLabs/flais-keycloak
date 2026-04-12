@@ -12,7 +12,7 @@ resteasy = "6.2.14.Final"
 
 junit = "6.0.3"
 testcontainers = "2.0.4"
-kotlinx-serialization-json = "1.10.0"
+kotlinx-serialization-json = "1.11.0"
 slf4j = "2.0.17"
 okhttp = "5.3.2"
 
