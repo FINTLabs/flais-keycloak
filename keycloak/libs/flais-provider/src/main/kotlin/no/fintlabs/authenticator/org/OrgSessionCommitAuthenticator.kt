@@ -1,9 +1,8 @@
 package no.fintlabs.authenticator.org
 
-import jakarta.ws.rs.core.Response
+import no.fintlabs.flow.AuthenticationErrorHandler.failure
 import org.jboss.logging.Logger
 import org.keycloak.authentication.AuthenticationFlowContext
-import org.keycloak.authentication.AuthenticationFlowError
 import org.keycloak.authentication.Authenticator
 import org.keycloak.events.Details
 import org.keycloak.models.KeycloakSession
@@ -20,10 +19,7 @@ class OrgSessionCommitAuthenticator : Authenticator {
         val selectedOrgId = authSession.getAuthNote(Details.ORG_ID)
 
         if (selectedOrgId.isNullOrBlank()) {
-            context.failureChallenge(
-                AuthenticationFlowError.INTERNAL_ERROR,
-                context.form().setError("No organization selected").createErrorPage(Response.Status.BAD_REQUEST),
-            )
+            context.failure("No organization selected")
             return
         }
 
@@ -31,10 +27,7 @@ class OrgSessionCommitAuthenticator : Authenticator {
         val organization = provider.getById(selectedOrgId)
 
         if (organization == null || !organization.isEnabled) {
-            context.failureChallenge(
-                AuthenticationFlowError.INTERNAL_ERROR,
-                context.form().setError("Selected organization is invalid").createErrorPage(Response.Status.BAD_REQUEST),
-            )
+            context.failure("Selected organization is invalid")
             return
         }
 
