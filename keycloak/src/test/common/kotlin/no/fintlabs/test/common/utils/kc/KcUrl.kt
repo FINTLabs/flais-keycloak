@@ -47,6 +47,7 @@ object KcUrl {
         val effectiveScope =
             ("openid " + (scope ?: ""))
                 .trim()
+                .lowercase()
                 .split("\\s+".toRegex())
                 .distinct()
                 .joinToString(" ")
