@@ -1,6 +1,6 @@
 [versions]
 kotlin = "2.3.20"
-keycloak = "26.6.0"
+keycloak = "26.6.1"
 kc-admin = "26.0.9"
 shadow = "9.4.1"
 ktlint = "14.2.0"
