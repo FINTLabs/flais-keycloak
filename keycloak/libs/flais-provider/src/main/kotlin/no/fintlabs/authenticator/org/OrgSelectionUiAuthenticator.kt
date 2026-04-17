@@ -3,7 +3,7 @@ package no.fintlabs.authenticator.org
 import no.fintlabs.attributes.OrgAttribute
 import no.fintlabs.dtos.OrgDto
 import no.fintlabs.flow.AuthenticationErrorHandler.failure
-import no.fintlabs.service.ClientOrgAccessService
+import no.fintlabs.provider.ClientOrgAccessProvider
 import org.jboss.logging.Logger
 import org.keycloak.authentication.AuthenticationFlowContext
 import org.keycloak.authentication.Authenticator
@@ -13,13 +13,12 @@ import org.keycloak.models.OrganizationModel
 import org.keycloak.models.RealmModel
 import org.keycloak.models.UserModel
 
-class OrgSelectionUiAuthenticator(
-    val clientOrgAccessService: ClientOrgAccessService,
-) : Authenticator {
+class OrgSelectionUiAuthenticator : Authenticator {
     private val logger: Logger = Logger.getLogger(OrgSelectionUiAuthenticator::class.java)
 
     override fun authenticate(context: AuthenticationFlowContext) {
-        val organizations = clientOrgAccessService.getAllowedOrgs(context)
+        val clientOrgAccessProvider = context.session.getProvider(ClientOrgAccessProvider::class.java)
+        val organizations = clientOrgAccessProvider.getAllowedOrgs(context)
         logger.debugf("Found orgs: %s", organizations)
 
         context.authenticationSession.getAuthNote(Details.ORG_ID)?.let {
@@ -49,7 +48,8 @@ class OrgSelectionUiAuthenticator(
         val selectedOrg = formData.getFirst("selected_org")
         logger.infof("Selected Organization: %s", selectedOrg)
 
-        val organizations = clientOrgAccessService.getAllowedOrgs(context)
+        val clientOrgAccessProvider = context.session.getProvider(ClientOrgAccessProvider::class.java)
+        val organizations = clientOrgAccessProvider.getAllowedOrgs(context)
         if (selectedOrg.isNullOrEmpty()) {
             createOrgSelectForm(
                 context,

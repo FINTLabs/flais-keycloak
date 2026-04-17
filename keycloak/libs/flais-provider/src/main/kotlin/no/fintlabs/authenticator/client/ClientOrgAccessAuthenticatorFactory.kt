@@ -1,6 +1,5 @@
 package no.fintlabs.authenticator.client
 
-import no.fintlabs.service.ClientOrgAccessService
 import org.keycloak.Config
 import org.keycloak.authentication.Authenticator
 import org.keycloak.authentication.AuthenticatorFactory
@@ -11,7 +10,7 @@ import org.keycloak.provider.ProviderConfigProperty
 
 class ClientOrgAccessAuthenticatorFactory : AuthenticatorFactory {
     private val providerId = "client-org-access-authenticator"
-    private val clientOrgAccessAuthenticator = ClientOrgAccessAuthenticator(ClientOrgAccessService())
+    private val clientOrgAccessAuthenticator = ClientOrgAccessAuthenticator()
 
     override fun getId(): String = providerId
 

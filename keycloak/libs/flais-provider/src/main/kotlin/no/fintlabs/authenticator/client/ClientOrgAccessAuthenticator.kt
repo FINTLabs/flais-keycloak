@@ -1,7 +1,7 @@
 package no.fintlabs.authenticator.client
 
 import no.fintlabs.flow.AuthenticationErrorHandler.failure
-import no.fintlabs.service.ClientOrgAccessService
+import no.fintlabs.provider.ClientOrgAccessProvider
 import org.jboss.logging.Logger
 import org.keycloak.authentication.AuthenticationFlowContext
 import org.keycloak.authentication.Authenticator
@@ -13,9 +13,7 @@ import org.keycloak.models.RealmModel
 import org.keycloak.models.UserModel
 import org.keycloak.organization.OrganizationProvider
 
-class ClientOrgAccessAuthenticator(
-    val clientOrgAccessService: ClientOrgAccessService,
-) : Authenticator {
+class ClientOrgAccessAuthenticator : Authenticator {
     private val logger: Logger =
         Logger.getLogger(ClientOrgAccessAuthenticator::class.java)
 
@@ -59,7 +57,8 @@ class ClientOrgAccessAuthenticator(
             return
         }
 
-        if (!clientOrgAccessService.isOrgAllowed(context, organization)) {
+        val clientOrgAccessProvider = context.session.getProvider(ClientOrgAccessProvider::class.java)
+        if (!clientOrgAccessProvider.isOrgAllowed(context, organization)) {
             logger.debugf(
                 "Access denied. client=%s, idp=%s, org=%s",
                 client.clientId,

@@ -1,6 +1,6 @@
 package no.fintlabs.authenticator.org
 
-import no.fintlabs.service.ClientOrgAccessService
+import no.fintlabs.provider.ClientOrgAccessProvider
 import org.jboss.logging.Logger
 import org.keycloak.authentication.AuthenticationFlowContext
 import org.keycloak.authentication.Authenticator
@@ -19,9 +19,7 @@ import org.keycloak.services.managers.AuthenticationManager
 import org.keycloak.services.messages.Messages
 import org.keycloak.sessions.AuthenticationSessionModel
 
-class OrgCookieAuthenticator(
-    private val orgAccessService: ClientOrgAccessService,
-) : Authenticator {
+class OrgCookieAuthenticator : Authenticator {
     private val logger: Logger = Logger.getLogger(OrgCookieAuthenticator::class.java)
 
     override fun requiresUser(): Boolean = false
@@ -97,14 +95,15 @@ class OrgCookieAuthenticator(
             return
         }
 
-        val organization = orgAccessService.getOrganizationModel(context, orgId)
+        val clientOrgAccessProvider = context.session.getProvider(ClientOrgAccessProvider::class.java)
+        val organization = clientOrgAccessProvider.getOrganizationModel(orgId)
         if (organization == null) {
             logger.debug("Could not resolve organization from user session")
             context.attempted()
             return
         }
 
-        if (orgAccessService.isOrgAllowed(context, organization)) {
+        if (clientOrgAccessProvider.isOrgAllowed(context, organization)) {
             logger.debugf(
                 "Access granted for organization '%s' (%s) for client %s",
                 organization.alias,

@@ -1,6 +1,5 @@
 package no.fintlabs.authenticator.org
 
-import no.fintlabs.service.ClientOrgAccessService
 import org.keycloak.Config
 import org.keycloak.authentication.Authenticator
 import org.keycloak.authentication.AuthenticatorFactory
@@ -15,9 +14,7 @@ class OrgSelectionUiAuthenticatorFactory :
     ConfigurableAuthenticatorFactory {
     private val providerId: String = "org-selection-ui-authenticator"
     private val orgSelectorAuthenticator: OrgSelectionUiAuthenticator =
-        OrgSelectionUiAuthenticator(
-            ClientOrgAccessService(),
-        )
+        OrgSelectionUiAuthenticator()
 
     override fun create(session: KeycloakSession): Authenticator = orgSelectorAuthenticator
 
