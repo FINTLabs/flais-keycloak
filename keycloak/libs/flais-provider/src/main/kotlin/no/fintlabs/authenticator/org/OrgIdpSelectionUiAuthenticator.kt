@@ -1,4 +1,4 @@
-package no.fintlabs.authenticator
+package no.fintlabs.authenticator.org
 
 import no.fintlabs.dtos.IdpDto
 import no.fintlabs.flow.AuthenticationErrorHandler.failure
@@ -6,12 +6,13 @@ import org.jboss.logging.Logger
 import org.keycloak.authentication.AuthenticationFlowContext
 import org.keycloak.authentication.Authenticator
 import org.keycloak.events.Details
+import org.keycloak.models.IdentityProviderQuery
 import org.keycloak.models.KeycloakSession
 import org.keycloak.models.RealmModel
 import org.keycloak.models.UserModel
 
-class OrgIdpSelectorAuthenticator : Authenticator {
-    private val logger: Logger = Logger.getLogger(OrgIdpSelectorAuthenticator::class.java)
+class OrgIdpSelectionUiAuthenticator : Authenticator {
+    private val logger: Logger = Logger.getLogger(OrgIdpSelectionUiAuthenticator::class.java)
 
     override fun authenticate(context: AuthenticationFlowContext) {
         val selectedOrg = context.authenticationSession.getAuthNote(Details.ORG_ID)
@@ -23,11 +24,14 @@ class OrgIdpSelectorAuthenticator : Authenticator {
         val idps =
             context.session
                 .identityProviders()
-                .allStream
+                .getAllStream(IdentityProviderQuery.any())
                 .filter { idp -> idp.isEnabled && idp.organizationId == selectedOrg }
                 .toList()
         when (idps.size) {
-            0 -> context.failure("The selected organization does not have any login options")
+            0 -> {
+                context.failure("The selected organization does not have any login options")
+            }
+
             1 -> {
                 logger.debugf(
                     "Only one identity provider available, continuing with provider: %s",
@@ -65,8 +69,14 @@ class OrgIdpSelectorAuthenticator : Authenticator {
 
         val idp = context.session.identityProviders().getByAlias(selectedIdp)
         when {
-            idp == null -> context.failure("Could not find the selected identity provider")
-            !idp.isEnabled -> context.failure("The selected identity provider is not enabled")
+            idp == null -> {
+                context.failure("Could not find the selected identity provider")
+            }
+
+            !idp.isEnabled -> {
+                context.failure("The selected identity provider is not enabled")
+            }
+
             idp.organizationId != selectedOrg -> {
                 context.failure(
                     "The selected identity provider is not registered to the selected organization",

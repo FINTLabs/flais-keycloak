@@ -83,3 +83,19 @@ The client uses the default scopes defined in the `Client scopes` configuration.
 | Scope                   | Setting            | Value |
 | ----------------------- | ------------------ | ----- |
 | `<client-id>-dedicated` | Full scope allowed | Off   |
+
+## Organisation access attributes
+
+Client access to organisations is controlled through two custom client attributes.
+These are evaluated by `ClientOrgAccessAuthenticator` in the
+[flais-post-login-flow](../../../auth-flows/flais-post-login.md) after every
+broker login, and by `OrgSelectionUiAuthenticator` and `OrgCookieAuthenticator`
+during the browser flow to filter which organisations are shown to the user.
+
+| Attribute                              | Value / Guidance                                            |
+| -------------------------------------- | ----------------------------------------------------------- |
+| `permission.whitelisted.organizations` | Comma-separated org aliases. Only listed orgs are allowed.  |
+| `permission.blacklisted.organizations` | Comma-separated org aliases. Listed orgs are always denied. |
+
+If neither attribute is set, all organisations are permitted.
+If both are set, the whitelist is applied first and then the blacklist.

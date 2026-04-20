@@ -1,10 +1,9 @@
-package no.fintlabs.authenticator
+package no.fintlabs.authenticator.org
 
-import no.fintlabs.access.ClientAccess.CLIENT_BLACKLIST_ORGANIZATIONS_ATTRIBUTE
-import no.fintlabs.access.ClientAccess.CLIENT_WHITELIST_ORGANIZATIONS_ATTRIBUTE
-import no.fintlabs.access.OrgAccess
+import no.fintlabs.attributes.OrgAttribute
 import no.fintlabs.dtos.OrgDto
 import no.fintlabs.flow.AuthenticationErrorHandler.failure
+import no.fintlabs.provider.ClientOrgAccessProvider
 import org.jboss.logging.Logger
 import org.keycloak.authentication.AuthenticationFlowContext
 import org.keycloak.authentication.Authenticator
@@ -13,17 +12,17 @@ import org.keycloak.models.KeycloakSession
 import org.keycloak.models.OrganizationModel
 import org.keycloak.models.RealmModel
 import org.keycloak.models.UserModel
-import kotlin.collections.first
 
-class OrgSelectorAuthenticator : Authenticator {
-    private val logger: Logger = Logger.getLogger(OrgSelectorAuthenticator::class.java)
+class OrgSelectionUiAuthenticator : Authenticator {
+    private val logger: Logger = Logger.getLogger(OrgSelectionUiAuthenticator::class.java)
 
     override fun authenticate(context: AuthenticationFlowContext) {
-        val organizations = getOrganizations(context)
+        val clientOrgAccessProvider = context.session.getProvider(ClientOrgAccessProvider::class.java)
+        val organizations = clientOrgAccessProvider.getAllowedOrgs(context)
         logger.debugf("Found orgs: %s", organizations)
 
         context.authenticationSession.getAuthNote(Details.ORG_ID)?.let {
-            organizations.find { org -> org.alias == it }?.let { org ->
+            organizations.find { org -> org.id == it }?.let { org ->
                 logger.debugf("Already selected org: %s", org.alias)
                 context.success()
                 return
@@ -49,12 +48,13 @@ class OrgSelectorAuthenticator : Authenticator {
         val selectedOrg = formData.getFirst("selected_org")
         logger.infof("Selected Organization: %s", selectedOrg)
 
-        val organizations = getOrganizations(context)
+        val clientOrgAccessProvider = context.session.getProvider(ClientOrgAccessProvider::class.java)
+        val organizations = clientOrgAccessProvider.getAllowedOrgs(context)
         if (selectedOrg.isNullOrEmpty()) {
             createOrgSelectForm(
                 context,
                 organizations,
-                "You must select a organization to continue",
+                "You must select an organization to continue",
             )
             return
         }
@@ -90,36 +90,13 @@ class OrgSelectorAuthenticator : Authenticator {
                     val orgDto =
                         organizations.map { org ->
                             val logo =
-                                org.attributes[OrgAccess.ORG_LOGO_ATTRIBUTE]
+                                org.attributes[OrgAttribute.ORGANIZATION_LOGO]
                                     ?.first()
                             OrgDto(org.alias, org.name, logo)
                         }
                     setAttribute("organizations", orgDto)
                 }.createForm("flais-org-selector.ftl")
         context.challenge(form)
-    }
-
-    private fun getOrganizations(context: AuthenticationFlowContext): List<OrganizationModel> {
-        val clientAttributes = context.authenticationSession.client.attributes
-        val whitelisted =
-            clientAttributes[CLIENT_WHITELIST_ORGANIZATIONS_ATTRIBUTE]?.split(",")
-                ?: emptyList()
-        val blacklisted =
-            clientAttributes[CLIENT_BLACKLIST_ORGANIZATIONS_ATTRIBUTE]?.split(",")
-                ?: emptyList()
-
-        val orgProvider =
-            context.session.getProvider(
-                org.keycloak.organization.OrganizationProvider::class.java,
-            )
-
-        return orgProvider
-            .allStream
-            .filter {
-                (whitelisted.isEmpty() || whitelisted.contains(it.alias)) &&
-                    (blacklisted.isEmpty() || !blacklisted.contains(it.alias)) &&
-                    it.identityProviders.filter { idp -> idp.isEnabled }.count() > 0
-            }.toList()
     }
 
     override fun requiresUser(): Boolean = false

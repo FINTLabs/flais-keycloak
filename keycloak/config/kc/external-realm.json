@@ -235,6 +235,25 @@
             ]
         },
         {
+            "clientId": "flais-keycloak-demo-not-telemark",
+            "enabled": true,
+            "publicClient": true,
+            "protocol": "openid-connect",
+            "directAccessGrantsEnabled": false,
+            "serviceAccountsEnabled": false,
+            "standardFlowEnabled": true,
+            "implicitFlowEnabled": false,
+            "attributes": {
+                "permission.blacklisted.organizations": "telemark"
+            },
+            "redirectUris": [
+                "http://localhost*"
+            ],
+            "webOrigins": [
+                "*"
+            ]
+        },
+        {
             "clientId": "flais-keycloak-demo-idporten",
             "enabled": true,
             "publicClient": true,
@@ -1087,6 +1106,7 @@
             "trustEmail": true,
             "authenticateByDefault": false,
             "linkOnly": false,
+            "postBrokerLoginFlowAlias": "flais-post-login-flow",
             "config": {
                 "clientId": "entra-telemark",
                 "clientSecret": "test-secret",
@@ -1114,6 +1134,7 @@
             "trustEmail": true,
             "authenticateByDefault": false,
             "linkOnly": false,
+            "postBrokerLoginFlowAlias": "flais-post-login-flow",
             "config": {
                 "clientId": "entra-telemark-alt",
                 "clientSecret": "test-secret",
@@ -1140,6 +1161,7 @@
             "trustEmail": true,
             "authenticateByDefault": false,
             "linkOnly": false,
+            "postBrokerLoginFlowAlias": "flais-post-login-flow",
             "config": {
                 "clientId": "entra-rogaland",
                 "clientSecret": "test-secret",
@@ -1167,6 +1189,7 @@
             "trustEmail": true,
             "authenticateByDefault": false,
             "linkOnly": false,
+            "postBrokerLoginFlowAlias": "flais-post-login-flow",
             "config": {
                 "clientId": "idporten",
                 "clientSecret": "test-secret",
@@ -1319,7 +1342,7 @@
             "builtIn": false,
             "authenticationExecutions": [
                 {
-                    "authenticator": "auth-cookie",
+                    "authenticator": "org-cookie-authenticator",
                     "authenticatorFlow": false,
                     "requirement": "ALTERNATIVE",
                     "priority": 10,
@@ -1345,7 +1368,7 @@
             "builtIn": false,
             "authenticationExecutions": [
                 {
-                    "authenticator": "org-selector-authenticator",
+                    "authenticator": "org-selection-ui-authenticator",
                     "authenticatorFlow": false,
                     "requirement": "REQUIRED",
                     "priority": 0,
@@ -1353,7 +1376,7 @@
                     "userSetupAllowed": false
                 },
                 {
-                    "authenticator": "org-idp-selector-authenticator",
+                    "authenticator": "org-idp-selection-ui-authenticator",
                     "authenticatorFlow": false,
                     "requirement": "REQUIRED",
                     "priority": 1,
@@ -1361,14 +1384,50 @@
                     "userSetupAllowed": false
                 },
                 {
-                    "authenticator": "org-redirector-authenticator",
+                    "authenticator": "org-session-commit-authenticator",
                     "authenticatorFlow": false,
                     "requirement": "REQUIRED",
                     "priority": 2,
                     "autheticatorFlow": false,
                     "userSetupAllowed": false
+                },
+                {
+                    "authenticator": "org-redirector-authenticator",
+                    "authenticatorFlow": false,
+                    "requirement": "REQUIRED",
+                    "priority": 3,
+                    "autheticatorFlow": false,
+                    "userSetupAllowed": false
                 }
             ]
+        },
+        {
+            "id": "0a348ed2-b805-4e64-a9a5-dce8e28322c0",
+            "alias": "flais-post-login-flow",
+            "description": "",
+            "providerId": "basic-flow",
+            "topLevel": true,
+            "builtIn": false,
+            "authenticationExecutions": [
+                {
+                    "authenticatorConfig": "flais-post-login-flow",
+                    "authenticator": "client-org-access-authenticator",
+                    "authenticatorFlow": false,
+                    "requirement": "REQUIRED",
+                    "priority": 0,
+                    "autheticatorFlow": false,
+                    "userSetupAllowed": false
+                }
+            ]
+        }
+    ],
+    "authenticatorConfig": [
+        {
+            "id": "9b3b7ba3-473b-4844-9499-e5779c94a67e",
+            "alias": "flais-post-login-flow",
+            "config": {
+                "mode": "post-login"
+            }
         }
     ]
 }

@@ -1,4 +1,4 @@
-package no.fintlabs.authenticator
+package no.fintlabs.authenticator.org
 
 import org.keycloak.Config
 import org.keycloak.authentication.Authenticator
@@ -17,6 +17,26 @@ class OrgRedirectorAuthenticatorFactory :
 
     override fun create(session: KeycloakSession): Authenticator = orgRedirectorAuthenticator
 
+    override fun getId(): String = providerId
+
+    override fun getDisplayType(): String = "FLAIS Organization Identity Provider Redirector"
+
+    override fun getReferenceCategory(): String = "organization"
+
+    override fun isConfigurable(): Boolean = false
+
+    override fun getRequirementChoices(): Array<out AuthenticationExecutionModel.Requirement> =
+        arrayOf(
+            AuthenticationExecutionModel.Requirement.REQUIRED,
+            AuthenticationExecutionModel.Requirement.DISABLED,
+        )
+
+    override fun isUserSetupAllowed(): Boolean = false
+
+    override fun getHelpText(): String = "Redirects the user to the identity provider selected during organization-based IdP selection."
+
+    override fun getConfigProperties(): List<ProviderConfigProperty> = mutableListOf()
+
     override fun init(config: Config.Scope) {
         // No required actions needed
     }
@@ -28,21 +48,4 @@ class OrgRedirectorAuthenticatorFactory :
     override fun close() {
         // No required actions needed
     }
-
-    override fun getId(): String = providerId
-
-    override fun getDisplayType(): String = "Org Redirector"
-
-    override fun getReferenceCategory(): String = "organization"
-
-    override fun isConfigurable(): Boolean = false
-
-    override fun getRequirementChoices(): Array<out AuthenticationExecutionModel.Requirement> =
-        arrayOf(AuthenticationExecutionModel.Requirement.REQUIRED)
-
-    override fun isUserSetupAllowed(): Boolean = false
-
-    override fun getHelpText(): String = "Redirects to identity provider from org selector"
-
-    override fun getConfigProperties(): List<ProviderConfigProperty> = mutableListOf()
 }

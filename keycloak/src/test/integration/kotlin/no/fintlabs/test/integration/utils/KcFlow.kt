@@ -20,11 +20,12 @@ object KcFlow {
         httpUrl: HttpUrl?,
         env: KcEnvironment?,
         clientId: String?,
+        scope: String? = null,
     ): HttpUrl =
         httpUrl ?: run {
             requireNotNull(env) { "env is required when httpUrl is null" }
             requireNotNull(clientId) { "clientId is required when httpUrl is null" }
-            KcUrl.authUrl(env, clientId).first
+            KcUrl.authUrl(env, clientId, scope = scope).first
         }
 
     private fun get(
@@ -52,9 +53,10 @@ object KcFlow {
         env: KcEnvironment? = null,
         clientId: String? = null,
         httpClient: OkHttpClient? = null,
+        scope: String? = null,
     ): Response {
         val client = resolveClient(httpClient)
-        val url = resolveAuthUrl(httpUrl, env, clientId)
+        val url = resolveAuthUrl(httpUrl, env, clientId, scope)
         return get(url, client)
     }
 
@@ -173,9 +175,10 @@ object KcFlow {
         httpClient: OkHttpClient? = null,
         httpUrl: HttpUrl? = null,
         hasIdpSelector: Boolean = true,
+        scope: String? = null,
     ): Response {
         val client = httpClient ?: KcHttpClient.create(followRedirects = true)
-        val url = resolveAuthUrl(httpUrl, env, clientId)
+        val url = resolveAuthUrl(httpUrl, env, clientId, scope)
 
         selectOrgAndContinueToIdpSelector(env, clientId, orgAlias, client, url).use { resp ->
             if (hasIdpSelector) {

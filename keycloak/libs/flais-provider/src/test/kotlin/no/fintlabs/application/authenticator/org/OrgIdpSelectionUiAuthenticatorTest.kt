@@ -1,4 +1,4 @@
-package no.fintlabs.application.authenticator
+package no.fintlabs.application.authenticator.org
 
 import io.mockk.Runs
 import io.mockk.every
@@ -7,7 +7,7 @@ import io.mockk.mockk
 import io.mockk.verify
 import jakarta.ws.rs.core.MultivaluedHashMap
 import jakarta.ws.rs.core.Response
-import no.fintlabs.authenticator.OrgIdpSelectorAuthenticator
+import no.fintlabs.authenticator.org.OrgIdpSelectionUiAuthenticator
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.keycloak.authentication.AuthenticationFlowContext
@@ -20,12 +20,12 @@ import org.keycloak.models.KeycloakSession
 import org.keycloak.sessions.AuthenticationSessionModel
 import java.util.stream.Stream
 
-class OrgIdpSelectorAuthenticatorTest {
-    private lateinit var authenticator: OrgIdpSelectorAuthenticator
+class OrgIdpSelectionUiAuthenticatorTest {
+    private lateinit var authenticator: OrgIdpSelectionUiAuthenticator
 
     @BeforeEach
     fun setUp() {
-        authenticator = OrgIdpSelectorAuthenticator()
+        authenticator = OrgIdpSelectionUiAuthenticator()
     }
 
     private fun mockFailureFlow(
@@ -72,10 +72,10 @@ class OrgIdpSelectorAuthenticatorTest {
         val errorMessage = "The selected organization does not have any login options"
 
         every { context.authenticationSession } returns authSession
-        every { authSession.getAuthNote(Details.ORG_ID) } returns "org-1"
+        every { authSession.getAuthNote(Details.ORG_ID) } returns "id-1"
         every { context.session } returns session
         every { session.identityProviders() } returns idpStorageProvider
-        every { idpStorageProvider.allStream } returns Stream.empty()
+        every { idpStorageProvider.getAllStream(any()) } returns Stream.empty()
 
         mockFailureFlow(
             context,
@@ -109,7 +109,7 @@ class OrgIdpSelectorAuthenticatorTest {
         every { idp.organizationId } returns orgId
         every { idp.alias } returns "idp-alias"
         every { idp.internalId } returns idpId
-        every { idpStorageProvider.allStream } returns Stream.of(idp)
+        every { idpStorageProvider.getAllStream(any()) } returns Stream.of(idp)
 
         authenticator.authenticate(context)
 
@@ -151,7 +151,9 @@ class OrgIdpSelectorAuthenticatorTest {
         every { authSession.getAuthNote(Details.ORG_ID) } returns orgId
         every { context.session } returns session
         every { session.identityProviders() } returns idpStorageProvider
-        every { idpStorageProvider.allStream } returns Stream.of(idp1, idp2)
+        every {
+            idpStorageProvider.getAllStream(any())
+        } returns Stream.of(idp1, idp2)
         every { context.form() } returns formProvider
         every { formProvider.setAttribute(eq("providers"), any()) } returns formProvider
         every { formProvider.createForm(pageId) } returns formResponse
@@ -174,7 +176,7 @@ class OrgIdpSelectorAuthenticatorTest {
         val errorMessage = "No identity provider selected"
 
         every { context.authenticationSession } returns authSession
-        every { authSession.getAuthNote(Details.ORG_ID) } returns "org-1"
+        every { authSession.getAuthNote(Details.ORG_ID) } returns "id-1"
         every { context.httpRequest } returns httpRequest
         every { httpRequest.decodedFormParameters } returns
             MultivaluedHashMap<String, String>().apply {
@@ -202,7 +204,7 @@ class OrgIdpSelectorAuthenticatorTest {
         val errorMessage = "Could not find the selected identity provider"
 
         every { context.authenticationSession } returns authSession
-        every { authSession.getAuthNote(Details.ORG_ID) } returns "org-1"
+        every { authSession.getAuthNote(Details.ORG_ID) } returns "id-1"
         every { context.httpRequest } returns httpRequest
         every { httpRequest.decodedFormParameters } returns
             MultivaluedHashMap<String, String>().apply {
@@ -235,7 +237,7 @@ class OrgIdpSelectorAuthenticatorTest {
         val errorMessage = "The selected identity provider is not enabled"
 
         every { context.authenticationSession } returns authSession
-        every { authSession.getAuthNote(Details.ORG_ID) } returns "org-1"
+        every { authSession.getAuthNote(Details.ORG_ID) } returns "id-1"
         every { context.httpRequest } returns httpRequest
         every { httpRequest.decodedFormParameters } returns
             MultivaluedHashMap<String, String>().apply {
@@ -269,7 +271,7 @@ class OrgIdpSelectorAuthenticatorTest {
         val errorMessage = "The selected identity provider is not registered to the selected organization"
 
         every { context.authenticationSession } returns authSession
-        every { authSession.getAuthNote(Details.ORG_ID) } returns "org-1"
+        every { authSession.getAuthNote(Details.ORG_ID) } returns "id-1"
         every { context.httpRequest } returns httpRequest
         every { httpRequest.decodedFormParameters } returns
             MultivaluedHashMap<String, String>().apply {
