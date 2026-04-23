@@ -10,7 +10,7 @@ plugins {
     alias(libs.plugins.kover)
 }
 
-group = "no.fintlabs"
+group = "no.novari"
 version = "1.0"
 
 java {

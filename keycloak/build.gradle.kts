@@ -11,7 +11,7 @@ plugins {
     alias(libs.plugins.kover)
 }
 
-group = "no.fintlabs"
+group = "no.novari"
 version = "1.0.0"
 
 val koverCli by configurations.creating {
@@ -52,7 +52,7 @@ kover {
     reports {
         filters {
             includes {
-                classes("no.fintlabs.*")
+                classes("no.novari.*")
             }
         }
     }

@@ -1,6 +1,6 @@
-no.fintlabs.authenticator.org.OrgSelectionUiAuthenticatorFactory
-no.fintlabs.authenticator.org.OrgRedirectorAuthenticatorFactory
-no.fintlabs.authenticator.org.OrgIdpSelectionUiAuthenticatorFactory
-no.fintlabs.authenticator.org.OrgSessionCommitAuthenticatorFactory
-no.fintlabs.authenticator.org.OrgCookieAuthenticatorFactory
-no.fintlabs.authenticator.client.ClientOrgAccessAuthenticatorFactory
+no.novari.authenticator.org.OrgSelectionUiAuthenticatorFactory
+no.novari.authenticator.org.OrgRedirectorAuthenticatorFactory
+no.novari.authenticator.org.OrgIdpSelectionUiAuthenticatorFactory
+no.novari.authenticator.org.OrgSessionCommitAuthenticatorFactory
+no.novari.authenticator.org.OrgCookieAuthenticatorFactory
+no.novari.authenticator.client.ClientOrgAccessAuthenticatorFactory
