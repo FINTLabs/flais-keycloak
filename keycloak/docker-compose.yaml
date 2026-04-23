@@ -11,7 +11,7 @@ services:
         command: >
             start-dev
             --import-realm
-            --log-level="INFO,org.keycloak.authentication.authenticators:DEBUG,no.fintlabs.authenticator:DEBUG"
+            --log-level="INFO,org.keycloak.authentication.authenticators:DEBUG,no.novari.authenticator:DEBUG"
         environment:
             KC_HTTP_ENABLED: "true"
             KC_HEALTH_ENABLED: "true"
