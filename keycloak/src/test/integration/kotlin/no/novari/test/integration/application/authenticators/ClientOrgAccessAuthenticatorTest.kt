@@ -28,7 +28,7 @@ class ClientOrgAccessAuthenticatorTest {
             env = env,
             clientId = Clients.FLAIS_KEYCLOAK_DEMO,
             orgAlias = Orgs.ROGALAND,
-            idpAlias = Orgs.ROGALAND,
+            idpAlias = Idps.ENTRA_ROGALAND,
             username = Users.ALICE_ROGALAND,
             password = Users.PASSWORD,
             hasIdpSelector = false,
