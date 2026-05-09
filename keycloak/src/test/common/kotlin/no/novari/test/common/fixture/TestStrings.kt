@@ -44,7 +44,9 @@ object TestStrings {
         const val PASSWORD = "password"
 
         fun alice(orgAlias: String) = "alice.basic@$orgAlias.no"
+
         fun qlikBasic(orgAlias: String) = "qlik.basic@$orgAlias.no"
+
         fun scimVerify(orgAlias: String) = "scimverify.user@$orgAlias.no"
     }
 

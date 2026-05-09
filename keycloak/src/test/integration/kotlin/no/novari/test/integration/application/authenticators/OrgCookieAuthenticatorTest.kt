@@ -4,9 +4,9 @@ import no.novari.test.common.environment.kc.KcEnvironment
 import no.novari.test.common.environment.kc.KcEnvironmentExtension
 import no.novari.test.common.fixture.TestStrings.Clients
 import no.novari.test.common.fixture.TestStrings.Idps
-import no.novari.test.common.fixture.TestStrings.Scopes
 import no.novari.test.common.fixture.TestStrings.Orgs
 import no.novari.test.common.fixture.TestStrings.Pages
+import no.novari.test.common.fixture.TestStrings.Scopes
 import no.novari.test.common.fixture.TestStrings.Users
 import no.novari.test.integration.utils.KcContextParser
 import no.novari.test.integration.utils.KcFlow.loginWithUser
