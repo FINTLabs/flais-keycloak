@@ -1,5 +1,6 @@
-package no.novari.test.common.utils.kc
+package no.novari.test.common.utils
 
+import no.novari.test.common.environment.kc.KcEnvironment
 import okhttp3.HttpUrl
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import java.security.MessageDigest

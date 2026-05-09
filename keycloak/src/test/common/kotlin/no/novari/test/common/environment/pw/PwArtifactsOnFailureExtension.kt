@@ -1,8 +1,7 @@
-package no.novari.test.common.extensions.pw
+package no.novari.test.common.environment.pw
 
 import com.microsoft.playwright.Page
 import com.microsoft.playwright.Tracing
-import no.novari.test.common.utils.pw.PwEnvironment
 import org.junit.jupiter.api.extension.AfterTestExecutionCallback
 import org.junit.jupiter.api.extension.BeforeTestExecutionCallback
 import org.junit.jupiter.api.extension.ExtensionContext

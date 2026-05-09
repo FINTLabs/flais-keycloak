@@ -1,14 +1,18 @@
 package no.novari.test.integration.application.kc
 
 import no.novari.test.common.config.KcConfig
-import no.novari.test.common.extensions.kc.KcEnvExtension
+import no.novari.test.common.environment.kc.KcEnvironmentExtension
+import no.novari.test.common.fixture.TestStrings.Clients
+import no.novari.test.common.fixture.TestStrings.Idps
+import no.novari.test.common.fixture.TestStrings.Orgs
+import no.novari.test.common.fixture.TestStrings.Realms
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 
-@ExtendWith(KcEnvExtension::class)
+@ExtendWith(KcEnvironmentExtension::class)
 class KcConfigTest {
     private val commonRedirectUris = listOf("http://localhost*")
     private val commonWebOrigins = listOf("*")
@@ -26,7 +30,7 @@ class KcConfigTest {
 
     @Test
     fun `realm name should be external`(kcConfig: KcConfig) {
-        assertEquals("external", kcConfig.realmName)
+        assertEquals(Realms.EXTERNAL, kcConfig.realmName)
     }
 
     @Test
@@ -34,7 +38,7 @@ class KcConfigTest {
         assertTrue(
             kcConfig
                 .orgAliases()
-                .containsAll(listOf("idporten", "innlandet", "telemark", "rogaland")),
+                .containsAll(listOf(Orgs.IDPORTEN, Orgs.INNLANDET, Orgs.TELEMARK, Orgs.ROGALAND)),
         )
     }
 
@@ -43,7 +47,7 @@ class KcConfigTest {
         assertTrue(
             kcConfig
                 .idpAliases()
-                .containsAll(listOf("entra-telemark", "entra-telemark-alt", "idporten", "entra-rogaland")),
+                .containsAll(listOf(Idps.ENTRA_TELEMARK, Idps.ENTRA_TELEMARK_ALT, Idps.IDPORTEN, Idps.ENTRA_ROGALAND)),
         )
     }
 
@@ -51,19 +55,19 @@ class KcConfigTest {
 
     @Test
     fun `idp aliases for idporten org should be idporten only`(kcConfig: KcConfig) {
-        assertEquals(listOf("idporten"), kcConfig.idpAliasesForOrg("idporten"))
+        assertEquals(listOf(Idps.IDPORTEN), kcConfig.idpAliasesForOrg(Orgs.IDPORTEN))
     }
 
     @Test
     fun `innlandet should have no idps`(kcConfig: KcConfig) {
-        assertTrue(kcConfig.idpAliasesForOrg("innlandet").isEmpty())
+        assertTrue(kcConfig.idpAliasesForOrg(Orgs.INNLANDET).isEmpty())
     }
 
     @Test
     fun `telemark should have expected idps and not idporten`(kcConfig: KcConfig) {
-        assertTrue(kcConfig.orgHasIdp("telemark", "entra-telemark"))
-        assertTrue(kcConfig.orgHasIdp("telemark", "entra-telemark-alt"))
-        assertFalse(kcConfig.orgHasIdp("telemark", "idporten"))
+        assertTrue(kcConfig.orgHasIdp(Orgs.TELEMARK, Idps.ENTRA_TELEMARK))
+        assertTrue(kcConfig.orgHasIdp(Orgs.TELEMARK, Idps.ENTRA_TELEMARK_ALT))
+        assertFalse(kcConfig.orgHasIdp(Orgs.TELEMARK, Idps.IDPORTEN))
     }
 
     // --- Client ID set --------------------------------------------------------
@@ -73,11 +77,12 @@ class KcConfigTest {
         assertTrue(
             kcConfig.clientIds().containsAll(
                 listOf(
-                    "flais-keycloak-demo",
-                    "flais-keycloak-demo-telemark",
-                    "flais-keycloak-demo-idporten",
-                    "flais-keycloak-demo-invalid",
-                    "flais-keycloak-demo-entra",
+                    Clients.FLAIS_KEYCLOAK_DEMO,
+                    Clients.FLAIS_KEYCLOAK_DEMO_TELEMARK,
+                    Clients.FLAIS_KEYCLOAK_DEMO_IDPORTEN,
+                    Clients.FLAIS_KEYCLOAK_DEMO_INVALID,
+                    Clients.FLAIS_KEYCLOAK_DEMO_ENTRA,
+                    Clients.FLAIS_KEYCLOAK_DEMO_NOT_TELEMARK,
                 ),
             ),
         )
@@ -87,7 +92,7 @@ class KcConfigTest {
 
     @Test
     fun `flais-keycloak-demo should have common flags and empty attributes`(kcConfig: KcConfig) {
-        kcConfig.requireClient("flais-keycloak-demo").also { c ->
+        kcConfig.requireClient(Clients.FLAIS_KEYCLOAK_DEMO).also { c ->
             assertCommonFlags(c)
             assertEquals(emptyMap<String, String>(), c.attributes)
         }
@@ -95,10 +100,10 @@ class KcConfigTest {
 
     @Test
     fun `flais-keycloak-demo-telemark should have common flags and telemark whitelisted`(kcConfig: KcConfig) {
-        kcConfig.requireClient("flais-keycloak-demo-telemark").also { c ->
+        kcConfig.requireClient(Clients.FLAIS_KEYCLOAK_DEMO_TELEMARK).also { c ->
             assertCommonFlags(c)
             assertEquals(
-                mapOf("permission.whitelisted.organizations" to "telemark"),
+                mapOf("permission.whitelisted.organizations" to Orgs.TELEMARK),
                 c.attributes,
             )
         }
@@ -106,10 +111,10 @@ class KcConfigTest {
 
     @Test
     fun `flais-keycloak-demo-idporten should have common flags and idporten whitelisted`(kcConfig: KcConfig) {
-        kcConfig.requireClient("flais-keycloak-demo-idporten").also { c ->
+        kcConfig.requireClient(Clients.FLAIS_KEYCLOAK_DEMO_IDPORTEN).also { c ->
             assertCommonFlags(c)
             assertEquals(
-                mapOf("permission.whitelisted.organizations" to "idporten"),
+                mapOf("permission.whitelisted.organizations" to Orgs.IDPORTEN),
                 c.attributes,
             )
         }
@@ -117,10 +122,10 @@ class KcConfigTest {
 
     @Test
     fun `flais-keycloak-demo-entra should have common flags and idporten blacklisted`(kcConfig: KcConfig) {
-        kcConfig.requireClient("flais-keycloak-demo-entra").also { c ->
+        kcConfig.requireClient(Clients.FLAIS_KEYCLOAK_DEMO_ENTRA).also { c ->
             assertCommonFlags(c)
             assertEquals(
-                mapOf("permission.blacklisted.organizations" to "idporten"),
+                mapOf("permission.blacklisted.organizations" to Orgs.IDPORTEN),
                 c.attributes,
             )
         }
@@ -128,10 +133,10 @@ class KcConfigTest {
 
     @Test
     fun `flais-keycloak-demo-invalid should have common flags and invalid-org whitelist`(kcConfig: KcConfig) {
-        kcConfig.requireClient("flais-keycloak-demo-invalid").also { c ->
+        kcConfig.requireClient(Clients.FLAIS_KEYCLOAK_DEMO_INVALID).also { c ->
             assertCommonFlags(c)
             assertEquals(
-                mapOf("permission.whitelisted.organizations" to "invalid-org"),
+                mapOf("permission.whitelisted.organizations" to Orgs.INVALID),
                 c.attributes,
             )
         }

@@ -1,4 +1,4 @@
-package no.novari.test.common.utils.kc
+package no.novari.test.common.environment.kc
 
 /**
  * Testcontainers-based environment for running Keycloak and related providers in tests.

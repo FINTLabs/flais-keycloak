@@ -1,9 +1,12 @@
 package no.novari.test.integration.application.scim
 
 import no.novari.test.common.config.KcConfig
-import no.novari.test.common.extensions.kc.KcEnvExtension
-import no.novari.test.common.utils.kc.KcAdminClient
-import no.novari.test.common.utils.kc.KcEnvironment
+import no.novari.test.common.environment.kc.KcEnvironment
+import no.novari.test.common.environment.kc.KcEnvironmentExtension
+import no.novari.test.common.fixture.TestStrings.Orgs
+import no.novari.test.common.fixture.TestStrings.Realms
+import no.novari.test.common.fixture.TestStrings.Users
+import no.novari.test.common.utils.KcAdminClient
 import no.novari.test.integration.utils.ScimHttpClient
 import org.awaitility.Awaitility.await
 import org.awaitility.kotlin.withPollInterval
@@ -22,12 +25,12 @@ import java.nio.file.Paths
 import java.time.Duration
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-@ExtendWith(KcEnvExtension::class)
+@ExtendWith(KcEnvironmentExtension::class)
 class ComplianceTest {
-    private val realm = "external"
+    private val realm = Realms.EXTERNAL
 
     @ParameterizedTest(name = "flais-scim-server for org ({0}) passes compliance tests")
-    @ValueSource(strings = ["telemark", "rogaland"])
+    @ValueSource(strings = [Orgs.TELEMARK, Orgs.ROGALAND])
     fun `flais-scim-server for org passes compliance tests`(
         orgAlias: String,
         env: KcEnvironment,
@@ -38,16 +41,15 @@ class ComplianceTest {
         val (kc, realmRes) = KcAdminClient.connect(env, realm)
 
         kc.use {
-            val email = "scimverify.user@$orgAlias.no"
-            val username = email
-            val firstname = "Scimverify"
-            val lastname = "User"
+            val username = Users.scimVerify(orgAlias)
+            val firstname = Users.SCIMVERIFY_FIRST_NAME
+            val lastname = Users.BASIC_LAST_NAME
 
             val userId =
                 KcAdminClient.createUser(
                     realmRes,
                     username,
-                    email,
+                    username,
                     firstname,
                     lastname,
                     realmRoleNames = listOf("scim-managed"),

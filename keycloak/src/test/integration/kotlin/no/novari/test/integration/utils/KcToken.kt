@@ -1,6 +1,6 @@
 package no.novari.test.integration.utils
 
-import no.novari.test.common.utils.kc.KcEnvironment
+import no.novari.test.common.environment.kc.KcEnvironment
 import okhttp3.FormBody
 import okhttp3.OkHttpClient
 import okhttp3.Request

@@ -1,13 +1,12 @@
-package no.novari.test.common.extensions.pw
+package no.novari.test.common.environment.pw
 
 import com.microsoft.playwright.Page
-import no.novari.test.common.extensions.SharedExtensionStore
-import no.novari.test.common.extensions.SharedExtensionStore.PW_BROWSER_NAME
-import no.novari.test.common.extensions.SharedExtensionStore.PW_ENV
-import no.novari.test.common.extensions.SharedExtensionStore.PW_PAGE
-import no.novari.test.common.extensions.SharedExtensionStore.PW_SESSION
-import no.novari.test.common.utils.kc.KcEnvironment
-import no.novari.test.common.utils.pw.PwEnvironment
+import no.novari.test.common.environment.SharedExtensionStore
+import no.novari.test.common.environment.SharedExtensionStore.PW_BROWSER_NAME
+import no.novari.test.common.environment.SharedExtensionStore.PW_ENV
+import no.novari.test.common.environment.SharedExtensionStore.PW_PAGE
+import no.novari.test.common.environment.SharedExtensionStore.PW_SESSION
+import no.novari.test.common.environment.kc.KcEnvironment
 import org.junit.jupiter.api.extension.AfterAllCallback
 import org.junit.jupiter.api.extension.AfterEachCallback
 import org.junit.jupiter.api.extension.BeforeAllCallback
@@ -22,7 +21,7 @@ import org.junit.jupiter.api.extension.TestTemplateInvocationContext
 import org.junit.jupiter.api.extension.TestTemplateInvocationContextProvider
 import java.util.stream.Stream
 
-class PwEnvExtension :
+class PwEnvironmentExtension :
     BeforeAllCallback,
     AfterAllCallback,
     TestTemplateInvocationContextProvider,
