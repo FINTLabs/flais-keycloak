@@ -18,7 +18,7 @@ param(
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 
-. "$PSScriptRoot/helpers/GraphRetry.ps1"
+. "$PSScriptRoot/../helpers/GraphRetry.ps1"
 
 function Set-FintApplicationRegistrationConfig {
     param(

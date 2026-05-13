@@ -23,8 +23,8 @@ $ErrorActionPreference = "Stop"
 
 Import-Module Microsoft.Graph.Authentication -ErrorAction Stop
 
-. "$PSScriptRoot/helpers/GraphRetry.ps1"
-. "$PSScriptRoot/helpers/RequiredScopes.ps1"
+. "$PSScriptRoot/../helpers/GraphRetry.ps1"
+. "$PSScriptRoot/../helpers/RequiredScopes.ps1"
 
 Assert-MgContextHasExactlyRequiredScopes -RequiredScopes @(
     "Application.ReadWrite.All",
@@ -62,6 +62,25 @@ function New-FintClaimsMappingDefinition {
     } | ConvertTo-Json -Depth 10 -Compress
 }
 
+function Get-FintServicePrincipalClaimsMappingPolicies {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$ServicePrincipalId,
+
+        [Parameter(Mandatory = $true)]
+        [int]$MaxAttempts,
+
+        [Parameter(Mandatory = $true)]
+        [int]$DelaySeconds
+    )
+
+    return Invoke-GraphWithRetry `
+        -Method "GET" `
+        -Uri "https://graph.microsoft.com/v1.0/servicePrincipals/$ServicePrincipalId/claimsMappingPolicies" `
+        -MaxAttempts $MaxAttempts `
+        -InitialDelaySeconds $DelaySeconds
+}
+
 function New-FintClaimsMappingPolicy {
     param(
         [Parameter(Mandatory = $true)]
@@ -86,6 +105,44 @@ function New-FintClaimsMappingPolicy {
         -Method "POST" `
         -Uri "https://graph.microsoft.com/v1.0/policies/claimsMappingPolicies" `
         -BodyJson $bodyJson `
+        -MaxAttempts $MaxAttempts `
+        -InitialDelaySeconds $DelaySeconds
+}
+
+function Update-FintClaimsMappingPolicy {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$PolicyId,
+
+        [Parameter(Mandatory = $true)]
+        [string]$DefinitionJson,
+
+        [Parameter(Mandatory = $true)]
+        [string]$DisplayName,
+
+        [Parameter(Mandatory = $true)]
+        [int]$MaxAttempts,
+
+        [Parameter(Mandatory = $true)]
+        [int]$DelaySeconds
+    )
+
+    $bodyJson = @{
+        definition  = @($DefinitionJson)
+        displayName = $DisplayName
+    } | ConvertTo-Json -Depth 20 -Compress
+
+    Invoke-GraphWithRetry `
+        -Method "PATCH" `
+        -Uri "https://graph.microsoft.com/v1.0/policies/claimsMappingPolicies/$PolicyId" `
+        -BodyJson $bodyJson `
+        -MaxAttempts $MaxAttempts `
+        -InitialDelaySeconds $DelaySeconds `
+    | Out-Null
+
+    return Invoke-GraphWithRetry `
+        -Method "GET" `
+        -Uri "https://graph.microsoft.com/v1.0/policies/claimsMappingPolicies/$PolicyId" `
         -MaxAttempts $MaxAttempts `
         -InitialDelaySeconds $DelaySeconds
 }
@@ -124,21 +181,50 @@ $claimsMapping = New-FintClaimsMappingDefinition `
     -EmployeeIdSource $EmployeeIdSourceAttribute `
     -StudentNumberSource $StudentNumberSourceAttribute
 
-$policy = New-FintClaimsMappingPolicy `
-    -DefinitionJson $claimsMapping `
-    -DisplayName $DisplayName `
-    -MaxAttempts $MaxRetries `
-    -DelaySeconds $RetryDelaySeconds
-
-Write-Host "Created Claims Mapping Policy:"
-Write-Host "  Name: $($policy.displayName)"
-Write-Host "  Id:   $($policy.id)"
-
-Add-FintClaimsMappingPolicyToServicePrincipal `
+$assignedPoliciesResponse = Get-FintServicePrincipalClaimsMappingPolicies `
     -ServicePrincipalId $ServicePrincipalObjectId `
-    -PolicyId $policy.id `
     -MaxAttempts $MaxRetries `
     -DelaySeconds $RetryDelaySeconds
+
+$assignedClaimsMappingPolicies = @($assignedPoliciesResponse.value)
+
+if ($assignedClaimsMappingPolicies.Count -gt 1) {
+    throw "Service principal $ServicePrincipalObjectId already has multiple Claims Mapping Policies assigned. Refusing to choose one automatically."
+}
+
+if ($assignedClaimsMappingPolicies.Count -eq 1) {
+    $existingPolicy = $assignedClaimsMappingPolicies[0]
+
+    Write-Host "Service principal $ServicePrincipalObjectId already has Claims Mapping Policy $($existingPolicy.id). Updating existing policy instead of creating a new one."
+
+    $policy = Update-FintClaimsMappingPolicy `
+        -PolicyId $existingPolicy.id `
+        -DefinitionJson $claimsMapping `
+        -DisplayName $DisplayName `
+        -MaxAttempts $MaxRetries `
+        -DelaySeconds $RetryDelaySeconds
+
+    Write-Host "Updated Claims Mapping Policy:"
+    Write-Host "  Name: $($policy.displayName)"
+    Write-Host "  Id:   $($policy.id)"
+}
+else {
+    $policy = New-FintClaimsMappingPolicy `
+        -DefinitionJson $claimsMapping `
+        -DisplayName $DisplayName `
+        -MaxAttempts $MaxRetries `
+        -DelaySeconds $RetryDelaySeconds
+
+    Write-Host "Created Claims Mapping Policy:"
+    Write-Host "  Name: $($policy.displayName)"
+    Write-Host "  Id:   $($policy.id)"
+
+    Add-FintClaimsMappingPolicyToServicePrincipal `
+        -ServicePrincipalId $ServicePrincipalObjectId `
+        -PolicyId $policy.id `
+        -MaxAttempts $MaxRetries `
+        -DelaySeconds $RetryDelaySeconds
+}
 
 $result = [pscustomobject]@{
     ServicePrincipalObjectId     = $ServicePrincipalObjectId
@@ -146,6 +232,7 @@ $result = [pscustomobject]@{
     ClaimsMappingPolicyName      = $policy.displayName
     EmployeeIdSourceAttribute    = $EmployeeIdSourceAttribute
     StudentNumberSourceAttribute = $StudentNumberSourceAttribute
+    WasExistingPolicyUpdated     = $assignedClaimsMappingPolicies.Count -eq 1
 }
 
 $result | ConvertTo-Json -Depth 20

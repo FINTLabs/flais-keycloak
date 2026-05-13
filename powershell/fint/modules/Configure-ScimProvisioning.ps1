@@ -22,8 +22,8 @@ param(
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 
-. "$PSScriptRoot/helpers/GraphRetry.ps1"
-. "$PSScriptRoot/helpers/RequiredScopes.ps1"
+. "$PSScriptRoot/../helpers/GraphRetry.ps1"
+. "$PSScriptRoot/../helpers/RequiredScopes.ps1"
 
 Assert-MgContextHasExactlyRequiredScopes -RequiredScopes @(
     "Application.ReadWrite.All",
@@ -206,6 +206,52 @@ function Update-MetadataObjectNameReferences {
     }
 }
 
+function Remove-TargetAttributeDefinitionsExcept {
+    param(
+        [Parameter(Mandatory)]
+        [object]$Schema,
+
+        [Parameter(Mandatory)]
+        [string]$TargetDirectoryName,
+
+        [Parameter(Mandatory)]
+        [string]$TargetObjectName,
+
+        [Parameter(Mandatory)]
+        [string[]]$AllowedAttributeNames
+    )
+
+    $targetDir = $Schema.directories |
+    Where-Object { $_.name -eq $TargetDirectoryName } |
+    Select-Object -First 1
+
+    if (-not $targetDir) {
+        throw "Could not find target directory '$TargetDirectoryName' in synchronization schema."
+    }
+
+    if (-not $targetDir.objects) {
+        throw "Target directory '$TargetDirectoryName' has no objects collection."
+    }
+
+    $targetObject = $targetDir.objects |
+    Where-Object { $_.name -eq $TargetObjectName } |
+    Select-Object -First 1
+
+    if (-not $targetObject) {
+        $available = @($targetDir.objects | ForEach-Object { $_.name }) -join ", "
+        throw "Could not find target object '$TargetObjectName' in target directory '$TargetDirectoryName'. Available: $available"
+    }
+
+    if (-not $targetObject.attributes) {
+        $targetObject.attributes = @()
+        return
+    }
+
+    $targetObject.attributes = @(
+        $targetObject.attributes |
+        Where-Object { $AllowedAttributeNames -contains $_.name }
+    )
+}
 function Add-TargetAttributeDefinition {
     param(
         [Parameter(Mandatory)]
@@ -658,6 +704,17 @@ else {
             Anchor      = $false
         }
     )
+
+    $allowedAttributeNames = @(
+        $fintAttributes |
+        ForEach-Object { $_.Name }
+    )
+
+    Remove-TargetAttributeDefinitionsExcept `
+        -Schema $schema `
+        -TargetDirectoryName $userRule.targetDirectoryName `
+        -TargetObjectName $targetUserObjectName `
+        -AllowedAttributeNames $allowedAttributeNames
 
     foreach ($attr in $fintAttributes) {
         Add-TargetAttributeDefinition `

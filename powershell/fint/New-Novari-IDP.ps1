@@ -29,134 +29,20 @@ $ErrorActionPreference = "Stop"
 # Script paths
 # -------------------------------------------------------------------------------------------------
 
-$ScriptRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
+. "$PSScriptRoot/helpers/GenericHelpers.ps1"
+. "$PSScriptRoot/helpers/GraphRetry.ps1"
+. "$PSScriptRoot/helpers/RequiredScopes.ps1"
+. "$PSScriptRoot/helpers/GraphContext.ps1"
 
-$CreateEnterpriseAppScript = Join-Path $ScriptRoot "Create-EnterpriseApplication.ps1"
-$CreateClaimsMappingPolicyScript = Join-Path $ScriptRoot "Create-ClaimsMappingPolicy.ps1"
-$ConfigureEnterpriseAppScript = Join-Path $ScriptRoot "Configure-EnterpriseApplication.ps1"
-$ConfigureScimScript = Join-Path $ScriptRoot "Configure-ScimProvisioning.ps1"
+$CreateEnterpriseAppScript = "$PSScriptRoot/modules/Create-EnterpriseApplication.ps1"
+$CreateClaimsMappingPolicyScript = "$PSScriptRoot/modules/Create-ClaimsMappingPolicy.ps1"
+$ConfigureEnterpriseAppScript = "$PSScriptRoot/modules/Configure-Application.ps1"
+$ConfigureScimScript = "$PSScriptRoot/modules/Configure-ScimProvisioning.ps1"
 
-$HeaderScript = Join-Path $ScriptRoot "helpers/Header.ps1"
-$MenuScript = Join-Path $ScriptRoot "helpers/Menu.ps1"
+$HeaderScript = "$PSScriptRoot/helpers/Header.ps1"
+$MenuScript = "$PSScriptRoot/helpers/Menu.ps1"
 
 $script:LastEnterpriseApplicationResult = $null
-
-# -------------------------------------------------------------------------------------------------
-# Generic helpers
-# -------------------------------------------------------------------------------------------------
-
-function Test-ScriptExists {
-    param(
-        [Parameter(Mandatory = $true)]
-        [string]$Path
-    )
-
-    if (-not (Test-Path $Path)) {
-        throw "Required script not found: $Path"
-    }
-}
-
-function Read-RequiredValue {
-    param(
-        [Parameter(Mandatory = $true)]
-        [string]$Prompt
-    )
-
-    do {
-        $value = Read-Host $Prompt
-
-        if ([string]::IsNullOrWhiteSpace($value)) {
-            Write-Host "Value is required." -ForegroundColor Yellow
-        }
-    } while ([string]::IsNullOrWhiteSpace($value))
-
-    return $value
-}
-
-function Read-DefaultedValue {
-    param(
-        [Parameter(Mandatory = $true)]
-        [string]$Prompt,
-
-        [Parameter(Mandatory = $true)]
-        [string]$DefaultValue
-    )
-
-    $value = Read-Host "$Prompt [$DefaultValue]"
-
-    if ([string]::IsNullOrWhiteSpace($value)) {
-        return $DefaultValue
-    }
-
-    return $value
-}
-
-function Test-Yes {
-    param(
-        [Parameter(Mandatory = $false)]
-        [string]$Value
-    )
-
-    return $Value -in @("y", "Y", "yes", "Yes", "YES")
-}
-
-# -------------------------------------------------------------------------------------------------
-# Microsoft Graph helpers
-# -------------------------------------------------------------------------------------------------
-
-function Connect-ToGraph {
-    Write-Host ""
-    Write-Host "Microsoft Graph app-only login" -ForegroundColor Cyan
-    Write-Host "------------------------------"
-
-    Import-Module Microsoft.Graph.Authentication -ErrorAction Stop
-
-    Disconnect-MgGraph -ErrorAction SilentlyContinue | Out-Null
-
-    $tenantId = Read-RequiredValue "Tenant ID"
-    $clientId = Read-RequiredValue "Client ID"
-    $clientSecretSecure = Read-Host "Client Secret" -AsSecureString
-
-    if (-not $clientSecretSecure -or $clientSecretSecure.Length -eq 0) {
-        throw "Client Secret is required."
-    }
-
-    $cred = New-Object System.Management.Automation.PSCredential($clientId, $clientSecretSecure)
-
-    Connect-MgGraph `
-        -TenantId $tenantId `
-        -ClientSecretCredential $cred `
-        -NoWelcome
-
-    $ctx = Get-MgContext
-
-    if (-not $ctx) {
-        throw "Graph login failed. No Microsoft Graph context was created."
-    }
-
-    Write-Host ""
-    Write-Host "Connected to Microsoft Graph." -ForegroundColor Green
-    Write-Host "Tenant:    $($ctx.TenantId)"
-    Write-Host "Client ID: $($ctx.ClientId)"
-    Write-Host "Auth type: $($ctx.AuthType)"
-}
-
-function Show-GraphContext {
-    $ctx = Get-MgContext
-
-    if (-not $ctx) {
-        Write-Host "Not connected to Microsoft Graph." -ForegroundColor Yellow
-        return
-    }
-
-    Write-Host ""
-    Write-Host "Current Graph Context" -ForegroundColor Cyan
-    Write-Host "---------------------"
-    Write-Host "Tenant ID: $($ctx.TenantId)"
-    Write-Host "Client ID: $($ctx.ClientId)"
-    Write-Host "Auth Type: $($ctx.AuthType)"
-    Write-Host "Scopes:   $($ctx.Scopes | Sort-Object -Unique)"
-}
 
 # -------------------------------------------------------------------------------------------------
 # Enterprise Application operations
@@ -232,7 +118,7 @@ function Show-CurrentEnterpriseApplication {
     if (-not $script:LastEnterpriseApplicationResult) {
         Write-Host ""
         Write-Host "No Enterprise Application has been created or selected in this session." -ForegroundColor Yellow
-        Write-Host "Run option 1 first, or enter the values manually when using the other options."
+        Write-Host "Run option 1 first, or connect existing on startup."
         return
     }
 
@@ -251,17 +137,13 @@ function Invoke-ConfigureEnterpriseApplication {
         [object]$ExistingApplicationResult
     )
 
-    Test-ScriptExists $ConfigureEnterpriseAppScript
-
     if ($ExistingApplicationResult) {
         $applicationObjectId = $ExistingApplicationResult.ApplicationObjectId
         $applicationAppId = $ExistingApplicationResult.ApplicationAppId
         $servicePrincipalObjectId = $ExistingApplicationResult.ServicePrincipalObjectId
     }
     else {
-        $applicationObjectId = Read-RequiredValue "Application ObjectId"
-        $applicationAppId = Read-RequiredValue "Application AppId"
-        $servicePrincipalObjectId = Read-RequiredValue "ServicePrincipal ObjectId"
+        throw "No existing application result provided. This function should only be called with an existing application."
     }
 
     $redirectUri = Read-RequiredValue "Keycloak redirect URI for IDP"
@@ -303,15 +185,12 @@ function Invoke-CreateClaimsMappingPolicy {
         [object]$ExistingApplicationResult
     )
 
-    Test-ScriptExists $CreateClaimsMappingPolicyScript
-
     if ($ExistingApplicationResult) {
         $servicePrincipalObjectId = $ExistingApplicationResult.ServicePrincipalObjectId
         $defaultPolicyDisplayName = "$($ExistingApplicationResult.DisplayName) - FINT Claims Mapping Policy"
     }
     else {
-        $servicePrincipalObjectId = Read-RequiredValue "ServicePrincipal ObjectId"
-        $defaultPolicyDisplayName = "FINT Claims Mapping Policy"
+        throw "No existing application result provided. This function should only be called with an existing application."
     }
 
     $displayName = Read-DefaultedValue `
@@ -358,8 +237,6 @@ function Invoke-ConfigureScimProvisioning {
         [string]$ExistingServicePrincipalObjectId
     )
 
-    Test-ScriptExists $ConfigureScimScript
-
     if ([string]::IsNullOrWhiteSpace($ExistingServicePrincipalObjectId)) {
         $servicePrincipalObjectId = Read-RequiredValue "ServicePrincipal ObjectId"
     }
@@ -367,7 +244,7 @@ function Invoke-ConfigureScimProvisioning {
         $servicePrincipalObjectId = $ExistingServicePrincipalObjectId
     }
 
-    $tenantUrl = Read-RequiredValue "SCIM Tenant URL / BaseAddress. Example: https://keycloak.prod.infra.flais.no/realms/fint/scim/v2/<org-id>/"
+    $tenantUrl = Read-RequiredValue "SCIM Tenant URL / BaseAddress"
     $secretToken = ""
 
     $employeeIdSource = Read-DefaultedValue `
@@ -407,9 +284,6 @@ function Invoke-ConfigureScimProvisioning {
 # -------------------------------------------------------------------------------------------------
 # Load UI modules
 # -------------------------------------------------------------------------------------------------
-
-Test-ScriptExists $HeaderScript
-Test-ScriptExists $MenuScript
 
 . $HeaderScript
 . $MenuScript

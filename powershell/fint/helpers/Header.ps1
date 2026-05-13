@@ -1,9 +1,7 @@
-# -------------------------------------------------------------------------------------------------
-# Console header / logo
-# -------------------------------------------------------------------------------------------------
+Set-StrictMode -Version Latest
 
 function Write-NovariLogo {
-    $logoPath = Join-Path $ScriptRoot "novari_logo_primaer.svg"
+    $logoPath = Join-Path $PSScriptRoot "novari_logo_primaer.svg"
 
     if ((Get-Command chafa -ErrorAction SilentlyContinue) -and (Test-Path $logoPath)) {
         & chafa `
