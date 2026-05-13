@@ -33,8 +33,8 @@ RUN --mount=type=cache,target=/home/gradle/.gradle \
         :libs:flais-provider:build \
         :libs:flais-scim-server:build \
     && mkdir -p /flais-keycloak-jars \
-    && cp libs/flais-provider/build/libs/*.jar / \
-    && cp libs/flais-scim-server/build/libs/*.jar /
+    && cp libs/flais-provider/build/libs/*.jar /flais-keycloak-jars/ \
+    && cp libs/flais-scim-server/build/libs/*.jar /flais-keycloak-jars/
 
 # ---------------------------
 # Stage: FLAIS theme builder
@@ -64,7 +64,7 @@ ENV KC_DB=postgres
 ENV KC_HEALTH_ENABLED=true
 ENV KC_METRICS_ENABLED=true
 
-COPY --from=flais-keycloak-builder /*.jar /opt/keycloak/providers/
+COPY --from=flais-keycloak-builder /flais-keycloak-jars/*.jar /opt/keycloak/providers/
 
 COPY --from=flais-theme-builder /flais-theme/dist_keycloak/flais-theme.jar /opt/keycloak/providers/
 
