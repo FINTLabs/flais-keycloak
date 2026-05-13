@@ -32,6 +32,7 @@ RUN --mount=type=cache,target=/home/gradle/.gradle \
     ./gradlew --no-daemon --configuration-cache \
         :libs:flais-provider:build \
         :libs:flais-scim-server:build \
+    && mkdir -p /flais-keycloak-jars \
     && cp libs/flais-provider/build/libs/*.jar /flais-keycloak-jars/ \
     && cp libs/flais-scim-server/build/libs/*.jar /flais-keycloak-jars/
 
