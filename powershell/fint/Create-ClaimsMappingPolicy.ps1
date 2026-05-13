@@ -1,0 +1,151 @@
+param(
+    [Parameter(Mandatory = $true)]
+    [string]$ServicePrincipalObjectId,
+
+    [Parameter(Mandatory = $true)]
+    [string]$DisplayName,
+
+    [Parameter(Mandatory = $true)]
+    [string]$EmployeeIdSourceAttribute,
+
+    [Parameter(Mandatory = $true)]
+    [string]$StudentNumberSourceAttribute,
+
+    [Parameter(Mandatory = $false)]
+    [int]$MaxRetries = 10,
+
+    [Parameter(Mandatory = $false)]
+    [int]$RetryDelaySeconds = 5
+)
+
+Set-StrictMode -Version Latest
+$ErrorActionPreference = "Stop"
+
+Import-Module Microsoft.Graph.Authentication -ErrorAction Stop
+
+. "$PSScriptRoot/helpers/GraphRetry.ps1"
+. "$PSScriptRoot/helpers/RequiredScopes.ps1"
+
+Assert-MgContextHasExactlyRequiredScopes -RequiredScopes @(
+    "Application.ReadWrite.All",
+    "Policy.Read.All",
+    "Policy.ReadWrite.ApplicationConfiguration",
+    "Synchronization.ReadWrite.All"
+)
+
+function New-FintClaimsMappingDefinition {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$EmployeeIdSource,
+
+        [Parameter(Mandatory = $true)]
+        [string]$StudentNumberSource
+    )
+
+    return @{
+        ClaimsMappingPolicy = @{
+            Version              = 1
+            IncludeBasicClaimSet = "true"
+            ClaimsSchema         = @(
+                @{
+                    Source       = "user"
+                    ID           = $EmployeeIdSource
+                    JwtClaimType = "employee_id"
+                },
+                @{
+                    Source       = "user"
+                    ID           = $StudentNumberSource
+                    JwtClaimType = "student_number"
+                }
+            )
+        }
+    } | ConvertTo-Json -Depth 10 -Compress
+}
+
+function New-FintClaimsMappingPolicy {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$DefinitionJson,
+
+        [Parameter(Mandatory = $true)]
+        [string]$DisplayName,
+
+        [Parameter(Mandatory = $true)]
+        [int]$MaxAttempts,
+
+        [Parameter(Mandatory = $true)]
+        [int]$DelaySeconds
+    )
+
+    $bodyJson = @{
+        definition  = @($DefinitionJson)
+        displayName = $DisplayName
+    } | ConvertTo-Json -Depth 20 -Compress
+
+    return Invoke-GraphWithRetry `
+        -Method "POST" `
+        -Uri "https://graph.microsoft.com/v1.0/policies/claimsMappingPolicies" `
+        -BodyJson $bodyJson `
+        -MaxAttempts $MaxAttempts `
+        -InitialDelaySeconds $DelaySeconds
+}
+
+function Add-FintClaimsMappingPolicyToServicePrincipal {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$ServicePrincipalId,
+
+        [Parameter(Mandatory = $true)]
+        [string]$PolicyId,
+
+        [Parameter(Mandatory = $true)]
+        [int]$MaxAttempts,
+
+        [Parameter(Mandatory = $true)]
+        [int]$DelaySeconds
+    )
+
+    $bodyJson = @{
+        "@odata.id" = "https://graph.microsoft.com/v1.0/policies/claimsMappingPolicies/$PolicyId"
+    } | ConvertTo-Json -Depth 10 -Compress
+
+    Invoke-GraphWithRetry `
+        -Method "POST" `
+        -Uri "https://graph.microsoft.com/v1.0/servicePrincipals/$ServicePrincipalId/claimsMappingPolicies/`$ref" `
+        -BodyJson $bodyJson `
+        -MaxAttempts $MaxAttempts `
+        -InitialDelaySeconds $DelaySeconds `
+    | Out-Null
+
+    Write-Host "Assigned Claims Mapping Policy $PolicyId to service principal $ServicePrincipalId."
+}
+
+$claimsMapping = New-FintClaimsMappingDefinition `
+    -EmployeeIdSource $EmployeeIdSourceAttribute `
+    -StudentNumberSource $StudentNumberSourceAttribute
+
+$policy = New-FintClaimsMappingPolicy `
+    -DefinitionJson $claimsMapping `
+    -DisplayName $DisplayName `
+    -MaxAttempts $MaxRetries `
+    -DelaySeconds $RetryDelaySeconds
+
+Write-Host "Created Claims Mapping Policy:"
+Write-Host "  Name: $($policy.displayName)"
+Write-Host "  Id:   $($policy.id)"
+
+Add-FintClaimsMappingPolicyToServicePrincipal `
+    -ServicePrincipalId $ServicePrincipalObjectId `
+    -PolicyId $policy.id `
+    -MaxAttempts $MaxRetries `
+    -DelaySeconds $RetryDelaySeconds
+
+$result = [pscustomobject]@{
+    ServicePrincipalObjectId     = $ServicePrincipalObjectId
+    ClaimsMappingPolicyObjectId  = $policy.id
+    ClaimsMappingPolicyName      = $policy.displayName
+    EmployeeIdSourceAttribute    = $EmployeeIdSourceAttribute
+    StudentNumberSourceAttribute = $StudentNumberSourceAttribute
+}
+
+$result | ConvertTo-Json -Depth 20
