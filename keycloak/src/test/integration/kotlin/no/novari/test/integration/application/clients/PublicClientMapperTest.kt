@@ -7,6 +7,7 @@ import no.novari.test.common.fixture.TestStrings.Idps
 import no.novari.test.common.fixture.TestStrings.Orgs
 import no.novari.test.common.fixture.TestStrings.Realms
 import no.novari.test.common.fixture.TestStrings.Scopes
+import no.novari.test.common.fixture.TestStrings.Uris
 import no.novari.test.common.fixture.TestStrings.Users
 import no.novari.test.common.utils.KcUrl
 import no.novari.test.integration.utils.KcFlow.loginWithUser
@@ -25,7 +26,7 @@ class PublicClientMapperTest {
         val client = KcHttpClient.create(followRedirects = true)
         val realm = Realms.EXTERNAL
         val clientId = Clients.FLAIS_KEYCLOAK_DEMO
-        val redirectUri = "${env.flaisKeycloakDemoUrl()}/callback"
+        val redirectUri = Uris.redirectCallback(env.flaisKeycloakDemoUrl())
         val scope = Scopes.PROFILE_EMAIL
         val orgAlias = Orgs.TELEMARK
         val idpAlias = Idps.ENTRA_TELEMARK

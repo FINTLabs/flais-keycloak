@@ -7,6 +7,7 @@ import no.novari.test.common.fixture.TestStrings.Idps
 import no.novari.test.common.fixture.TestStrings.Orgs
 import no.novari.test.common.fixture.TestStrings.Realms
 import no.novari.test.common.fixture.TestStrings.Scopes
+import no.novari.test.common.fixture.TestStrings.Uris
 import no.novari.test.common.fixture.TestStrings.Users
 import no.novari.test.common.utils.KcAdminClient
 import no.novari.test.common.utils.KcUrl
@@ -34,7 +35,7 @@ class QlikRolesMapperTest {
         env: KcEnvironment,
     ) {
         val client = KcHttpClient.create(followRedirects = true)
-        val redirectUri = "${env.flaisKeycloakDemoUrl()}/callback"
+        val redirectUri = Uris.redirectCallback(env.flaisKeycloakDemoUrl())
         val idpAlias = Idps.entra(orgAlias)
         val username = Users.qlikBasic(orgAlias)
         val (authUrl, codeVerifier) =
@@ -118,7 +119,7 @@ class QlikRolesMapperTest {
         env: KcEnvironment,
     ) {
         val client = KcHttpClient.create(followRedirects = true)
-        val redirectUri = "${env.flaisKeycloakDemoUrl()}/callback"
+        val redirectUri = Uris.redirectCallback(env.flaisKeycloakDemoUrl())
         val idpAlias = Idps.entra(orgAlias)
         val username = Users.qlikBasic(orgAlias)
         val (authUrl, codeVerifier) =

@@ -1,6 +1,10 @@
 package no.novari.test.common.fixture
 
 object TestStrings {
+    object Uris {
+        fun redirectCallback(base: String) = "$base/callback"
+    }
+
     object Clients {
         const val FLAIS_KEYCLOAK_DEMO = "flais-keycloak-demo"
         const val FLAIS_KEYCLOAK_DEMO_ENTRA = "flais-keycloak-demo-entra"

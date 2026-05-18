@@ -1,6 +1,7 @@
 package no.novari.test.common.utils
 
 import no.novari.test.common.environment.kc.KcEnvironment
+import no.novari.test.common.fixture.TestStrings.Uris
 import okhttp3.HttpUrl
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import java.security.MessageDigest
@@ -37,7 +38,7 @@ object KcUrl {
     fun authUrl(
         env: KcEnvironment,
         clientId: String,
-        redirectUri: String = "${env.flaisKeycloakDemoUrl()}/callback",
+        redirectUri: String = Uris.redirectCallback(env.flaisKeycloakDemoUrl()),
         scope: String? = null,
         usePkce: Boolean = true,
         pkcePlain: Boolean = false,

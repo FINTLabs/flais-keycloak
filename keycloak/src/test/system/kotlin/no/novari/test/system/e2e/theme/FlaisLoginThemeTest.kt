@@ -8,6 +8,7 @@ import no.novari.test.common.environment.pw.PwEnvironment
 import no.novari.test.common.fixture.TestStrings.Clients
 import no.novari.test.common.fixture.TestStrings.Idps
 import no.novari.test.common.fixture.TestStrings.Orgs
+import no.novari.test.common.fixture.TestStrings.Uris
 import no.novari.test.common.fixture.TestStrings.Users
 import no.novari.test.system.utils.PwAutoLogin
 import no.novari.test.system.utils.PwFlow
@@ -69,7 +70,7 @@ class FlaisLoginThemeTest {
         page: Page,
     ) {
         assertThat(page).hasURL(
-            Pattern.compile("${env.flaisKeycloakDemoUrl()}/callback"),
+            Pattern.compile(Uris.redirectCallback(env.flaisKeycloakDemoUrl())),
         )
     }
 }
