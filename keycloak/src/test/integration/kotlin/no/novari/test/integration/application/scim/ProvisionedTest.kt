@@ -6,9 +6,14 @@ import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import no.novari.test.common.config.KcConfig
-import no.novari.test.common.extensions.kc.KcEnvExtension
-import no.novari.test.common.utils.kc.KcAdminClient
-import no.novari.test.common.utils.kc.KcEnvironment
+import no.novari.test.common.environment.kc.KcEnvironment
+import no.novari.test.common.environment.kc.KcEnvironmentExtension
+import no.novari.test.common.fixture.TestStrings.Clients
+import no.novari.test.common.fixture.TestStrings.Idps
+import no.novari.test.common.fixture.TestStrings.Orgs
+import no.novari.test.common.fixture.TestStrings.Realms
+import no.novari.test.common.fixture.TestStrings.Users
+import no.novari.test.common.utils.KcAdminClient
 import no.novari.test.integration.utils.KcFlow.loginWithUser
 import no.novari.test.integration.utils.ScimFlow
 import no.novari.test.integration.utils.ScimFlow.ScimUser
@@ -22,13 +27,13 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-@ExtendWith(KcEnvExtension::class)
+@ExtendWith(KcEnvironmentExtension::class)
 class ProvisionedTest {
-    private val realm = "external"
+    private val realm = Realms.EXTERNAL
 
     private val users =
         mapOf(
-            "telemark" to
+            Orgs.TELEMARK to
                 listOf(
                     ScimUser(
                         schemas =
@@ -37,16 +42,16 @@ class ProvisionedTest {
                                 "urn:ietf:params:scim:schemas:extension:fint:2.0:User",
                             ),
                         externalId = "11111111-1111-1111-1111-111111111111",
-                        userName = "alice.basic@telemark.no",
+                        userName = Users.ALICE_TELEMARK,
                         active = true,
-                        name = ScimUser.Name("Alice", "Basic"),
-                        emails = listOf(ScimUser.Email("alice.basic@telemark.no", primary = true)),
+                        name = ScimUser.Name(Users.ALICE_FIRST_NAME, Users.BASIC_LAST_NAME),
+                        emails = listOf(ScimUser.Email(Users.ALICE_TELEMARK, primary = true)),
                         roles =
                             listOf(
                                 ScimUser.Role("read", "read", "WindowsAzureActiveDirectoryRole", false),
                                 ScimUser.Role("write", "write", "WindowsAzureActiveDirectoryRole", false),
                             ),
-                        fintUserExtension = ScimUser.FintUserExtension("1234", "1234", "alice.basic@telemark.no"),
+                        fintUserExtension = ScimUser.FintUserExtension("1234", "1234", Users.ALICE_TELEMARK),
                     ),
                     ScimUser(
                         schemas =
@@ -54,19 +59,19 @@ class ProvisionedTest {
                                 "urn:ietf:params:scim:schemas:core:2.0:User",
                             ),
                         externalId = "22222222-2222-2222-2222-222222222222",
-                        userName = "jon.basic@telemark.no",
+                        userName = Users.JON_TELEMARK,
                         active = true,
-                        name = ScimUser.Name("Jon", "Basic"),
-                        emails = listOf(ScimUser.Email("jon.basic@telemark.no", primary = true)),
+                        name = ScimUser.Name(Users.JON_FIRST_NAME, Users.BASIC_LAST_NAME),
+                        emails = listOf(ScimUser.Email(Users.JON_TELEMARK, primary = true)),
                         roles =
                             listOf(
                                 ScimUser.Role("read", "read", "WindowsAzureActiveDirectoryRole", false),
                                 ScimUser.Role("write", "write", "WindowsAzureActiveDirectoryRole", false),
                             ),
-                        fintUserExtension = ScimUser.FintUserExtension("1234", "1234", "jon.basic@telemark.no"),
+                        fintUserExtension = ScimUser.FintUserExtension("1234", "1234", Users.JON_TELEMARK),
                     ),
                 ),
-            "rogaland" to
+            Orgs.ROGALAND to
                 listOf(
                     ScimUser(
                         schemas =
@@ -75,16 +80,16 @@ class ProvisionedTest {
                                 "urn:ietf:params:scim:schemas:extension:fint:2.0:User",
                             ),
                         externalId = "11111111-1111-1111-1111-111111111111",
-                        userName = "alice.basic@rogaland.no",
+                        userName = Users.ALICE_ROGALAND,
                         active = true,
-                        name = ScimUser.Name("Alice", "Basic"),
-                        emails = listOf(ScimUser.Email("alice.basic@rogaland.no", primary = true)),
+                        name = ScimUser.Name(Users.ALICE_FIRST_NAME, Users.BASIC_LAST_NAME),
+                        emails = listOf(ScimUser.Email(Users.ALICE_ROGALAND, primary = true)),
                         roles =
                             listOf(
                                 ScimUser.Role("read", "read", "WindowsAzureActiveDirectoryRole", false),
                                 ScimUser.Role("write", "write", "WindowsAzureActiveDirectoryRole", false),
                             ),
-                        fintUserExtension = ScimUser.FintUserExtension("1234", "1234", "alice.basic@rogaland.no"),
+                        fintUserExtension = ScimUser.FintUserExtension("1234", "1234", Users.ALICE_ROGALAND),
                     ),
                     ScimUser(
                         schemas =
@@ -92,16 +97,16 @@ class ProvisionedTest {
                                 "urn:ietf:params:scim:schemas:core:2.0:User",
                             ),
                         externalId = "22222222-2222-2222-2222-222222222222",
-                        userName = "jon.basic@rogaland.no",
+                        userName = Users.JON_ROGALAND,
                         active = true,
-                        name = ScimUser.Name("Jon", "Basic"),
-                        emails = listOf(ScimUser.Email("jon.basic@rogaland.no", primary = true)),
+                        name = ScimUser.Name(Users.JON_FIRST_NAME, Users.BASIC_LAST_NAME),
+                        emails = listOf(ScimUser.Email(Users.JON_ROGALAND, primary = true)),
                         roles =
                             listOf(
                                 ScimUser.Role("read", "read", "WindowsAzureActiveDirectoryRole", false),
                                 ScimUser.Role("write", "write", "WindowsAzureActiveDirectoryRole", false),
                             ),
-                        fintUserExtension = ScimUser.FintUserExtension("1234", "1234", "jon.basic@rogaland.no"),
+                        fintUserExtension = ScimUser.FintUserExtension("1234", "1234", Users.JON_ROGALAND),
                     ),
                 ),
         )
@@ -117,7 +122,7 @@ class ProvisionedTest {
             KcAdminClient.deleteAllUsers(realmRes)
         }
 
-        users["telemark"]?.forEach { user ->
+        users[Orgs.TELEMARK]?.forEach { user ->
             ScimFlow
                 .createUser(
                     "${env.keycloakServiceUrl()}/realms/external/scim/v2/${kcConfig.requireOrg("telemark").id}",
@@ -127,7 +132,7 @@ class ProvisionedTest {
                     assertEquals(201, resp.code)
                 }
         }
-        users["rogaland"]?.forEach { user ->
+        users[Orgs.ROGALAND]?.forEach { user ->
             ScimFlow
                 .createUser(
                     "${env.keycloakServiceUrl()}/realms/external/scim/v2/${kcConfig.requireOrg("rogaland").id}",
@@ -140,7 +145,7 @@ class ProvisionedTest {
     }
 
     @ParameterizedTest(name = "provisioned users in org ({0}) exists")
-    @ValueSource(strings = ["telemark", "rogaland"])
+    @ValueSource(strings = [Orgs.TELEMARK, Orgs.ROGALAND])
     fun `provisioned users in org exists`(
         orgAlias: String,
         env: KcEnvironment,
@@ -156,7 +161,7 @@ class ProvisionedTest {
     }
 
     @ParameterizedTest(name = "provisioned users in org ({0}) linked to correct idp")
-    @ValueSource(strings = ["telemark", "rogaland"])
+    @ValueSource(strings = [Orgs.TELEMARK, Orgs.ROGALAND])
     fun `provisioned users in org linked to correct idp`(
         orgAlias: String,
         env: KcEnvironment,
@@ -169,19 +174,19 @@ class ProvisionedTest {
                 assertNotNull(kcUser)
                 val identities = KcAdminClient.getFederatedIdentities(realmRes, kcUser.id)
                 assertNotNull(identities)
-                assertEquals("entra-$orgAlias", identities.first().identityProvider)
+                assertEquals(Idps.entra(orgAlias), identities.first().identityProvider)
             }
         }
     }
 
     @ParameterizedTest(name = "provisioned users in org ({0}) can login")
-    @ValueSource(strings = ["telemark", "rogaland"])
+    @ValueSource(strings = [Orgs.TELEMARK, Orgs.ROGALAND])
     fun `provisioned users in org can login`(
         orgAlias: String,
         env: KcEnvironment,
     ) {
-        val clientId = "flais-keycloak-demo"
-        val idpAlias = "entra-$orgAlias"
+        val clientId = Clients.FLAIS_KEYCLOAK_DEMO
+        val idpAlias = Idps.entra(orgAlias)
 
         users[orgAlias]?.forEach { user ->
             loginWithUser(
@@ -190,8 +195,8 @@ class ProvisionedTest {
                 orgAlias,
                 idpAlias,
                 user.userName,
-                "password",
-                hasIdpSelector = (orgAlias == "telemark"),
+                Users.PASSWORD,
+                hasIdpSelector = (orgAlias == Orgs.TELEMARK),
             ).use { resp ->
                 assertEquals(200, resp.code)
 
@@ -201,7 +206,7 @@ class ProvisionedTest {
     }
 
     @ParameterizedTest(name = "updating provisioned users in org ({0}) updates users with new info")
-    @ValueSource(strings = ["telemark", "rogaland"])
+    @ValueSource(strings = [Orgs.TELEMARK, Orgs.ROGALAND])
     fun `updating provisioned users in org updates users with new info`(
         orgAlias: String,
         env: KcEnvironment,
@@ -239,7 +244,7 @@ class ProvisionedTest {
     }
 
     @ParameterizedTest(name = "patching provisioned users in org ({0}) patches users with new info")
-    @ValueSource(strings = ["telemark", "rogaland"])
+    @ValueSource(strings = [Orgs.TELEMARK, Orgs.ROGALAND])
     fun `patching provisioned users in org patches users with new info`(
         orgAlias: String,
         env: KcEnvironment,
@@ -304,7 +309,7 @@ class ProvisionedTest {
     }
 
     @ParameterizedTest(name = "patching provisioned users in org ({0}) using full urn definition patches users with new info")
-    @ValueSource(strings = ["telemark", "rogaland"])
+    @ValueSource(strings = [Orgs.TELEMARK, Orgs.ROGALAND])
     fun `patching provisioned users in org using full urn definition patches users with new info`(
         orgAlias: String,
         env: KcEnvironment,
@@ -422,7 +427,6 @@ class ProvisionedTest {
                         assertEquals(
                             value.jsonPrimitive.content,
                             kcUser.attributes[attributeName]?.first(),
-                            "Mismatch for attribute $attributeName",
                         )
                     }
             }
@@ -451,14 +455,14 @@ class ProvisionedTest {
                 kcUser = KcAdminClient.findUserByUsername(realmRes, user.userName)
                 assertNotNull(kcUser)
 
-                assertEquals("Jeanette", kcUser.firstName, "Mismatch for givenName/firstName")
-                assertEquals("Bergersen", kcUser.lastName, "Mismatch for familyName/lastName")
+                assertEquals("Jeanette", kcUser.firstName)
+                assertEquals("Bergersen", kcUser.lastName)
             }
         }
     }
 
     @ParameterizedTest(name = "deprovision users in org ({0}) removed")
-    @ValueSource(strings = ["telemark", "rogaland"])
+    @ValueSource(strings = [Orgs.TELEMARK, Orgs.ROGALAND])
     fun `deprovision users in org removed`(
         orgAlias: String,
         env: KcEnvironment,

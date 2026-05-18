@@ -1,12 +1,10 @@
-package no.novari.test.common.extensions.kc
+package no.novari.test.common.environment.kc
 
 import no.novari.test.common.config.KcConfig
-import no.novari.test.common.extensions.SharedExtensionStore.KC_CFG
-import no.novari.test.common.extensions.SharedExtensionStore.KC_ENV
-import no.novari.test.common.extensions.SharedExtensionStore.NS
-import no.novari.test.common.utils.kc.KcAdminClient
-import no.novari.test.common.utils.kc.KcEnvironment
-import no.novari.test.common.utils.kc.LocalKcEnvironment
+import no.novari.test.common.environment.SharedExtensionStore.KC_CFG
+import no.novari.test.common.environment.SharedExtensionStore.KC_ENV
+import no.novari.test.common.environment.SharedExtensionStore.NS
+import no.novari.test.common.utils.KcAdminClient
 import org.junit.jupiter.api.extension.AfterAllCallback
 import org.junit.jupiter.api.extension.BeforeAllCallback
 import org.junit.jupiter.api.extension.ExtensionConfigurationException
@@ -22,9 +20,9 @@ import java.nio.file.Paths
  * JUnit 5 extension that manages the lifecycle of a Keycloak environment for tests.
  *
  * Responsibilities:
- * - Starts a [KcEnvironment] (Keycloak + Support containers via Testcontainers/Compose) once.
+ * - Starts a [KcEnvironmentExtension] (Keycloak + Support containers via Testcontainers/Compose) once.
  * - Stops and cleans up the environment after all tests in the class have run.
- * - Provides parameter injection: test methods can declare [KcEnvironment], [KcConfig] parameters,
+ * - Provides parameter injection: test methods can declare [KcEnvironmentExtension], [KcConfig] parameters,
  *   and JUnit will resolve it automatically using this extension.
  *
  * How it works:
@@ -34,7 +32,7 @@ import java.nio.file.Paths
  *
  * This extension is intended for testing against a fixed environment.
  */
-class KcEnvExtension :
+class KcEnvironmentExtension :
     BeforeAllCallback,
     AfterAllCallback,
     ParameterResolver {

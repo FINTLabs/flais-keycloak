@@ -1,8 +1,8 @@
 package no.novari.test.common.annotations
 
-import no.novari.test.common.extensions.kc.KcEnvExtension
-import no.novari.test.common.extensions.pw.PwArtifactsOnFailureExtension
-import no.novari.test.common.extensions.pw.PwEnvExtension
+import no.novari.test.common.environment.kc.KcEnvironmentExtension
+import no.novari.test.common.environment.pw.PwArtifactsOnFailureExtension
+import no.novari.test.common.environment.pw.PwEnvironmentExtension
 import org.junit.jupiter.api.extension.ExtendWith
 
 /**
@@ -13,8 +13,8 @@ import org.junit.jupiter.api.extension.ExtendWith
 @Target(AnnotationTarget.CLASS)
 @Retention(AnnotationRetention.RUNTIME)
 @ExtendWith(
-    KcEnvExtension::class,
+    KcEnvironmentExtension::class,
     PwArtifactsOnFailureExtension::class,
-    PwEnvExtension::class,
+    PwEnvironmentExtension::class,
 )
 annotation class PwTest

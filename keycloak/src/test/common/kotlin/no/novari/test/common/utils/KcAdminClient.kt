@@ -1,5 +1,6 @@
-package no.novari.test.common.utils.kc
+package no.novari.test.common.utils
 
+import no.novari.test.common.environment.kc.KcEnvironment
 import org.keycloak.admin.client.CreatedResponseUtil
 import org.keycloak.admin.client.Keycloak
 import org.keycloak.admin.client.KeycloakBuilder

@@ -1,7 +1,10 @@
 package no.novari.test.integration.application.authenticators
 
-import no.novari.test.common.extensions.kc.KcEnvExtension
-import no.novari.test.common.utils.kc.KcEnvironment
+import no.novari.test.common.environment.kc.KcEnvironment
+import no.novari.test.common.environment.kc.KcEnvironmentExtension
+import no.novari.test.common.fixture.TestStrings.Clients
+import no.novari.test.common.fixture.TestStrings.Orgs
+import no.novari.test.common.fixture.TestStrings.Pages
 import no.novari.test.integration.utils.KcContextParser
 import no.novari.test.integration.utils.KcFlow.continueFromOrgSelector
 import no.novari.test.integration.utils.KcFlow.openAuthUrl
@@ -11,36 +14,36 @@ import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 
-@ExtendWith(KcEnvExtension::class)
+@ExtendWith(KcEnvironmentExtension::class)
 class OrgSelectionUiAuthenticatorTest {
     @Test
-    fun `client (flais-keycloak-demo) returns page flais-org-selector`(env: KcEnvironment) {
-        openAuthUrl(env = env, clientId = "flais-keycloak-demo").use { resp ->
+    fun `client returns page flais-org-selector`(env: KcEnvironment) {
+        openAuthUrl(env = env, clientId = Clients.FLAIS_KEYCLOAK_DEMO).use { resp ->
             assertEquals(200, resp.code)
 
             val html = resp.body.string()
             val kc = KcContextParser.parseKcContext(html)
 
-            assertEquals("flais-org-selector", kc.pageId)
+            assertEquals(Pages.FLAIS_ORG_SELECTOR, kc.pageId)
         }
     }
 
     @Test
     fun `selecting non existing organization returns error`(env: KcEnvironment) {
         val client = KcHttpClient.create()
-        openAuthUrl(env = env, clientId = "flais-keycloak-demo", httpClient = client).use { resp ->
+        openAuthUrl(env = env, clientId = Clients.FLAIS_KEYCLOAK_DEMO, httpClient = client).use { resp ->
             assertEquals(200, resp.code)
 
             val html = resp.body.string()
             val kc = KcContextParser.parseKcContext(html)
 
-            continueFromOrgSelector(kc.url.loginAction!!, "nonExistingOrg", client).use { resp ->
+            continueFromOrgSelector(kc.url.loginAction!!, Orgs.NON_EXISTING, client).use { resp ->
                 assertEquals(200, resp.code)
 
                 val html = resp.body.string()
                 val kc = KcContextParser.parseKcContext(html)
 
-                assertEquals("error", kc.pageId)
+                assertEquals(Pages.ERROR, kc.pageId)
                 assertEquals("error", kc.message!!.type)
                 assertEquals(
                     "Selected organization does not have permission to login to this application",
@@ -53,44 +56,44 @@ class OrgSelectionUiAuthenticatorTest {
     @Test
     fun `valid org (telemark) advances to next step`(env: KcEnvironment) {
         val client = KcHttpClient.create()
-        openAuthUrl(env = env, clientId = "flais-keycloak-demo", httpClient = client).use { resp ->
+        openAuthUrl(env = env, clientId = Clients.FLAIS_KEYCLOAK_DEMO, httpClient = client).use { resp ->
             assertEquals(200, resp.code)
 
             val html = resp.body.string()
             val kc = KcContextParser.parseKcContext(html)
 
-            continueFromOrgSelector(kc.url.loginAction!!, "telemark", client).use { resp ->
+            continueFromOrgSelector(kc.url.loginAction!!, Orgs.TELEMARK, client).use { resp ->
                 assertEquals(200, resp.code)
 
                 val html = resp.body.string()
                 val kc = KcContextParser.parseKcContext(html)
 
-                assertEquals("flais-org-idp-selector", kc.pageId)
+                assertEquals(Pages.FLAIS_ORG_IDP_SELECTOR, kc.pageId)
             }
         }
     }
 
     @Test
-    fun `client (flais-keycloak-demo-telemark) with 1 org directly to flais-org-idp-selector`(env: KcEnvironment) {
-        openAuthUrl(env = env, clientId = "flais-keycloak-demo-telemark").use { resp ->
+    fun `client  with 1 org directly to flais-org-idp-selector`(env: KcEnvironment) {
+        openAuthUrl(env = env, clientId = Clients.FLAIS_KEYCLOAK_DEMO_TELEMARK).use { resp ->
             assertEquals(200, resp.code)
 
             val html = resp.body.string()
             val kc = KcContextParser.parseKcContext(html)
 
-            assertEquals("flais-org-idp-selector", kc.pageId)
+            assertEquals(Pages.FLAIS_ORG_IDP_SELECTOR, kc.pageId)
         }
     }
 
     @Test
-    fun `client (flais-keycloak-demo-entra) dont return org idporten`(env: KcEnvironment) {
-        openAuthUrl(env = env, clientId = "flais-keycloak-demo-entra").use { resp ->
+    fun `client dont return org idporten`(env: KcEnvironment) {
+        openAuthUrl(env = env, clientId = Clients.FLAIS_KEYCLOAK_DEMO_ENTRA).use { resp ->
             assertEquals(200, resp.code)
 
             val html = resp.body.string()
             val kc = KcContextParser.parseKcContext(html)
 
-            assertFalse(kc.organizations!!.map { it.alias }.contains("idporten"))
+            assertFalse(kc.organizations!!.map { it.alias }.contains(Orgs.IDPORTEN))
         }
     }
 }

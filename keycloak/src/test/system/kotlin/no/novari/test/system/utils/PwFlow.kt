@@ -3,8 +3,8 @@ package no.novari.test.system.utils
 import com.microsoft.playwright.Locator
 import com.microsoft.playwright.Page
 import com.microsoft.playwright.options.AriaRole
-import no.novari.test.common.utils.kc.KcEnvironment
-import no.novari.test.common.utils.kc.KcUrl
+import no.novari.test.common.environment.kc.KcEnvironment
+import no.novari.test.common.utils.KcUrl
 
 /**
  * Utility functions to simplify Playwright flows in system tests.

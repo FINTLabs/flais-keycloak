@@ -2,8 +2,8 @@ package no.novari.test.system.e2e.clients
 
 import com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat
 import no.novari.test.common.annotations.PwTest
-import no.novari.test.common.utils.kc.KcEnvironment
-import no.novari.test.common.utils.pw.PwEnvironment
+import no.novari.test.common.environment.kc.KcEnvironment
+import no.novari.test.common.environment.pw.PwEnvironment
 import no.novari.test.system.utils.PwFlow
 import org.junit.jupiter.api.TestTemplate
 

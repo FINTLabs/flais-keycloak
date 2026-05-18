@@ -1,4 +1,4 @@
-package no.novari.test.common.utils.pw
+package no.novari.test.common.environment.pw
 
 import com.microsoft.playwright.Browser
 import com.microsoft.playwright.BrowserContext
@@ -7,6 +7,7 @@ import com.microsoft.playwright.Page
 import com.microsoft.playwright.Playwright
 import com.microsoft.playwright.Tracing
 import org.junit.jupiter.api.extension.ExtensionConfigurationException
+import java.lang.management.ManagementFactory
 
 /**
  * Manages a Playwright lifecycle for tests, providing browser sessions with tracing enabled.
@@ -60,7 +61,7 @@ class PwEnvironment : AutoCloseable {
             }
 
         val isDebug =
-            java.lang.management.ManagementFactory
+            ManagementFactory
                 .getRuntimeMXBean()
                 .inputArguments
                 .any { it.contains("-agentlib:jdwp") }

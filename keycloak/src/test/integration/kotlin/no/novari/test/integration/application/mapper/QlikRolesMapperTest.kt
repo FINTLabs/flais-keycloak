@@ -1,9 +1,16 @@
 package no.novari.test.integration.application.mapper
 
-import no.novari.test.common.extensions.kc.KcEnvExtension
-import no.novari.test.common.utils.kc.KcAdminClient
-import no.novari.test.common.utils.kc.KcEnvironment
-import no.novari.test.common.utils.kc.KcUrl
+import no.novari.test.common.environment.kc.KcEnvironment
+import no.novari.test.common.environment.kc.KcEnvironmentExtension
+import no.novari.test.common.fixture.TestStrings.Clients
+import no.novari.test.common.fixture.TestStrings.Idps
+import no.novari.test.common.fixture.TestStrings.Orgs
+import no.novari.test.common.fixture.TestStrings.Realms
+import no.novari.test.common.fixture.TestStrings.Scopes
+import no.novari.test.common.fixture.TestStrings.Uris
+import no.novari.test.common.fixture.TestStrings.Users
+import no.novari.test.common.utils.KcAdminClient
+import no.novari.test.common.utils.KcUrl
 import no.novari.test.integration.utils.KcFlow.loginWithUser
 import no.novari.test.integration.utils.KcHttpClient
 import no.novari.test.integration.utils.KcToken
@@ -14,23 +21,23 @@ import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
 
-@ExtendWith(KcEnvExtension::class)
+@ExtendWith(KcEnvironmentExtension::class)
 class QlikRolesMapperTest {
-    val realm = "external"
-    val clientId = "qlik"
-    val scope = "openid profile email"
-    val password = "password"
+    val realm = Realms.EXTERNAL
+    val clientId = Clients.QLIK
+    val scope = Scopes.PROFILE_EMAIL
+    val password = Users.PASSWORD
 
     @ParameterizedTest(name = "qlik-roles-mapper for org ({0}) maps correctly ")
-    @ValueSource(strings = ["telemark", "rogaland"])
+    @ValueSource(strings = [Orgs.TELEMARK, Orgs.ROGALAND])
     fun `qlik-mapper maps attribute correctly to access token`(
         orgAlias: String,
         env: KcEnvironment,
     ) {
         val client = KcHttpClient.create(followRedirects = true)
-        val redirectUri = "${env.flaisKeycloakDemoUrl()}/callback"
-        val idpAlias = "entra-$orgAlias"
-        val email = "qlik.basic@$orgAlias.no"
+        val redirectUri = Uris.redirectCallback(env.flaisKeycloakDemoUrl())
+        val idpAlias = Idps.entra(orgAlias)
+        val username = Users.qlikBasic(orgAlias)
         val (authUrl, codeVerifier) =
             KcUrl.authUrl(
                 env = env,
@@ -57,11 +64,11 @@ class QlikRolesMapperTest {
             clientId,
             orgAlias,
             idpAlias,
-            email,
+            username,
             password,
             client,
             authUrl,
-            hasIdpSelector = (orgAlias == "telemark"),
+            hasIdpSelector = (orgAlias == Orgs.TELEMARK),
         ).use { resp ->
             assertEquals(200, resp.code)
 
@@ -106,15 +113,15 @@ class QlikRolesMapperTest {
     }
 
     @ParameterizedTest(name = "qlik-roles-mapper for org ({0}) for passthrough counties maps correctly`")
-    @ValueSource(strings = ["telemark", "rogaland"])
+    @ValueSource(strings = [Orgs.TELEMARK, Orgs.ROGALAND])
     fun `qlik-roles-mapper for passthrough counties maps correctly to access token`(
         orgAlias: String,
         env: KcEnvironment,
     ) {
         val client = KcHttpClient.create(followRedirects = true)
-        val redirectUri = "${env.flaisKeycloakDemoUrl()}/callback"
-        val idpAlias = "entra-$orgAlias"
-        val email = "qlik.basic@$orgAlias.no"
+        val redirectUri = Uris.redirectCallback(env.flaisKeycloakDemoUrl())
+        val idpAlias = Idps.entra(orgAlias)
+        val username = Users.qlikBasic(orgAlias)
         val (authUrl, codeVerifier) =
             KcUrl.authUrl(
                 env = env,
@@ -141,11 +148,11 @@ class QlikRolesMapperTest {
             clientId,
             orgAlias,
             idpAlias,
-            email,
+            username,
             password,
             client,
             authUrl,
-            hasIdpSelector = (orgAlias == "telemark"),
+            hasIdpSelector = (orgAlias == Orgs.TELEMARK),
         ).use { resp ->
             assertEquals(200, resp.code)
 
@@ -179,8 +186,8 @@ class QlikRolesMapperTest {
 
     private fun getCounty(orgAlias: String): String {
         return when (orgAlias) {
-            "telemark" -> "1"
-            "rogaland" -> "22"
+            Orgs.TELEMARK -> "1"
+            Orgs.ROGALAND -> "22"
             else -> throw IllegalArgumentException("Unknown orgAlias: $orgAlias")
         }
     }

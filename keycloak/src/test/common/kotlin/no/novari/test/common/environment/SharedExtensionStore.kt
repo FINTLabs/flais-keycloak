@@ -1,4 +1,4 @@
-package no.novari.test.common.extensions
+package no.novari.test.common.environment
 
 import org.junit.jupiter.api.extension.ExtensionContext
 

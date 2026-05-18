@@ -1,8 +1,15 @@
 package no.novari.test.integration.application.clients
 
-import no.novari.test.common.extensions.kc.KcEnvExtension
-import no.novari.test.common.utils.kc.KcEnvironment
-import no.novari.test.common.utils.kc.KcUrl
+import no.novari.test.common.environment.kc.KcEnvironment
+import no.novari.test.common.environment.kc.KcEnvironmentExtension
+import no.novari.test.common.fixture.TestStrings.Clients
+import no.novari.test.common.fixture.TestStrings.Idps
+import no.novari.test.common.fixture.TestStrings.Orgs
+import no.novari.test.common.fixture.TestStrings.Realms
+import no.novari.test.common.fixture.TestStrings.Scopes
+import no.novari.test.common.fixture.TestStrings.Uris
+import no.novari.test.common.fixture.TestStrings.Users
+import no.novari.test.common.utils.KcUrl
 import no.novari.test.integration.utils.KcFlow.loginWithUser
 import no.novari.test.integration.utils.KcHttpClient
 import no.novari.test.integration.utils.KcToken.exchangeCodeForAccessToken
@@ -13,19 +20,19 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertNotNull
 import org.junit.jupiter.api.extension.ExtendWith
 
-@ExtendWith(KcEnvExtension::class)
+@ExtendWith(KcEnvironmentExtension::class)
 class PublicClientTokenTest {
     @Test
     fun `code flow returns valid access token`(env: KcEnvironment) {
         val client = KcHttpClient.create(followRedirects = true)
-        val realm = "external"
-        val clientId = "flais-keycloak-demo"
-        val redirectUri = "${env.flaisKeycloakDemoUrl()}/callback"
-        val scope = "openid profile email"
-        val orgAlias = "telemark"
-        val idpAlias = "entra-telemark"
-        val email = "alice.basic@telemark.no"
-        val password = "password"
+        val realm = Realms.EXTERNAL
+        val clientId = Clients.FLAIS_KEYCLOAK_DEMO
+        val redirectUri = Uris.redirectCallback(env.flaisKeycloakDemoUrl())
+        val scope = Scopes.PROFILE_EMAIL
+        val orgAlias = Orgs.TELEMARK
+        val idpAlias = Idps.ENTRA_TELEMARK
+        val username = Users.ALICE_TELEMARK
+        val password = Users.PASSWORD
         val (authUrl, codeVerifier) =
             KcUrl.authUrl(
                 env = env,
@@ -40,7 +47,7 @@ class PublicClientTokenTest {
             clientId,
             orgAlias,
             idpAlias,
-            email,
+            username,
             password,
             client,
             authUrl,

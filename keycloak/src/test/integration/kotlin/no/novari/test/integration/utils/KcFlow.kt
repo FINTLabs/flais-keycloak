@@ -1,7 +1,7 @@
 package no.novari.test.integration.utils
 
-import no.novari.test.common.utils.kc.KcEnvironment
-import no.novari.test.common.utils.kc.KcUrl
+import no.novari.test.common.environment.kc.KcEnvironment
+import no.novari.test.common.utils.KcUrl
 import okhttp3.FormBody
 import okhttp3.HttpUrl
 import okhttp3.MediaType.Companion.toMediaType
