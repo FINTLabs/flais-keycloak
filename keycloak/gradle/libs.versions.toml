@@ -13,7 +13,7 @@ resteasy = "6.2.14.Final"
 junit = "6.0.3"
 testcontainers = "2.0.5"
 kotlinx-serialization-json = "1.11.0"
-slf4j = "2.0.17"
+slf4j = "2.0.18"
 okhttp = "5.3.2"
 
 kover = "0.9.8"
