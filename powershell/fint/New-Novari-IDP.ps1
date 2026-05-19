@@ -45,6 +45,64 @@ $MenuScript = "$PSScriptRoot/helpers/Menu.ps1"
 $script:LastEnterpriseApplicationResult = $null
 
 # -------------------------------------------------------------------------------------------------
+# Safety guard
+# -------------------------------------------------------------------------------------------------
+
+function Assert-NovariEnterpriseApplicationDisplayName {
+    param(
+        [Parameter(Mandatory = $true)]
+        [AllowEmptyString()]
+        [string]$DisplayName,
+
+        [Parameter(Mandatory = $false)]
+        [string]$Identifier = "unknown"
+    )
+
+    if ([string]::IsNullOrWhiteSpace($DisplayName)) {
+        throw "Refusing to continue: connected Enterprise Application '$Identifier' has no display name. Expected a name containing 'novari'."
+    }
+
+    if ($DisplayName.IndexOf("novari", [System.StringComparison]::OrdinalIgnoreCase) -lt 0) {
+        throw "Refusing to continue: connected Enterprise Application '$DisplayName' ('$Identifier') does not contain 'novari' in its name."
+    }
+}
+
+function Assert-NovariEnterpriseApplicationResult {
+    param(
+        [Parameter(Mandatory = $true)]
+        [object]$ApplicationResult
+    )
+
+    if (-not $ApplicationResult) {
+        throw "No Enterprise Application is connected in this session. Create or connect an Enterprise Application before running this operation."
+    }
+
+    Assert-NovariEnterpriseApplicationDisplayName `
+        -DisplayName $ApplicationResult.DisplayName `
+        -Identifier $ApplicationResult.ServicePrincipalObjectId
+}
+
+function Assert-NovariServicePrincipalByObjectId {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$ServicePrincipalObjectId
+    )
+
+    Import-Module Microsoft.Graph.Applications -ErrorAction Stop
+
+    $servicePrincipal = Get-MgServicePrincipal `
+        -ServicePrincipalId $ServicePrincipalObjectId `
+        -Property "id,displayName" `
+        -ErrorAction Stop
+
+    Assert-NovariEnterpriseApplicationDisplayName `
+        -DisplayName $servicePrincipal.DisplayName `
+        -Identifier $servicePrincipal.Id
+
+    return $servicePrincipal
+}
+
+# -------------------------------------------------------------------------------------------------
 # Enterprise Application operations
 # -------------------------------------------------------------------------------------------------
 
@@ -82,6 +140,10 @@ function Get-ExistingEnterpriseApplication {
     }
 
     $servicePrincipal = $servicePrincipalMatches[0]
+
+    Assert-NovariEnterpriseApplicationDisplayName `
+        -DisplayName $servicePrincipal.DisplayName `
+        -Identifier $servicePrincipal.Id
 
     $applicationMatches = @(Get-MgApplication `
             -Filter "appId eq '$applicationAppId'" `
@@ -138,6 +200,8 @@ function Invoke-ConfigureEnterpriseApplication {
     )
 
     if ($ExistingApplicationResult) {
+        Assert-NovariEnterpriseApplicationResult -ApplicationResult $ExistingApplicationResult
+
         $applicationObjectId = $ExistingApplicationResult.ApplicationObjectId
         $applicationAppId = $ExistingApplicationResult.ApplicationAppId
         $servicePrincipalObjectId = $ExistingApplicationResult.ServicePrincipalObjectId
@@ -186,6 +250,8 @@ function Invoke-CreateClaimsMappingPolicy {
     )
 
     if ($ExistingApplicationResult) {
+        Assert-NovariEnterpriseApplicationResult -ApplicationResult $ExistingApplicationResult
+
         $servicePrincipalObjectId = $ExistingApplicationResult.ServicePrincipalObjectId
         $defaultPolicyDisplayName = "$($ExistingApplicationResult.DisplayName) - FINT Claims Mapping Policy"
     }
@@ -243,6 +309,9 @@ function Invoke-ConfigureScimProvisioning {
     else {
         $servicePrincipalObjectId = $ExistingServicePrincipalObjectId
     }
+
+    $servicePrincipal = Assert-NovariServicePrincipalByObjectId -ServicePrincipalObjectId $servicePrincipalObjectId
+    Write-Host "Using Enterprise Application: $($servicePrincipal.DisplayName)" -ForegroundColor Green
 
     $tenantUrl = Read-RequiredValue "SCIM Tenant URL / BaseAddress"
     $secretToken = ""
