@@ -1,6 +1,5 @@
 package no.novari.test.integration.application.scim
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import no.novari.test.common.config.KcConfig
 import no.novari.test.common.environment.kc.KcEnvironment
 import no.novari.test.common.environment.kc.KcEnvironmentExtension
@@ -9,8 +8,6 @@ import no.novari.test.common.fixture.TestStrings.Users
 import no.novari.test.integration.utils.ScimFlow
 import no.novari.test.integration.utils.ScimFlow.ScimUser
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertNotNull
-import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
