@@ -1,6 +1,5 @@
 package no.novari.keycloak.scim.endpoints
 
-import com.fasterxml.jackson.databind.node.ObjectNode
 import com.unboundid.scim2.common.annotations.Attribute
 import com.unboundid.scim2.common.messages.PatchRequest
 import com.unboundid.scim2.common.types.Email
@@ -12,6 +11,7 @@ import com.unboundid.scim2.common.utils.JsonUtils
 import com.unboundid.scim2.server.annotations.ResourceType
 import com.unboundid.scim2.server.utils.ResourcePreparer
 import com.unboundid.scim2.server.utils.SchemaChecker
+import jakarta.ws.rs.BadRequestException
 import jakarta.ws.rs.Consumes
 import jakarta.ws.rs.DELETE
 import jakarta.ws.rs.ForbiddenException
@@ -40,6 +40,8 @@ import no.novari.keycloak.scim.utils.ScimRoles
 import org.keycloak.models.FederatedIdentityModel
 import org.keycloak.models.UserModel
 import org.keycloak.util.JsonSerialization
+import tools.jackson.databind.node.ObjectNode
+import java.net.URI
 import kotlin.streams.asSequence
 
 @ResourceType(
@@ -62,6 +64,7 @@ class ScimUserEndpoint(
             requireNotNull(scimContext.realm.getRole(ScimRoles.SCIM_MANAGED_ROLE)) {
                 "SCIM managed role not found"
             }
+
         val userResources =
             scimContext.orgProvider
                 .getMembersStream(
@@ -73,8 +76,10 @@ class ScimUserEndpoint(
                 ).filter { it.hasRole(scimRole) }
                 .map { translateUser(it) }
                 .asSequence()
+
         val searchResult = searchHandler.createSearchResult(userResources)
-        return Response.ok(searchResult).build()
+
+        return scimOk(searchResult)
     }
 
     @GET
@@ -87,16 +92,11 @@ class ScimUserEndpoint(
         val user =
             scimContext.orgProvider
                 .getMemberById(scimContext.organization, id)
-                ?: return Response
-                    .status(Response.Status.NOT_FOUND)
-                    .type(ApiConstants.MEDIA_TYPE_SCIM)
-                    .entity(
-                        mapOf(
-                            "schemas" to listOf("urn:ietf:params:scim:api:messages:2.0:Error"),
-                            "status" to 404,
-                            "detail" to "No user found with id $id",
-                        ),
-                    ).build()
+                ?: return scimError(
+                    Response.Status.NOT_FOUND,
+                    "No user found with id $id",
+                )
+
         assertUserScimManaged(user)
 
         val scimUser =
@@ -105,7 +105,8 @@ class ScimUserEndpoint(
                 resourcePreparer.setResourceTypeAndLocation(it)
                 resourcePreparer.trimRetrievedResource(it)
             }
-        return Response.ok(scimUser).build()
+
+        return scimOk(scimUser)
     }
 
     @POST
@@ -113,13 +114,16 @@ class ScimUserEndpoint(
     @Consumes(ApiConstants.MEDIA_TYPE_SCIM, MediaType.APPLICATION_JSON)
     fun createUser(
         @Context uriInfo: UriInfo,
-        scimUser: UserResource,
+        body: String,
     ): Response {
+        val scimUser = readUserResource(body)
+
         val resourcePreparer =
             ResourcePreparer<UserResource>(
                 RESOURCE_TYPE_DEFINITION,
                 uriInfo,
             )
+
         val node = SCHEMA_CHECKER.removeReadOnlyAttributes(scimUser.asGenericScimResource().objectNode)
         val normalizedNode = EntraScimTransformer.normalizeExtensionSchemas(node, RESOURCE_TYPE_DEFINITION)
 
@@ -127,7 +131,10 @@ class ScimUserEndpoint(
 
         val userProvider = scimContext.session.users()
         if (userProvider.getUserById(scimContext.realm, scimUser.userName) != null) {
-            return Response.status(Response.Status.CONFLICT).build()
+            return scimError(
+                Response.Status.CONFLICT,
+                "User already exists with id ${scimUser.userName}",
+            )
         }
 
         val user = userProvider.addUser(scimContext.realm, scimUser.userName)
@@ -135,6 +142,7 @@ class ScimUserEndpoint(
             requireNotNull(scimContext.realm.getRole(ScimRoles.SCIM_MANAGED_ROLE)) {
                 "SCIM managed role not found"
             }
+
         user.grantRole(scimRole)
         updateUserModel(user, scimUser)
 
@@ -145,8 +153,10 @@ class ScimUserEndpoint(
             translateUser(user).let {
                 resourcePreparer.trimCreatedResource(it, scimUser)
             }
+
         val resultURI = UriBuilder.fromUri(uriInfo.requestUri).path(result.id).build()
-        return Response.created(resultURI).entity(result).build()
+
+        return scimCreated(resultURI, result)
     }
 
     @PUT
@@ -156,12 +166,15 @@ class ScimUserEndpoint(
     fun updateUser(
         @Context uriInfo: UriInfo,
         @PathParam("id") id: String,
-        updatedScimUser: UserResource,
+        body: String,
     ): Response {
+        val updatedScimUser = readUserResource(body)
+
         val user =
             runCatching { scimContext.orgProvider.getMemberById(scimContext.organization, id) }.getOrElse {
                 throw NotFoundException("No user found with id $id")
             }
+
         assertUserScimManaged(user)
         assertUserOrganizationManaged(user)
 
@@ -187,7 +200,7 @@ class ScimUserEndpoint(
                 resourcePreparer.trimReplacedResource(it, updatedScimUser)
             }
 
-        return Response.ok(result).build()
+        return scimOk(result)
     }
 
     @PATCH
@@ -197,12 +210,15 @@ class ScimUserEndpoint(
     fun patchUser(
         @Context uriInfo: UriInfo,
         @PathParam("id") id: String,
-        patchOperations: PatchRequest,
+        body: String,
     ): Response {
+        val patchOperations = readPatchRequest(body)
+
         val user =
             runCatching { scimContext.orgProvider.getMemberById(scimContext.organization, id) }.getOrElse {
                 throw NotFoundException("No user found with id $id")
             }
+
         assertUserScimManaged(user)
         assertUserOrganizationManaged(user)
 
@@ -236,7 +252,7 @@ class ScimUserEndpoint(
                 resourcePreparer.trimModifiedResource(it, patchOperations)
             }
 
-        return Response.ok(result).build()
+        return scimOk(result)
     }
 
     @DELETE
@@ -248,6 +264,7 @@ class ScimUserEndpoint(
             runCatching { scimContext.orgProvider.getMemberById(scimContext.organization, id) }.getOrElse {
                 throw NotFoundException("No user found with id $id")
             }
+
         assertUserScimManaged(user)
 
         if (!scimContext.orgProvider.isManagedMember(scimContext.organization, user)) {
@@ -255,6 +272,7 @@ class ScimUserEndpoint(
         }
 
         scimContext.orgProvider.removeMember(scimContext.organization, user)
+
         return Response.noContent().build()
     }
 
@@ -324,7 +342,7 @@ class ScimUserEndpoint(
             user.removeAttribute("roles")
             user.setAttribute(
                 "roles",
-                it.map { it.value },
+                it.map { role -> role.value },
             )
         } ?: run {
             user.removeAttribute("rawRoles")
@@ -335,6 +353,7 @@ class ScimUserEndpoint(
         val attributeFields =
             fintUserExt.declaredFields
                 .filter { it.isAnnotationPresent(Attribute::class.java) }
+
         scimUser.getExtension(fintUserExt)?.let { ext ->
             attributeFields.forEach { field ->
                 field.isAccessible = true
@@ -359,6 +378,7 @@ class ScimUserEndpoint(
                 ?.substringAfter('@', missingDelimiterValue = "")
                 ?.takeIf { it.isNotEmpty() }
                 ?: return
+
         val externalId = user.getExternalId() ?: return
 
         val userProvider = scimContext.session.users()
@@ -373,12 +393,14 @@ class ScimUserEndpoint(
 
         socialProviders.forEach { provider ->
             if (userProvider.getFederatedIdentity(scimContext.realm, user, provider) != null) return@forEach
+
             val federatedIdentity =
                 FederatedIdentityModel(
                     provider,
                     externalId,
                     user.username,
                 )
+
             userProvider.addFederatedIdentity(scimContext.realm, user, federatedIdentity)
         }
 
@@ -391,11 +413,65 @@ class ScimUserEndpoint(
             }
     }
 
+    private fun readUserResource(body: String): UserResource =
+        runCatching {
+            JsonUtils
+                .getObjectReader()
+                .forType(UserResource::class.java)
+                .readValue<UserResource>(body)
+        }.getOrElse {
+            throw BadRequestException("Invalid SCIM User payload", it)
+        }
+
+    private fun readPatchRequest(body: String): PatchRequest =
+        runCatching {
+            JsonUtils
+                .getObjectReader()
+                .forType(PatchRequest::class.java)
+                .readValue<PatchRequest>(body)
+        }.getOrElse {
+            throw BadRequestException("Invalid SCIM Patch payload", it)
+        }
+
+    private fun scimOk(entity: Any): Response =
+        Response
+            .ok(JsonUtils.getObjectWriter().writeValueAsString(entity))
+            .type(ApiConstants.MEDIA_TYPE_SCIM)
+            .build()
+
+    private fun scimCreated(
+        location: URI,
+        entity: Any,
+    ): Response =
+        Response
+            .created(location)
+            .entity(JsonUtils.getObjectWriter().writeValueAsString(entity))
+            .type(ApiConstants.MEDIA_TYPE_SCIM)
+            .build()
+
+    private fun scimError(
+        status: Response.Status,
+        detail: String,
+    ): Response =
+        Response
+            .status(status)
+            .type(ApiConstants.MEDIA_TYPE_SCIM)
+            .entity(
+                JsonUtils.getObjectWriter().writeValueAsString(
+                    mapOf(
+                        "schemas" to listOf("urn:ietf:params:scim:api:messages:2.0:Error"),
+                        "status" to status.statusCode.toString(),
+                        "detail" to detail,
+                    ),
+                ),
+            ).build()
+
     private fun assertUserScimManaged(user: UserModel) {
         val scimRole =
             requireNotNull(scimContext.realm.getRole(ScimRoles.SCIM_MANAGED_ROLE)) {
                 "SCIM managed role not found"
             }
+
         if (!user.hasRole(scimRole)) {
             throw ForbiddenException("User is not SCIM-Managed ${user.id}")
         }
@@ -409,8 +485,12 @@ class ScimUserEndpoint(
 
     fun UserModel.getExternalId(): String? = this.getFirstAttribute("externalId")
 
-    fun UserModel.setExternalId(id: String) {
-        this.setSingleAttribute("externalId", id)
+    fun UserModel.setExternalId(id: String?) {
+        if (id == null) {
+            this.removeAttribute("externalId")
+        } else {
+            this.setSingleAttribute("externalId", id)
+        }
     }
 
     companion object {

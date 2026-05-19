@@ -1,6 +1,5 @@
 package no.novari.keycloak.scim.application.utils
 
-import com.fasterxml.jackson.databind.node.ObjectNode
 import com.unboundid.scim2.common.messages.PatchOpType
 import com.unboundid.scim2.common.messages.PatchOperation
 import com.unboundid.scim2.common.messages.PatchRequest
@@ -19,7 +18,7 @@ class EntraScimTransformerTest {
     private val urn = "urn:ietf:params:scim:schemas:extension:fint:2.0:User"
     private val userPrincipalName = "hato2606@testvigoiks.onmicrosoft.com"
     private val employeeId = "1124"
-    private val mapper = JsonUtils.createObjectMapper()
+    private val mapper = JsonUtils.createJsonMapper()
     private val nodeFactory = JsonUtils.getJsonNodeFactory()
 
     fun testRtd(): ResourceTypeDefinition = ResourceTypeDefinitionUtil.createResourceTypeDefinition(ScimUserEndpoint::class)
@@ -49,7 +48,7 @@ class EntraScimTransformerTest {
 
         val actual =
             normalized.operations.associate { op ->
-                op.path.toString() to op.jsonNode.asText()
+                op.path.toString() to op.jsonNode.asString()
             }
 
         val expected =
@@ -87,7 +86,7 @@ class EntraScimTransformerTest {
 
         val actual =
             normalized.operations.associate { op ->
-                op.path.toString() to op.jsonNode.asText()
+                op.path.toString() to op.jsonNode.asString()
             }
 
         val expected =
@@ -126,8 +125,8 @@ class EntraScimTransformerTest {
         val out = normalized.operations[0].jsonNode
         val ext = out.get(urn)
         assertTrue(ext.isObject)
-        assertEquals(userPrincipalName, ext.get("userPrincipalName").asText())
-        assertEquals(employeeId, ext.get("employeeId").asText())
+        assertEquals(userPrincipalName, ext.get("userPrincipalName").asString())
+        assertEquals(employeeId, ext.get("employeeId").asString())
     }
 
     @Test
@@ -171,19 +170,19 @@ class EntraScimTransformerTest {
 
         val normalizedGivenName = normalized.operations.first { it.path.toString() == "name.givenName" }
         assertEquals(PatchOpType.REPLACE, normalizedGivenName.opType)
-        assertEquals(givenName, normalizedGivenName.jsonNode.asText())
+        assertEquals(givenName, normalizedGivenName.jsonNode.asString())
 
         val normalizedFamilyName = normalized.operations.first { it.path.toString() == "name.familyName" }
         assertEquals(PatchOpType.REPLACE, normalizedFamilyName.opType)
-        assertEquals(familyName, normalizedFamilyName.jsonNode.asText())
+        assertEquals(familyName, normalizedFamilyName.jsonNode.asString())
 
         val upnOp = normalized.operations.first { it.path.toString() == "$urn:userPrincipalName" }
         assertEquals(PatchOpType.ADD, upnOp.opType)
-        assertEquals(userPrincipalName, upnOp.jsonNode.asText())
+        assertEquals(userPrincipalName, upnOp.jsonNode.asString())
 
         val employeeIdOp = normalized.operations.first { it.path.toString() == "$urn:employeeId" }
         assertEquals(PatchOpType.ADD, employeeIdOp.opType)
-        assertEquals(employeeId, employeeIdOp.jsonNode.asText())
+        assertEquals(employeeId, employeeIdOp.jsonNode.asString())
 
         assertFalse(normalized.operations.any { it.path.toString().isBlank() })
     }
@@ -191,13 +190,13 @@ class EntraScimTransformerTest {
     @Test
     fun `normalizePatch does nothing when op jsonNode is not an object`() {
         val rtd = testRtd()
-        val inputValue = nodeFactory.textNode("just-a-string")
+        val inputValue = mapper.readTree("\"just-a-string\"")
         val op = PatchOperation.create(PatchOpType.ADD, "", inputValue)
         val req = PatchRequest(listOf(op))
 
         val normalized = EntraScimTransformer.normalizePatch(req, rtd)
         assertEquals(1, normalized.operations.size)
-        assertEquals("just-a-string", normalized.operations[0].jsonNode.asText())
+        assertEquals("just-a-string", normalized.operations[0].jsonNode.asString())
     }
 
     @Test
@@ -205,7 +204,7 @@ class EntraScimTransformerTest {
         val rtd = testRtd()
         val root = nodeFactory.objectNode()
 
-        root.set<ObjectNode>(urn, nodeFactory.objectNode().put("department", "IT"))
+        root.set(urn, nodeFactory.objectNode().put("department", "IT"))
 
         EntraScimTransformer.normalizeExtensionSchemas(root, rtd)
 
@@ -213,8 +212,13 @@ class EntraScimTransformerTest {
         assertNotNull(schemas)
         assertTrue(schemas.isArray)
 
-        val textValues = schemas.map { it.asText() }.toSet()
-        assertTrue(textValues.contains(urn))
+        val textValues =
+            schemas
+                .asSequence()
+                .map { it.asString() }
+                .toSet()
+
+        assertTrue(urn in textValues)
     }
 
     @Test
@@ -223,7 +227,7 @@ class EntraScimTransformerTest {
         val root =
             nodeFactory.objectNode().apply {
                 putArray("schemas").add(urn)
-                set<ObjectNode>(urn, nodeFactory.objectNode().put("department", "IT"))
+                set(urn, nodeFactory.objectNode().put("department", "IT"))
             }
 
         root.putArray("schemas").add(urn)
@@ -231,7 +235,7 @@ class EntraScimTransformerTest {
         EntraScimTransformer.normalizeExtensionSchemas(root, rtd)
 
         val schemas = root.get("schemas")
-        val occurrences = schemas.count { it.isTextual && it.asText() == urn }
+        val occurrences = schemas.count { it.isString && it.asString() == urn }
         assertEquals(1, occurrences)
     }
 
@@ -240,7 +244,7 @@ class EntraScimTransformerTest {
         val rtd = testRtd()
         val root = nodeFactory.objectNode()
 
-        root.set<ObjectNode>(urn, nodeFactory.objectNode())
+        root.set(urn, nodeFactory.objectNode())
 
         val schemas = root.putArray("schemas")
         schemas.add(nodeFactory.objectNode().put("not", "text"))
@@ -250,7 +254,7 @@ class EntraScimTransformerTest {
 
         val occurrences =
             (root.get("schemas"))
-                .count { it.isTextual && it.asText() == urn }
+                .count { it.isString && it.asString() == urn }
 
         assertEquals(1, occurrences)
     }

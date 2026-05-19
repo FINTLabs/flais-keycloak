@@ -1,10 +1,10 @@
 package no.novari.keycloak.scim.utils
 
-import com.fasterxml.jackson.databind.node.ArrayNode
-import com.fasterxml.jackson.databind.node.ObjectNode
 import com.unboundid.scim2.common.messages.PatchOperation
 import com.unboundid.scim2.common.messages.PatchRequest
 import com.unboundid.scim2.server.utils.ResourceTypeDefinition
+import tools.jackson.databind.node.ArrayNode
+import tools.jackson.databind.node.ObjectNode
 
 object EntraScimTransformer {
     fun normalizeExtensionSchemas(
@@ -20,8 +20,8 @@ object EntraScimTransformer {
         val schemasNode = (root.get("schemas") as? ArrayNode) ?: root.putArray("schemas")
         val existing =
             schemasNode
-                .filter { it.isTextual }
-                .map { it.asText() }
+                .filter { it.isString }
+                .map { it.asString() }
                 .toMutableSet()
 
         extensionSchemaIds.forEach { urn ->
