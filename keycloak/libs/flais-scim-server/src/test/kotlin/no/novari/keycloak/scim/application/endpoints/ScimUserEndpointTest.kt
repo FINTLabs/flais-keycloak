@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode
 import com.unboundid.scim2.common.GenericScimResource
 import com.unboundid.scim2.common.messages.PatchOperation
 import com.unboundid.scim2.common.messages.PatchRequest
+import com.unboundid.scim2.common.types.Name
 import com.unboundid.scim2.common.utils.JsonUtils
 import io.mockk.every
 import io.mockk.impl.annotations.MockK
@@ -143,7 +144,10 @@ class ScimUserEndpointTest {
         assertEquals("alice.basic@telemark.no", emailNode.get("value").asText())
         assertEquals(true, emailNode.get("primary").asBoolean())
 
-        val nameNode = node["name"]
+        val extNode = node["urn:ietf:params:scim:schemas:extension:fint:2.0:User"]
+        assertTrue(extNode != null && extNode.isObject)
+
+        val nameNode = extNode["name"]
         assertEquals("Alice", nameNode.get("givenName").asText())
         assertEquals("Basic", nameNode.get("familyName").asText())
 
@@ -333,7 +337,10 @@ class ScimUserEndpointTest {
                 userId,
                 PatchRequest(
                     listOf(
-                        PatchOperation.replace("name.givenName", "new"),
+                        PatchOperation.replace(
+                            "urn:ietf:params:scim:schemas:extension:fint:2.0:User:name.givenName",
+                            "new",
+                        ),
                         PatchOperation.replace(
                             "roles",
                             JsonUtils.getObjectReader().readTree(
@@ -390,6 +397,38 @@ class ScimUserEndpointTest {
     }
 
     @Test
+    fun `patchUser REMOVE extension name clears keycloak first and last name and returns 200`() {
+        templateUser(user)
+
+        every { orgProvider.getMemberById(scimContext.organization, userId) } returns user
+        every { realm.getRole(ScimRoles.SCIM_MANAGED_ROLE) } returns scimRole
+        every { orgProvider.isManagedMember(scimContext.organization, user) } returns true
+        every { orgProvider.getIdentityProviders(scimContext.organization) } returns
+            emptyList<IdentityProviderModel>().stream()
+        every { userProvider.getFederatedIdentitiesStream(realm, user) } returns
+            emptyList<FederatedIdentityModel>().stream()
+
+        val response =
+            endpoint.patchUser(
+                userUriInfo,
+                userId,
+                PatchRequest(
+                    listOf(
+                        PatchOperation.remove(
+                            "urn:ietf:params:scim:schemas:extension:fint:2.0:User:name",
+                        ),
+                    ),
+                ),
+            )
+
+        assertEquals(Response.Status.OK.statusCode, response.status)
+
+        verify { user.firstName = null }
+        verify { user.lastName = null }
+        verify(exactly = 0) { user.removeAttribute("name") }
+    }
+
+    @Test
     fun `patchUser REMOVE roles removes keycloak roles attribute and returns 200`() {
         templateUser(user)
 
@@ -422,21 +461,22 @@ class ScimUserEndpointTest {
     fun `getUser returns all attributes from fint extension`() {
         templateUser(user)
 
-        val extensionFields =
+        val stringExtensionFields =
             FintUserExtension::class.java.declaredFields
                 .filter { !it.isSynthetic }
+                .filter { it.name != "name" }
                 .map { it.name }
                 .sorted()
 
         val expected: Map<String, String?> =
-            extensionFields
+            stringExtensionFields
                 .associateWith { propName -> "value-for-$propName" }
                 .toMutableMap()
                 .apply {
                     if (containsKey("employeeId")) this["employeeId"] = ""
                 }
 
-        extensionFields.forEach { prop ->
+        stringExtensionFields.forEach { prop ->
             every { user.getFirstAttribute(prop) } returns expected[prop]
         }
 
@@ -450,15 +490,19 @@ class ScimUserEndpointTest {
         val extNode = resource.objectNode["urn:ietf:params:scim:schemas:extension:fint:2.0:User"]
         assertTrue(extNode != null && extNode.isObject)
 
-        extensionFields.forEach { prop ->
+        stringExtensionFields.forEach { prop ->
             val jsonValue: String? =
                 extNode.get(prop)?.takeUnless(JsonNode::isNull)?.asText()
 
             assertEquals(expected[prop], jsonValue)
         }
 
+        val nameNode = extNode["name"]
+        assertEquals("Alice", nameNode["givenName"].asText())
+        assertEquals("Basic", nameNode["familyName"].asText())
+
         val jsonFields = extNode.fieldNames().asSequence().toSet()
-        assertEquals(extensionFields.toSet(), jsonFields)
+        assertEquals((stringExtensionFields + "name").toSet(), jsonFields)
     }
 
     @Test
@@ -473,24 +517,36 @@ class ScimUserEndpointTest {
         every { orgProvider.getIdentityProviders(scimContext.organization) } returns emptyList<IdentityProviderModel>().stream()
         every { userProvider.getFederatedIdentitiesStream(realm, user) } returns emptyList<FederatedIdentityModel>().stream()
 
-        val extensionFields =
+        val stringExtensionFields =
             FintUserExtension::class.java.declaredFields
+                .asSequence()
                 .filter { !it.isSynthetic }
+                .filter { it.name != "name" }
                 .onEach { it.isAccessible = true }
                 .map { it.name }
                 .sorted()
+                .toList()
 
         val expected =
-            extensionFields
+            stringExtensionFields
                 .associateWith { "value-for-$it" }
                 .toMutableMap()
                 .apply {
                     if (containsKey("employeeId")) this["employeeId"] = ""
                 }
 
-        val ext = FintUserExtension()
+        val ext =
+            FintUserExtension().apply {
+                name =
+                    Name().apply {
+                        givenName = "Updated"
+                        familyName = "Name"
+                    }
+            }
+
         FintUserExtension::class.java.declaredFields
             .filter { !it.isSynthetic }
+            .filter { it.name != "name" }
             .onEach { it.isAccessible = true }
             .forEach { field ->
                 field.set(ext, expected[field.name])
@@ -508,8 +564,12 @@ class ScimUserEndpointTest {
         val response = endpoint.updateUser(userUriInfo, userId, updatedScimUser)
         assertEquals(Response.Status.OK.statusCode, response.status)
 
-        extensionFields.forEach { attr ->
+        stringExtensionFields.forEach { attr ->
             verify { user.setSingleAttribute(attr, expected[attr]) }
         }
+
+        verify { user.firstName = "Updated" }
+        verify { user.lastName = "Name" }
+        verify(exactly = 0) { user.setSingleAttribute(eq("name"), any()) }
     }
 }
