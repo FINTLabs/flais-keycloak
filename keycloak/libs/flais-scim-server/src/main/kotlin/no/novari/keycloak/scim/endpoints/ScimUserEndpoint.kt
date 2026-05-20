@@ -5,7 +5,6 @@ import com.unboundid.scim2.common.annotations.Attribute
 import com.unboundid.scim2.common.messages.PatchRequest
 import com.unboundid.scim2.common.types.Email
 import com.unboundid.scim2.common.types.EnterpriseUserExtension
-import com.unboundid.scim2.common.types.Name
 import com.unboundid.scim2.common.types.Role
 import com.unboundid.scim2.common.utils.ApiConstants
 import com.unboundid.scim2.common.utils.JsonUtils
@@ -283,11 +282,8 @@ class ScimUserEndpoint(
                     employeeId = user.getFirstAttribute("employeeId")
                     studentNumber = user.getFirstAttribute("studentNumber")
                     userPrincipalName = user.getFirstAttribute("userPrincipalName")
-                    name =
-                        Name().apply {
-                            givenName = user.firstName
-                            familyName = user.lastName
-                        }
+                    givenName = user.firstName
+                    familyName = user.lastName
                 },
             )
         }
@@ -323,35 +319,37 @@ class ScimUserEndpoint(
             user.removeAttribute("roles")
         }
 
-        val fintUserExt = FintUserExtension::class.java
-        val extension = scimUser.getExtension(fintUserExt)
+        val fintUserExtClass = FintUserExtension::class.java
+        val extension = scimUser.getExtension(fintUserExtClass)
 
-        extension?.name?.let { name ->
-            user.firstName = name.givenName
-            user.lastName = name.familyName
-        } ?: run {
-            user.firstName = null
-            user.lastName = null
-        }
+        val excludedFields = setOf("givenName", "familyName")
 
         val attributeFields =
-            fintUserExt.declaredFields
+            fintUserExtClass.declaredFields
                 .filter { it.isAnnotationPresent(Attribute::class.java) }
-                .filter { it.name != "name" }
+                .filter { it.name !in excludedFields }
 
-        extension?.let { ext ->
+        if (extension == null) {
+            user.firstName = null
+            user.lastName = null
+
             attributeFields.forEach { field ->
-                field.isAccessible = true
-                val value = field.get(ext)
-
-                if (value != null) {
-                    user.setSingleAttribute(field.name, value.toString())
-                } else {
-                    user.removeAttribute(field.name)
-                }
+                user.removeAttribute(field.name)
             }
-        } ?: run {
-            attributeFields.forEach { field ->
+
+            return
+        }
+
+        user.firstName = extension.givenName
+        user.lastName = extension.familyName
+
+        attributeFields.forEach { field ->
+            field.isAccessible = true
+            val value = field.get(extension)
+
+            if (value != null) {
+                user.setSingleAttribute(field.name, value.toString())
+            } else {
                 user.removeAttribute(field.name)
             }
         }

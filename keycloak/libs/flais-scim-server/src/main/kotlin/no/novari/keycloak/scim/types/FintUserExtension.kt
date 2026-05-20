@@ -4,7 +4,6 @@ import com.unboundid.scim2.common.annotations.Attribute
 import com.unboundid.scim2.common.annotations.Nullable
 import com.unboundid.scim2.common.annotations.Schema
 import com.unboundid.scim2.common.types.AttributeDefinition
-import com.unboundid.scim2.common.types.Name
 
 @Schema(
     id = "urn:ietf:params:scim:schemas:extension:fint:2.0:User",
@@ -38,11 +37,31 @@ class FintUserExtension {
 
     @Nullable
     @Attribute(
-        description = "The components of the user's real name.",
+        description = (
+            "The family name of the User, or Last " +
+                "Name in most Western languages (for example, Jensen given the full " +
+                "name Ms. Barbara J Jensen, III.)."
+        ),
         isRequired = false,
+        isCaseExact = false,
         mutability = AttributeDefinition.Mutability.READ_WRITE,
         returned = AttributeDefinition.Returned.DEFAULT,
         uniqueness = AttributeDefinition.Uniqueness.NONE,
     )
-    var name: Name? = null
+    var familyName: String? = null
+
+    @Nullable
+    @Attribute(
+        description = (
+            "The given name of the User, or First Name " +
+                "in most Western languages (for example, Barbara given the full name " +
+                "Ms. Barbara J Jensen, III.)."
+        ),
+        isRequired = false,
+        isCaseExact = false,
+        mutability = AttributeDefinition.Mutability.READ_WRITE,
+        returned = AttributeDefinition.Returned.DEFAULT,
+        uniqueness = AttributeDefinition.Uniqueness.NONE,
+    )
+    var givenName: String? = null
 }
