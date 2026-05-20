@@ -121,22 +121,6 @@ function Write-GraphExceptionDetails {
         Write-Warning "Raw Graph response body:"
         Write-Warning $details.RawBody
     }
-
-    if ($BodyJson) {
-        $safeFileName = "graph-failed-request-{0}-{1}.json" -f `
-        (Get-Date -Format "yyyyMMdd-HHmmss"), `
-        ([guid]::NewGuid().ToString("N"))
-
-        $bodyPath = Join-Path -Path $env:TEMP -ChildPath $safeFileName
-
-        try {
-            $BodyJson | Set-Content -Path $bodyPath -Encoding UTF8
-            Write-Warning "Failed request body written to: $bodyPath"
-        }
-        catch {
-            Write-Warning "Could not write failed request body to temp file: $($_.Exception.Message)"
-        }
-    }
 }
 
 function Invoke-GraphWithRetry {
