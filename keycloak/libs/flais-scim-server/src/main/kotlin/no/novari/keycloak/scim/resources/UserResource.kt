@@ -6,7 +6,6 @@ import com.unboundid.scim2.common.annotations.Nullable
 import com.unboundid.scim2.common.annotations.Schema
 import com.unboundid.scim2.common.types.AttributeDefinition
 import com.unboundid.scim2.common.types.Email
-import com.unboundid.scim2.common.types.Name
 import com.unboundid.scim2.common.types.Role
 import java.util.Objects
 
