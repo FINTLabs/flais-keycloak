@@ -31,16 +31,6 @@ class UserResource : BaseScimResource() {
 
     @Nullable
     @Attribute(
-        description = "The components of the user's real name.",
-        isRequired = false,
-        mutability = AttributeDefinition.Mutability.READ_WRITE,
-        returned = AttributeDefinition.Returned.DEFAULT,
-        uniqueness = AttributeDefinition.Uniqueness.NONE,
-    )
-    var name: Name? = null
-
-    @Nullable
-    @Attribute(
         description =
             "A Boolean value indicating the User's " +
                 "administrative status.",
@@ -86,7 +76,6 @@ class UserResource : BaseScimResource() {
 
         val user = o as UserResource
         if (!Objects.equals(userName, user.userName)) return false
-        if (!Objects.equals(name, user.name)) return false
         if (!Objects.equals(active, user.active)) return false
         if (!Objects.equals(emails, user.emails)) return false
         if (!Objects.equals(roles, user.roles)) return false
@@ -98,7 +87,6 @@ class UserResource : BaseScimResource() {
         Objects.hash(
             super.hashCode(),
             userName,
-            name,
             active,
             emails,
             roles,

@@ -1,8 +1,10 @@
 package no.novari.keycloak.scim.types
 
 import com.unboundid.scim2.common.annotations.Attribute
+import com.unboundid.scim2.common.annotations.Nullable
 import com.unboundid.scim2.common.annotations.Schema
 import com.unboundid.scim2.common.types.AttributeDefinition
+import com.unboundid.scim2.common.types.Name
 
 @Schema(
     id = "urn:ietf:params:scim:schemas:extension:fint:2.0:User",
@@ -33,4 +35,14 @@ class FintUserExtension {
         returned = AttributeDefinition.Returned.DEFAULT,
     )
     var userPrincipalName: String? = null
+
+    @Nullable
+    @Attribute(
+        description = "The components of the user's real name.",
+        isRequired = false,
+        mutability = AttributeDefinition.Mutability.READ_WRITE,
+        returned = AttributeDefinition.Returned.DEFAULT,
+        uniqueness = AttributeDefinition.Uniqueness.NONE,
+    )
+    var name: Name? = null
 }
