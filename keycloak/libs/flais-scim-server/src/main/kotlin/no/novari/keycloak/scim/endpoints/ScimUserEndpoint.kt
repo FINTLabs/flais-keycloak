@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode
 import com.unboundid.scim2.common.annotations.Attribute
 import com.unboundid.scim2.common.messages.PatchRequest
 import com.unboundid.scim2.common.types.Email
+import com.unboundid.scim2.common.types.EnterpriseUserExtension
 import com.unboundid.scim2.common.types.Role
 import com.unboundid.scim2.common.utils.ApiConstants
 import com.unboundid.scim2.common.utils.JsonUtils
@@ -44,7 +45,7 @@ import kotlin.streams.asSequence
     description = "User Account",
     name = "User",
     schema = UserResource::class,
-    optionalSchemaExtensions = [FintUserExtension::class],
+    optionalSchemaExtensions = [EnterpriseUserExtension::class, FintUserExtension::class],
 )
 @ResourcePath("Users")
 class ScimUserEndpoint(
