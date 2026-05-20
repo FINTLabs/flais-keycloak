@@ -19,7 +19,8 @@ users:
                   "externalId": "11111111-1111-1111-1111-111111111111",
                   "userName": "alice.basic@telemark.no",
                   "active": true,
-                  "name": { "givenName": "Alice", "familyName": "Basic" },
+                  "givenName": "Alice",
+                  "familyName": "Basic",
                   "emails":
                     [ { "value": "alice.basic@telemark.no", "primary": true } ],
                   "roles": [ { "value": "read","display": "read","type": "WindowsAzureActiveDirectoryRole","primary": false } ],
@@ -155,7 +156,8 @@ users:
                   "externalId": "11111111-1111-1111-1111-111111111111",
                   "userName": "alice.basic@telemark.no",
                   "active": true,
-                  "name": { "givenName": "Alice2", "familyName": "Basic2" },
+                  givenName: "Alice2",
+                  familyName: "Basic2",
                   "emails":
                     [ { "value": "alice.basic@telemark.no", "primary": true } ],
                   "roles": [ { "value": "read","display": "read","type": "WindowsAzureActiveDirectoryRole","primary": false }, { "value": "write","display": "write","type": "WindowsAzureActiveDirectoryRole","primary": false } ],
@@ -198,22 +200,15 @@ users:
                                           "type": "string",
                                           "const": "alice.basic@telemark.no",
                                       },
-                                    "name":
+                                    "givenName":
                                       {
-                                          "type": "object",
-                                          "properties":
-                                            {
-                                                "givenName":
-                                                  {
-                                                      "type": "string",
-                                                      "const": "Alice2",
-                                                  },
-                                                "familyName":
-                                                  {
-                                                      "type": "string",
-                                                      "const": "Basic2",
-                                                  },
-                                            },
+                                          "type": "string",
+                                          "const": "Alice2",
+                                      },
+                                    "familyName":
+                                      {
+                                          "type": "string",
+                                          "const": "Basic2",
                                       },
                                     "emails":
                                       {

@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.node.ObjectNode
 import com.unboundid.scim2.common.annotations.Attribute
 import com.unboundid.scim2.common.messages.PatchRequest
 import com.unboundid.scim2.common.types.Email
-import com.unboundid.scim2.common.types.EnterpriseUserExtension
 import com.unboundid.scim2.common.types.Role
 import com.unboundid.scim2.common.utils.ApiConstants
 import com.unboundid.scim2.common.utils.JsonUtils
@@ -45,7 +44,7 @@ import kotlin.streams.asSequence
     description = "User Account",
     name = "User",
     schema = UserResource::class,
-    optionalSchemaExtensions = [EnterpriseUserExtension::class, FintUserExtension::class],
+    optionalSchemaExtensions = [FintUserExtension::class],
 )
 @ResourcePath("Users")
 class ScimUserEndpoint(
@@ -305,6 +304,18 @@ class ScimUserEndpoint(
             user.isEmailVerified = false
         }
 
+        scimUser.givenName?.let {
+            user.firstName = it
+        } ?: run {
+            user.firstName = null
+        }
+
+        scimUser.familyName?.let {
+            user.lastName = it
+        } ?: {
+            user.lastName = null
+        }
+
         scimUser.roles?.let {
             user.removeAttribute("rawRoles")
             user.setAttribute("rawRoles", it.map(JsonSerialization::writeValueAsString))
@@ -322,26 +333,17 @@ class ScimUserEndpoint(
         val fintUserExtClass = FintUserExtension::class.java
         val extension = scimUser.getExtension(fintUserExtClass)
 
-        val excludedFields = setOf("givenName", "familyName")
-
         val attributeFields =
             fintUserExtClass.declaredFields
                 .filter { it.isAnnotationPresent(Attribute::class.java) }
-                .filter { it.name !in excludedFields }
 
         if (extension == null) {
-            user.firstName = null
-            user.lastName = null
-
             attributeFields.forEach { field ->
                 user.removeAttribute(field.name)
             }
 
             return
         }
-
-        user.firstName = extension.givenName
-        user.lastName = extension.familyName
 
         attributeFields.forEach { field ->
             field.isAccessible = true
