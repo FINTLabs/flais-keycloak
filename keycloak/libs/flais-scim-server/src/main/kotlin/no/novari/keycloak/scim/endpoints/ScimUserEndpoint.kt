@@ -312,7 +312,7 @@ class ScimUserEndpoint(
 
         scimUser.familyName?.let {
             user.lastName = it
-        } ?: {
+        } ?: run {
             user.lastName = null
         }
 
