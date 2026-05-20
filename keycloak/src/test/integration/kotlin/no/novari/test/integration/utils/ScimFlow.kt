@@ -31,18 +31,13 @@ object ScimFlow {
         var externalId: String,
         var userName: String,
         var active: Boolean,
-        var name: Name,
+        var givenName: String? = null,
+        var familyName: String? = null,
         var emails: List<Email>,
         var roles: List<Role>? = null,
         @SerialName("urn:ietf:params:scim:schemas:extension:fint:2.0:User")
         var fintUserExtension: FintUserExtension? = null,
     ) {
-        @Serializable
-        data class Name(
-            var givenName: String,
-            var familyName: String,
-        )
-
         @Serializable
         data class Email(
             var value: String,

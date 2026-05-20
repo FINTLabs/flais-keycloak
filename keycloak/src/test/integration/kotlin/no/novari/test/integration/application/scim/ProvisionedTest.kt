@@ -44,7 +44,8 @@ class ProvisionedTest {
                         externalId = "11111111-1111-1111-1111-111111111111",
                         userName = Users.ALICE_TELEMARK,
                         active = true,
-                        name = ScimUser.Name(Users.ALICE_FIRST_NAME, Users.BASIC_LAST_NAME),
+                        givenName = Users.ALICE_FIRST_NAME,
+                        familyName = Users.BASIC_LAST_NAME,
                         emails = listOf(ScimUser.Email(Users.ALICE_TELEMARK, primary = true)),
                         roles =
                             listOf(
@@ -61,7 +62,8 @@ class ProvisionedTest {
                         externalId = "22222222-2222-2222-2222-222222222222",
                         userName = Users.JON_TELEMARK,
                         active = true,
-                        name = ScimUser.Name(Users.JON_FIRST_NAME, Users.BASIC_LAST_NAME),
+                        givenName = Users.JON_FIRST_NAME,
+                        familyName = Users.BASIC_LAST_NAME,
                         emails = listOf(ScimUser.Email(Users.JON_TELEMARK, primary = true)),
                         roles =
                             listOf(
@@ -82,7 +84,8 @@ class ProvisionedTest {
                         externalId = "11111111-1111-1111-1111-111111111111",
                         userName = Users.ALICE_ROGALAND,
                         active = true,
-                        name = ScimUser.Name(Users.ALICE_FIRST_NAME, Users.BASIC_LAST_NAME),
+                        givenName = Users.ALICE_FIRST_NAME,
+                        familyName = Users.BASIC_LAST_NAME,
                         emails = listOf(ScimUser.Email(Users.ALICE_ROGALAND, primary = true)),
                         roles =
                             listOf(
@@ -99,7 +102,8 @@ class ProvisionedTest {
                         externalId = "22222222-2222-2222-2222-222222222222",
                         userName = Users.JON_ROGALAND,
                         active = true,
-                        name = ScimUser.Name(Users.JON_FIRST_NAME, Users.BASIC_LAST_NAME),
+                        givenName = Users.JON_FIRST_NAME,
+                        familyName = Users.BASIC_LAST_NAME,
                         emails = listOf(ScimUser.Email(Users.JON_ROGALAND, primary = true)),
                         roles =
                             listOf(
@@ -217,11 +221,13 @@ class ProvisionedTest {
         kc.use {
             users[orgAlias]?.forEach { templateUser ->
                 val user = templateUser.copy()
-                val newName = ScimUser.Name("new", "name")
+                val newGivenName = "newgiven"
+                val newFamilyName = "newfamily"
                 val newEmails = listOf(ScimUser.Email("new-${user.emails.first().value}", primary = true))
 
                 user.id = KcAdminClient.findUserByUsername(realmRes, user.userName)?.id
-                user.name = newName
+                user.givenName = newGivenName
+                user.familyName = newFamilyName
                 user.emails = newEmails
 
                 ScimFlow
@@ -236,8 +242,8 @@ class ProvisionedTest {
 
                 val kcUser = KcAdminClient.findUserByUsername(realmRes, user.userName)
                 assertNotNull(kcUser)
-                assertEquals(user.name.givenName, kcUser.firstName)
-                assertEquals(user.name.familyName, kcUser.lastName)
+                assertEquals(user.givenName, kcUser.firstName)
+                assertEquals(user.familyName, kcUser.lastName)
                 assertEquals(user.emails.first().value, kcUser.email)
             }
         }
@@ -321,8 +327,8 @@ class ProvisionedTest {
         val entraCoreUserAttributes =
             JsonObject(
                 mapOf(
-                    "$coreUrn:name.givenName" to JsonPrimitive("Jeanette"),
-                    "$coreUrn:name.familyName" to JsonPrimitive("Bergersen"),
+                    "$coreUrn:givenName" to JsonPrimitive("Jeanette"),
+                    "$coreUrn:familyName" to JsonPrimitive("Bergersen"),
                 ),
             )
 

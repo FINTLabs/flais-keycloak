@@ -330,7 +330,7 @@ users:
                     [
                         {
                             "op": "replace",
-                            "path": "name.familyName",
+                            "path": "familyName",
                             "value": "alice2",
                         },
                     ],
@@ -356,20 +356,13 @@ users:
                               "type": "object",
                               "properties":
                                 {
-                                    "name":
+                                    "familyName":
                                       {
-                                          "type": "object",
-                                          "properties":
-                                            {
-                                                "familyName":
-                                                  {
-                                                      "type": "string",
-                                                      "const": "alice2",
-                                                  },
-                                            },
+                                          "type": "string",
+                                          "const": "alice2",
                                       },
                                 },
-                              "required": [ "name" ],
+                              "required": [ "familyName" ],
                               "additionalProperties": true,
                           },
                     },
