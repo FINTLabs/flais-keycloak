@@ -305,18 +305,6 @@ class ScimUserEndpoint(
             user.isEmailVerified = false
         }
 
-        scimUser.givenName?.let {
-            user.firstName = it
-        } ?: run {
-            user.firstName = null
-        }
-
-        scimUser.familyName?.let {
-            user.lastName = it
-        } ?: run {
-            user.lastName = null
-        }
-
         scimUser.roles?.let {
             user.removeAttribute("rawRoles")
             user.setAttribute("rawRoles", it.map(JsonSerialization::writeValueAsString))
@@ -334,17 +322,26 @@ class ScimUserEndpoint(
         val fintUserExtClass = FintUserExtension::class.java
         val extension = scimUser.getExtension(fintUserExtClass)
 
+        val excludedFields = setOf("givenName", "familyName")
+
         val attributeFields =
             fintUserExtClass.declaredFields
                 .filter { it.isAnnotationPresent(Attribute::class.java) }
+                .filter { it.name !in excludedFields }
 
         if (extension == null) {
+            user.firstName = null
+            user.lastName = null
+
             attributeFields.forEach { field ->
                 user.removeAttribute(field.name)
             }
 
             return
         }
+
+        user.firstName = extension.givenName
+        user.lastName = extension.familyName
 
         attributeFields.forEach { field ->
             field.isAccessible = true

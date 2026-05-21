@@ -1,6 +1,7 @@
 package no.novari.keycloak.scim.types
 
 import com.unboundid.scim2.common.annotations.Attribute
+import com.unboundid.scim2.common.annotations.Nullable
 import com.unboundid.scim2.common.annotations.Schema
 import com.unboundid.scim2.common.types.AttributeDefinition
 
@@ -10,6 +11,36 @@ import com.unboundid.scim2.common.types.AttributeDefinition
     description = "Fint user extension",
 )
 class FintUserExtension {
+    @Nullable
+    @Attribute(
+        description = (
+            "The given name of the User, or First Name " +
+                "in most Western languages (for example, Barbara given the full name " +
+                "Ms. Barbara J Jensen, III.)."
+        ),
+        isRequired = false,
+        isCaseExact = false,
+        mutability = AttributeDefinition.Mutability.READ_WRITE,
+        returned = AttributeDefinition.Returned.DEFAULT,
+        uniqueness = AttributeDefinition.Uniqueness.NONE,
+    )
+    var givenName: String? = null
+
+    @Nullable
+    @Attribute(
+        description = (
+            "The family name of the User, or Last " +
+                "Name in most Western languages (for example, Jensen given the full " +
+                "name Ms. Barbara J Jensen, III.)."
+        ),
+        isRequired = false,
+        isCaseExact = false,
+        mutability = AttributeDefinition.Mutability.READ_WRITE,
+        returned = AttributeDefinition.Returned.DEFAULT,
+        uniqueness = AttributeDefinition.Uniqueness.NONE,
+    )
+    var familyName: String? = null
+
     @Attribute(
         description = "Employee ID",
         isRequired = false,

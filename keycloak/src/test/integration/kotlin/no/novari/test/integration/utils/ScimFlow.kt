@@ -31,8 +31,6 @@ object ScimFlow {
         var externalId: String,
         var userName: String,
         var active: Boolean,
-        var givenName: String? = null,
-        var familyName: String? = null,
         var emails: List<Email>,
         var roles: List<Role>? = null,
         @SerialName("urn:ietf:params:scim:schemas:extension:fint:2.0:User")
@@ -55,6 +53,8 @@ object ScimFlow {
 
         @Serializable
         data class FintUserExtension(
+            var givenName: String? = null,
+            var familyName: String? = null,
             var employeeId: String? = null,
             var studentNumber: String? = null,
             var userPrincipalName: String? = null,

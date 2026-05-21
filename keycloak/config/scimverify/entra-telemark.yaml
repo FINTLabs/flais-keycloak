@@ -19,13 +19,16 @@ users:
                   "externalId": "11111111-1111-1111-1111-111111111111",
                   "userName": "alice.basic@telemark.no",
                   "active": true,
-                  "givenName": "Alice",
-                  "familyName": "Basic",
+
                   "emails":
                     [ { "value": "alice.basic@telemark.no", "primary": true } ],
                   "roles": [ { "value": "read","display": "read","type": "WindowsAzureActiveDirectoryRole","primary": false } ],
                   "urn:ietf:params:scim:schemas:extension:fint:2.0:User": {
-                      "employeeId": "1234", "studentNumber": "1234", "userPrincipalName": "alice.basic@telemark.no"
+                      "givenName": "Alice",
+                      "familyName": "Basic",
+                      "employeeId": "1234",
+                      "studentNumber": "1234",
+                      "userPrincipalName": "alice.basic@telemark.no"
                   }
               }
             response:
@@ -156,12 +159,12 @@ users:
                   "externalId": "11111111-1111-1111-1111-111111111111",
                   "userName": "alice.basic@telemark.no",
                   "active": true,
-                  givenName: "Alice2",
-                  familyName: "Basic2",
                   "emails":
                     [ { "value": "alice.basic@telemark.no", "primary": true } ],
                   "roles": [ { "value": "read","display": "read","type": "WindowsAzureActiveDirectoryRole","primary": false }, { "value": "write","display": "write","type": "WindowsAzureActiveDirectoryRole","primary": false } ],
                   "urn:ietf:params:scim:schemas:extension:fint:2.0:User": {
+                      givenName: "Alice2",
+                      familyName: "Basic2",
                       "employeeId": "12_34",
                       "studentNumber": "12_34",
                       "userPrincipalName": "alice.basic@telemark.no"
@@ -199,16 +202,6 @@ users:
                                       {
                                           "type": "string",
                                           "const": "alice.basic@telemark.no",
-                                      },
-                                    "givenName":
-                                      {
-                                          "type": "string",
-                                          "const": "Alice2",
-                                      },
-                                    "familyName":
-                                      {
-                                          "type": "string",
-                                          "const": "Basic2",
                                       },
                                     "emails":
                                       {
@@ -295,6 +288,16 @@ users:
                         "urn:ietf:params:scim:schemas:extension:fint:2.0:User": {
                             "type": "object",
                             "properties": {
+                                "givenName":
+                                  {
+                                      "type": "string",
+                                      "const": "Alice2",
+                                  },
+                                "familyName":
+                                  {
+                                      "type": "string",
+                                      "const": "Basic2",
+                                  },
                                 "employeeId": {
                                     "type": "string",
                                     "const": "12_34"
@@ -323,58 +326,72 @@ users:
               }
 
     patch_tests:
-        -   id: AUTO
-            request:
-              {
-                  "schemas": [ "urn:ietf:params:scim:api:messages:2.0:PatchOp" ],
-                  "Operations":
-                    [
+        - id: AUTO
+          request:
+            {
+                "schemas": [ "urn:ietf:params:scim:api:messages:2.0:PatchOp" ],
+                "Operations":
+                  [
+                      {
+                          "op": "replace",
+                          "path": "emails[primary eq true].value",
+                          "value": "alice.basic.new@telemark.no",
+                      },
+                  ],
+            }
+          response:
+            {
+                "type": "object",
+                "properties":
+                  {
+                      "schemas":
                         {
-                            "op": "replace",
-                            "path": "familyName",
-                            "value": "alice2",
+                            "type": "array",
+                            "items": { "type": "string" },
+                            "contains":
+                              {
+                                  "const": "urn:ietf:params:scim:schemas:core:2.0:User",
+                              },
                         },
-                    ],
-              }
-            response:
-              {
-                  "type": "object",
-                  "properties":
-                    {
-                        "schemas":
-                          {
-                              "type": "array",
-                              "items": { "type": "string" },
-                              "contains":
-                                {
-                                    "const": "urn:ietf:params:scim:schemas:core:2.0:User",
-                                },
-                          },
-                        "id": { "type": "string" },
-                        "meta": { "type": "object" },
-                        "urn:ietf:params:scim:schemas:core:2.0:User":
-                          {
-                              "type": "object",
-                              "properties":
-                                {
-                                    "familyName":
-                                      {
-                                          "type": "string",
-                                          "const": "alice2",
-                                      },
-                                },
-                              "required": [ "familyName" ],
-                              "additionalProperties": true,
-                          },
-                    },
-                  "required":
-                    [
-                        "schemas",
-                        "id",
-                        "urn:ietf:params:scim:schemas:core:2.0:User",
-                    ],
-                  "additionalProperties": true,
-              }
+                      "id": { "type": "string" },
+                      "meta": { "type": "object" },
+                      "urn:ietf:params:scim:schemas:core:2.0:User":
+                        {
+                            "type": "object",
+                            "properties":
+                              {
+                                  "emails":
+                                    {
+                                        "type": "array",
+                                        "contains":
+                                          {
+                                              "type": "object",
+                                              "properties":
+                                                {
+                                                    "primary": { "const": true },
+                                                    "value":
+                                                      {
+                                                          "type": "string",
+                                                          "const": "alice.basic.new@telemark.no",
+                                                      },
+                                                },
+                                              "required": [ "primary", "value" ],
+                                              "additionalProperties": true,
+                                          },
+                                    },
+                              },
+                            "required": [ "emails" ],
+                            "additionalProperties": true,
+                        },
+                  },
+                "required":
+                  [
+                      "schemas",
+                      "id",
+                      "urn:ietf:params:scim:schemas:core:2.0:User",
+                  ],
+                "additionalProperties": true,
+            }
         -   id: AUTO
             request:
               {

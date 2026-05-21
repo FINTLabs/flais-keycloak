@@ -44,15 +44,20 @@ class ProvisionedTest {
                         externalId = "11111111-1111-1111-1111-111111111111",
                         userName = Users.ALICE_TELEMARK,
                         active = true,
-                        givenName = Users.ALICE_FIRST_NAME,
-                        familyName = Users.BASIC_LAST_NAME,
                         emails = listOf(ScimUser.Email(Users.ALICE_TELEMARK, primary = true)),
                         roles =
                             listOf(
                                 ScimUser.Role("read", "read", "WindowsAzureActiveDirectoryRole", false),
                                 ScimUser.Role("write", "write", "WindowsAzureActiveDirectoryRole", false),
                             ),
-                        fintUserExtension = ScimUser.FintUserExtension("1234", "1234", Users.ALICE_TELEMARK),
+                        fintUserExtension =
+                            ScimUser.FintUserExtension(
+                                Users.ALICE_FIRST_NAME,
+                                Users.BASIC_LAST_NAME,
+                                "1234",
+                                "1234",
+                                Users.ALICE_TELEMARK,
+                            ),
                     ),
                     ScimUser(
                         schemas =
@@ -62,15 +67,20 @@ class ProvisionedTest {
                         externalId = "22222222-2222-2222-2222-222222222222",
                         userName = Users.JON_TELEMARK,
                         active = true,
-                        givenName = Users.JON_FIRST_NAME,
-                        familyName = Users.BASIC_LAST_NAME,
                         emails = listOf(ScimUser.Email(Users.JON_TELEMARK, primary = true)),
                         roles =
                             listOf(
                                 ScimUser.Role("read", "read", "WindowsAzureActiveDirectoryRole", false),
                                 ScimUser.Role("write", "write", "WindowsAzureActiveDirectoryRole", false),
                             ),
-                        fintUserExtension = ScimUser.FintUserExtension("1234", "1234", Users.JON_TELEMARK),
+                        fintUserExtension =
+                            ScimUser.FintUserExtension(
+                                Users.JON_FIRST_NAME,
+                                Users.BASIC_LAST_NAME,
+                                "1234",
+                                "1234",
+                                Users.JON_TELEMARK,
+                            ),
                     ),
                 ),
             Orgs.ROGALAND to
@@ -84,15 +94,20 @@ class ProvisionedTest {
                         externalId = "11111111-1111-1111-1111-111111111111",
                         userName = Users.ALICE_ROGALAND,
                         active = true,
-                        givenName = Users.ALICE_FIRST_NAME,
-                        familyName = Users.BASIC_LAST_NAME,
                         emails = listOf(ScimUser.Email(Users.ALICE_ROGALAND, primary = true)),
                         roles =
                             listOf(
                                 ScimUser.Role("read", "read", "WindowsAzureActiveDirectoryRole", false),
                                 ScimUser.Role("write", "write", "WindowsAzureActiveDirectoryRole", false),
                             ),
-                        fintUserExtension = ScimUser.FintUserExtension("1234", "1234", Users.ALICE_ROGALAND),
+                        fintUserExtension =
+                            ScimUser.FintUserExtension(
+                                Users.ALICE_FIRST_NAME,
+                                Users.BASIC_LAST_NAME,
+                                "1234",
+                                "1234",
+                                Users.ALICE_ROGALAND,
+                            ),
                     ),
                     ScimUser(
                         schemas =
@@ -102,15 +117,20 @@ class ProvisionedTest {
                         externalId = "22222222-2222-2222-2222-222222222222",
                         userName = Users.JON_ROGALAND,
                         active = true,
-                        givenName = Users.JON_FIRST_NAME,
-                        familyName = Users.BASIC_LAST_NAME,
                         emails = listOf(ScimUser.Email(Users.JON_ROGALAND, primary = true)),
                         roles =
                             listOf(
                                 ScimUser.Role("read", "read", "WindowsAzureActiveDirectoryRole", false),
                                 ScimUser.Role("write", "write", "WindowsAzureActiveDirectoryRole", false),
                             ),
-                        fintUserExtension = ScimUser.FintUserExtension("1234", "1234", Users.JON_ROGALAND),
+                        fintUserExtension =
+                            ScimUser.FintUserExtension(
+                                Users.JON_FIRST_NAME,
+                                Users.BASIC_LAST_NAME,
+                                "1234",
+                                "1234",
+                                Users.JON_ROGALAND,
+                            ),
                     ),
                 ),
         )
@@ -226,8 +246,8 @@ class ProvisionedTest {
                 val newEmails = listOf(ScimUser.Email("new-${user.emails.first().value}", primary = true))
 
                 user.id = KcAdminClient.findUserByUsername(realmRes, user.userName)?.id
-                user.givenName = newGivenName
-                user.familyName = newFamilyName
+                user.fintUserExtension?.givenName = newGivenName
+                user.fintUserExtension?.familyName = newFamilyName
                 user.emails = newEmails
 
                 ScimFlow
@@ -242,8 +262,8 @@ class ProvisionedTest {
 
                 val kcUser = KcAdminClient.findUserByUsername(realmRes, user.userName)
                 assertNotNull(kcUser)
-                assertEquals(user.givenName, kcUser.firstName)
-                assertEquals(user.familyName, kcUser.lastName)
+                assertEquals(user.fintUserExtension?.givenName, kcUser.firstName)
+                assertEquals(user.fintUserExtension?.familyName, kcUser.lastName)
                 assertEquals(user.emails.first().value, kcUser.email)
             }
         }
@@ -327,8 +347,7 @@ class ProvisionedTest {
         val entraCoreUserAttributes =
             JsonObject(
                 mapOf(
-                    "$coreUrn:givenName" to JsonPrimitive("Jeanette"),
-                    "$coreUrn:familyName" to JsonPrimitive("Bergersen"),
+                    "$coreUrn:externalId" to JsonPrimitive("random-id"),
                 ),
             )
 
@@ -351,6 +370,8 @@ class ProvisionedTest {
         val entraFintUserExtensionAttributes =
             JsonObject(
                 mapOf(
+                    "$extensionUrnPrefix:givenName" to JsonPrimitive("Jeanette"),
+                    "$extensionUrnPrefix:familyName" to JsonPrimitive("Bergersen"),
                     "$extensionUrnPrefix:employeeId" to JsonPrimitive("111111111111"),
                     "$extensionUrnPrefix:studentNumber" to JsonPrimitive("111111111111"),
                     "$extensionUrnPrefix:userPrincipalName" to JsonPrimitive("test@test.no"),
@@ -429,11 +450,15 @@ class ProvisionedTest {
                     .filterKeys { it.startsWith(extensionUrnPrefix) }
                     .forEach { (key, value) ->
                         val attributeName = key.substringAfterLast(":")
+                        val actual = value.jsonPrimitive.content
 
-                        assertEquals(
-                            value.jsonPrimitive.content,
-                            kcUser.attributes[attributeName]?.first(),
-                        )
+                        val expected = when (attributeName) {
+                            "givenName" -> kcUser.firstName
+                            "familyName" -> kcUser.lastName
+                            else -> kcUser.attributes[attributeName]?.first()
+                        }
+
+                        assertEquals(expected, actual)
                     }
             }
 
