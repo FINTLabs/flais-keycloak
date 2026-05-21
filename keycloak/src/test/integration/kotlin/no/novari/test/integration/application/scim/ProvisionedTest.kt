@@ -452,11 +452,12 @@ class ProvisionedTest {
                         val attributeName = key.substringAfterLast(":")
                         val actual = value.jsonPrimitive.content
 
-                        val expected = when (attributeName) {
-                            "givenName" -> kcUser.firstName
-                            "familyName" -> kcUser.lastName
-                            else -> kcUser.attributes[attributeName]?.first()
-                        }
+                        val expected =
+                            when (attributeName) {
+                                "givenName" -> kcUser.firstName
+                                "familyName" -> kcUser.lastName
+                                else -> kcUser.attributes[attributeName]?.first()
+                            }
 
                         assertEquals(expected, actual)
                     }
