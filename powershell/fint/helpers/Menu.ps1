@@ -12,8 +12,9 @@ function Show-Menu {
     Write-Host "2. Create and assign Claims Mapping Policy"
     Write-Host "3. Configure Enterprise Application + App Registration settings"
     Write-Host "4. Configure FINT SCIM Provisioning"
-    Write-Host "5. Show Active Graph Context"
-    Write-Host "6. Show Current Enterprise Application"
+    Write-Host "5. Configure Application Roles"
+    Write-Host "6. Show Active Graph Context"
+    Write-Host "7. Show Current Enterprise Application"
     Write-Host "0. Exit"
     Write-Host ""
 }
@@ -38,34 +39,32 @@ function Invoke-MenuChoice {
 
         "2" {
             Invoke-CreateClaimsMappingPolicy `
-                -ExistingApplicationResult $script:LastEnterpriseApplicationResult |
-            Out-Null
+                -ExistingApplicationResult $script:LastEnterpriseApplicationResult
         }
 
         "3" {
             Invoke-ConfigureEnterpriseApplication `
-                -ExistingApplicationResult $script:LastEnterpriseApplicationResult |
-            Out-Null
+                -ExistingApplicationResult $script:LastEnterpriseApplicationResult
         }
 
         "4" {
             $servicePrincipalObjectId = $null
 
-            if ($script:LastEnterpriseApplicationResult) {
-                $servicePrincipalObjectId = $script:LastEnterpriseApplicationResult.ServicePrincipalObjectId
-            }
-
             Invoke-ConfigureScimProvisioning `
-                -ExistingServicePrincipalObjectId $servicePrincipalObjectId |
-            Out-Null
+                -ExistingServicePrincipalObjectId $script:LastEnterpriseApplicationResult.ServicePrincipalObjectId
         }
 
         "5" {
-            Show-GraphContext
+            Invoke-ConfigureApplicationRoles `
+                -ExistingApplicationResult $script:LastEnterpriseApplicationResult
         }
 
         "6" {
-            Show-CurrentEnterpriseApplication
+            Show-GraphContext
+        }
+
+        "7" {
+            Write-EnterpriseApplicationResult -ApplicationResult $script:LastEnterpriseApplicationResult
         }
 
         "0" {
@@ -74,10 +73,10 @@ function Invoke-MenuChoice {
 
         default {
             if ($script:LastEnterpriseApplicationResult) {
-                Write-Host "Invalid option. Please choose 0, 2, 3, 4, 5, or 6." -ForegroundColor Yellow
+                Write-Host "Invalid option. Please choose 0, 2, 3, 4, 5, 6, or 7." -ForegroundColor Yellow
             }
             else {
-                Write-Host "Invalid option. Please choose 0, 1, 2, 3, 4, 5, or 6." -ForegroundColor Yellow
+                Write-Host "Invalid option. Please choose 0, 1, 2, 3, 4, 5, 6, or 7." -ForegroundColor Yellow
             }
         }
     }

@@ -22,7 +22,6 @@ function Get-GraphExceptionDetails {
         }
     }
     catch {
-        # Ignore detail extraction errors.
     }
 
     try {
@@ -31,7 +30,6 @@ function Get-GraphExceptionDetails {
         }
     }
     catch {
-        # Ignore detail extraction errors.
     }
 
     if (-not $details.RawBody) {
@@ -45,7 +43,6 @@ function Get-GraphExceptionDetails {
             }
         }
         catch {
-            # Ignore detail extraction errors.
         }
     }
 
@@ -67,7 +64,6 @@ function Get-GraphExceptionDetails {
             }
         }
         catch {
-            # Raw body was not JSON.
         }
     }
 

@@ -21,8 +21,6 @@ param(
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 
-Import-Module Microsoft.Graph.Authentication -ErrorAction Stop
-
 . "$PSScriptRoot/../helpers/GraphRetry.ps1"
 . "$PSScriptRoot/../helpers/RequiredScopes.ps1"
 
@@ -225,14 +223,3 @@ else {
         -MaxAttempts $MaxRetries `
         -DelaySeconds $RetryDelaySeconds
 }
-
-$result = [pscustomobject]@{
-    ServicePrincipalObjectId     = $ServicePrincipalObjectId
-    ClaimsMappingPolicyObjectId  = $policy.id
-    ClaimsMappingPolicyName      = $policy.displayName
-    EmployeeIdSourceAttribute    = $EmployeeIdSourceAttribute
-    StudentNumberSourceAttribute = $StudentNumberSourceAttribute
-    WasExistingPolicyUpdated     = $assignedClaimsMappingPolicies.Count -eq 1
-}
-
-$result | ConvertTo-Json -Depth 20

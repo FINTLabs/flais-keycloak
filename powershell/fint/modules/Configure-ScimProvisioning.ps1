@@ -618,8 +618,8 @@ else {
     $targetExternalId = "externalId"
     $targetRoles = "roles"
 
-    $targetGivenName = "urn:ietf:params:scim:schemas:core:2.0:User:name.givenName"
-    $targetFamilyName = "urn:ietf:params:scim:schemas:core:2.0:User:name.familyName"
+    $targetGivenName = "urn:ietf:params:scim:schemas:extension:fint:2.0:User:givenName"
+    $targetFamilyName = "urn:ietf:params:scim:schemas:extension:fint:2.0:User:familyName"
 
     $targetUpn = "urn:ietf:params:scim:schemas:extension:fint:2.0:User:userPrincipalName"
     $targetEmployeeId = "urn:ietf:params:scim:schemas:extension:fint:2.0:User:employeeId"

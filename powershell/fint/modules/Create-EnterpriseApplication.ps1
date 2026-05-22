@@ -31,11 +31,9 @@ Write-Host "  Application ObjectId:    $($app.id)"
 Write-Host "  Application AppId:       $($app.appId)"
 Write-Host "  ServicePrincipal Id:     $($sp.id)"
 
-$result = [pscustomobject]@{
+[pscustomobject]@{
     DisplayName              = $DisplayName
     ApplicationObjectId      = $app.id
     ApplicationAppId         = $app.appId
     ServicePrincipalObjectId = $sp.id
 }
-
-$result | ConvertTo-Json -Depth 20

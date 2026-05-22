@@ -1,26 +1,5 @@
-<#
-.SYNOPSIS
-  Entry menu for creating a FINT Entra Enterprise Application and configuring SCIM provisioning.
-
-.DESCRIPTION
-  Implements the Entra ID part of config/fint:
-    - Bootstrap/startup context:
-        - Creates non-gallery Enterprise Application
-        - Optionally connects to an existing Enterprise Application
-        - Creates Claims Mapping Policy as a separate operation
-        - Assigns Claims Mapping Policy to an existing service principal
-
-    - Configure context:
-        - App Registration settings: Web redirect URI, acceptMappedClaims, Graph delegated User.Read/profile
-        - Enterprise Application settings: enabled, assignment required, hidden from users
-
-    - SCIM provisioning:
-        - bearer auth
-        - assigned users/groups scope
-        - users on/groups off
-        - FINT attributes/mappings
-        - accidental delete threshold 500
-#>
+Import-Module Microsoft.Graph.Authentication -ErrorAction Stop
+Import-Module Microsoft.Graph.Applications -ErrorAction Stop
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
@@ -33,35 +12,26 @@ $ErrorActionPreference = "Stop"
 . "$PSScriptRoot/helpers/EnterpriseApplicationHelpers.ps1"
 
 $CreateEnterpriseAppScript = "$PSScriptRoot/modules/Create-EnterpriseApplication.ps1"
-$CreateClaimsMappingPolicyScript = "$PSScriptRoot/modules/Create-ClaimsMappingPolicy.ps1"
+$CreateClaimsMappingPolicyScript = "$PSScriptRoot/modules/Configure-ClaimsMappingPolicy.ps1"
 $ConfigureEnterpriseAppScript = "$PSScriptRoot/modules/Configure-Application.ps1"
 $ConfigureScimScript = "$PSScriptRoot/modules/Configure-ScimProvisioning.ps1"
+$ConfigureAppRolesScript = "$PSScriptRoot/modules/Configure-AppRoles.ps1"
 
 $script:LastEnterpriseApplicationResult = $null
-
 
 function Invoke-CreateEnterpriseApplication {
     $displayName = Read-RequiredValue "Enterprise Application display name"
 
-    Write-SectionTitle "Creating Enterprise Application"
-
-    $result = Invoke-ScriptAndConvertFromJson `
-        -Path $CreateEnterpriseAppScript `
-        -Parameters @{
-            DisplayName = $displayName
-        }
+    $result = & $CreateEnterpriseAppScript -DisplayName $displayName
 
     Assert-NovariEnterpriseApplicationResult -ApplicationResult $result
 
-    Write-SectionTitle "Enterprise Application created" -Color Green
     Write-EnterpriseApplicationResult -ApplicationResult $result
 
     return $result
 }
 
 function Get-ExistingEnterpriseApplication {
-    Write-SectionTitle "Connect existing Enterprise Application"
-
     $answer = Read-DefaultedValue `
         -Prompt "Do you want to connect an existing Application? y/n" `
         -DefaultValue "n"
@@ -70,30 +40,28 @@ function Get-ExistingEnterpriseApplication {
         return $null
     }
 
-    Import-Module Microsoft.Graph.Applications -ErrorAction Stop
-
     $applicationAppId = Read-RequiredValue "Application AppId"
-    if ($applicationAppId -notmatch '^[0-9a-fA-F-]{36}$') {
-        throw "Invalid Application AppId '$applicationAppId'. Expected a GUID."
-    }
 
     $servicePrincipal = Get-SingleGraphObject `
         -Items @(Get-MgServicePrincipal -Filter "appId eq '$applicationAppId'" -ErrorAction Stop) `
         -NoMatchMessage "No Enterprise Application found with Application AppId '$applicationAppId'." `
         -MultipleMatchesMessage "Multiple service principals found for Application AppId '$applicationAppId'."
 
-    Assert-NovariEnterpriseApplicationDisplayName `
-        -DisplayName $servicePrincipal.DisplayName `
-        -Identifier $servicePrincipal.Id
-
     $application = Get-SingleGraphObject `
         -Items @(Get-MgApplication -Filter "appId eq '$applicationAppId'" -ErrorAction Stop) `
         -NoMatchMessage "Found service principal '$($servicePrincipal.DisplayName)', but could not find matching application registration with AppId '$applicationAppId'." `
         -MultipleMatchesMessage "Multiple application registrations found for Application AppId '$applicationAppId'."
 
-    $result = New-EnterpriseApplicationResult `
-        -Application $application `
-        -ServicePrincipal $servicePrincipal
+    Assert-NovariEnterpriseApplicationDisplayName `
+        -DisplayName $servicePrincipal.DisplayName `
+        -Identifier $servicePrincipal.Id
+
+    $result = [pscustomobject]@{
+        DisplayName              = $ServicePrincipal.DisplayName
+        ApplicationObjectId      = $Application.Id
+        ApplicationAppId         = $Application.AppId
+        ServicePrincipalObjectId = $ServicePrincipal.Id
+    }
 
     Write-SectionTitle "Existing Enterprise Application connected" -Color Green
     Write-EnterpriseApplicationResult -ApplicationResult $result
@@ -101,50 +69,21 @@ function Get-ExistingEnterpriseApplication {
     return $result
 }
 
-function Show-CurrentEnterpriseApplication {
-    if (-not $script:LastEnterpriseApplicationResult) {
-        Write-Host ""
-        Write-Host "No Enterprise Application has been created or selected in this session." -ForegroundColor Yellow
-        Write-Host "Run option 1 first, or connect existing on startup."
-        return
-    }
-
-    Write-SectionTitle "Current Enterprise Application"
-    Write-EnterpriseApplicationResult -ApplicationResult $script:LastEnterpriseApplicationResult
-}
-
 function Invoke-ConfigureEnterpriseApplication {
     param(
         [Parameter(Mandatory = $false)]
         [object]$ExistingApplicationResult
     )
-
     Assert-NovariEnterpriseApplicationResult -ApplicationResult $ExistingApplicationResult
 
     $redirectUri = Read-RequiredValue "Keycloak redirect URI for IDP"
-    Write-SectionTitle "Configuring FINT Enterprise Application"
 
-    $result = Invoke-ScriptAndConvertFromJson `
-        -Path $ConfigureEnterpriseAppScript `
-        -Parameters @{
-            ApplicationObjectId      = $ExistingApplicationResult.ApplicationObjectId
-            ApplicationAppId         = $ExistingApplicationResult.ApplicationAppId
-            ServicePrincipalObjectId = $ExistingApplicationResult.ServicePrincipalObjectId
-            RedirectUri              = $redirectUri
-            AcceptMappedClaims       = $true
-        }
-
-    Write-SectionTitle "Enterprise Application configured" -Color Green
-    Write-ObjectProperties `
-        -InputObject $result `
-        -Labels ([ordered]@{
-            "Application ObjectId"      = "ApplicationObjectId"
-            "Application AppId"         = "ApplicationAppId"
-            "ServicePrincipal ObjectId" = "ServicePrincipalObjectId"
-            "Redirect URI"              = "RedirectUri"
-        })
-
-    return $result
+    $ConfigureEnterpriseAppScript `
+        ApplicationObjectId $ExistingApplicationResult.ApplicationObjectId `
+        ApplicationAppId $ExistingApplicationResult.ApplicationAppId `
+        ServicePrincipalObjectId $ExistingApplicationResult.ServicePrincipalObjectId `
+        RedirectUri $redirectUri `
+        AcceptMappedClaims $true
 }
 
 function Invoke-CreateClaimsMappingPolicy {
@@ -152,7 +91,6 @@ function Invoke-CreateClaimsMappingPolicy {
         [Parameter(Mandatory = $false)]
         [object]$ExistingApplicationResult
     )
-
     Assert-NovariEnterpriseApplicationResult -ApplicationResult $ExistingApplicationResult
 
     $displayName = Read-DefaultedValue `
@@ -167,29 +105,22 @@ function Invoke-CreateClaimsMappingPolicy {
         -Prompt "Student number source attribute" `
         -DefaultValue "extensionAttribute9"
 
-    Write-SectionTitle "Creating and assigning Claims Mapping Policy"
+    $CreateClaimsMappingPolicyScript `
+        ServicePrincipalObjectId $ExistingApplicationResult.ServicePrincipalObjectId `
+        DisplayName $displayName `
+        EmployeeIdSourceAttribute $employeeIdSource `
+        StudentNumberSourceAttribute $studentNumberSource
+}
 
-    $result = Invoke-ScriptAndConvertFromJson `
-        -Path $CreateClaimsMappingPolicyScript `
-        -Parameters @{
-            ServicePrincipalObjectId     = $ExistingApplicationResult.ServicePrincipalObjectId
-            DisplayName                  = $displayName
-            EmployeeIdSourceAttribute    = $employeeIdSource
-            StudentNumberSourceAttribute = $studentNumberSource
-        }
+function Invoke-ConfigureApplicationRoles {
+    param(
+        [Parameter(Mandatory = $false)]
+        [object]$ExistingApplicationResult
+    )
+    Assert-NovariEnterpriseApplicationResult -ApplicationResult $ExistingApplicationResult
 
-    Write-SectionTitle "Claims Mapping Policy created and assigned" -Color Green
-    Write-ObjectProperties `
-        -InputObject $result `
-        -Labels ([ordered]@{
-            "ServicePrincipal ObjectId"       = "ServicePrincipalObjectId"
-            "ClaimsMappingPolicy ObjectId"    = "ClaimsMappingPolicyObjectId"
-            "ClaimsMappingPolicy Name"        = "ClaimsMappingPolicyName"
-            "Employee ID source attribute"    = "EmployeeIdSourceAttribute"
-            "Student number source attribute" = "StudentNumberSourceAttribute"
-        })
-
-    return $result
+    $ConfigureAppRolesScript `
+        ApplicationObjectId $ExistingApplicationResult.ApplicationObjectId
 }
 
 function Invoke-ConfigureScimProvisioning {
@@ -217,31 +148,11 @@ function Invoke-ConfigureScimProvisioning {
         -Prompt "Student number source attribute" `
         -DefaultValue "extensionAttribute9"
 
-    Write-SectionTitle "Configuring FINT SCIM provisioning"
-
-    $result = Invoke-ScriptAndConvertFromJson `
-        -Path $ConfigureScimScript `
-        -Parameters @{
-            ServicePrincipalObjectId     = $servicePrincipalObjectId
-            TenantUrl                    = $tenantUrl
-            SecretToken                  = ""
-            ProvisionStatus              = "On"
-            EmployeeIdSourceAttribute    = $employeeIdSource
-            StudentNumberSourceAttribute = $studentNumberSource
-        }
-
-    Write-SectionTitle "SCIM provisioning configured" -Color Green
-    Write-ObjectProperties `
-        -InputObject $result `
-        -Labels ([ordered]@{
-            "ServicePrincipal ObjectId" = "ServicePrincipalObjectId"
-            "Sync TemplateId"           = "SyncTemplateId"
-            "Sync JobId"                = "SyncJobId"
-            "Tenant URL"                = "TenantUrl"
-            "Provision Status"          = "ProvisionStatus"
-        })
-
-    return $result
+    $ConfigureScimScript `
+        ServicePrincipalObjectId $servicePrincipalObjectId `
+        TenantUrl $tenantUrl `
+        EmployeeIdSourceAttribute $employeeIdSource `
+        StudentNumberSourceAttribute $studentNumberSource
 }
 
 . "$PSScriptRoot/helpers/Header.ps1"

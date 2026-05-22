@@ -75,29 +75,20 @@ function Get-SingleGraphObject {
     return $Items[0]
 }
 
-function New-EnterpriseApplicationResult {
-    param(
-        [Parameter(Mandatory = $true)]
-        [object]$Application,
-
-        [Parameter(Mandatory = $true)]
-        [object]$ServicePrincipal
-    )
-
-    return [pscustomobject]@{
-        DisplayName              = $ServicePrincipal.DisplayName
-        ApplicationObjectId      = $Application.Id
-        ApplicationAppId         = $Application.AppId
-        ServicePrincipalObjectId = $ServicePrincipal.Id
-    }
-}
-
 function Write-EnterpriseApplicationResult {
     param(
         [Parameter(Mandatory = $true)]
         [object]$ApplicationResult
     )
 
+    if (-not $ApplicationResult) {
+        Write-Host ""
+        Write-Host "No Enterprise Application has been created or selected in this session." -ForegroundColor Yellow
+        Write-Host "Run option 1 first, or connect existing on startup."
+        return
+    }
+
+    Write-SectionTitle "Current Enterprise Application"
     Write-ObjectProperties `
         -InputObject $ApplicationResult `
         -Labels ([ordered]@{

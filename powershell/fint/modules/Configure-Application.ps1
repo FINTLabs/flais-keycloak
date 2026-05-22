@@ -20,6 +20,13 @@ $ErrorActionPreference = "Stop"
 
 . "$PSScriptRoot/../helpers/GraphRetry.ps1"
 
+Assert-MgContextHasExactlyRequiredScopes -RequiredScopes @(
+    "Application.ReadWrite.All",
+    "Policy.Read.All",
+    "Policy.ReadWrite.ApplicationConfiguration",
+    "Synchronization.ReadWrite.All"
+)
+
 function Set-FintApplicationRegistrationConfig {
     param(
         [Parameter(Mandatory = $true)]
@@ -94,7 +101,7 @@ function Set-FintApplicationRegistrationConfig {
         -BodyJson ($body | ConvertTo-Json -Depth 30) | Out-Null
 }
 
-function Set-FintEnterpriseApplicationConfig {
+function Set-EnterpriseApplicationConfig {
     param(
         [Parameter(Mandatory = $true)]
         [string]$ServicePrincipalObjectId
@@ -152,19 +159,5 @@ function Set-FintEnterpriseApplicationConfig {
 Set-FintApplicationRegistrationConfig `
     -ApplicationObjectId $ApplicationObjectId
 
-Write-Host "Configured App Registration: Web redirect URI when supplied, ID token upn claim, Graph delegated permissions, acceptMappedClaims, and default User app role value set to user."
-
-Set-FintEnterpriseApplicationConfig `
+Set-EnterpriseApplicationConfig `
     -ServicePrincipalObjectId $ServicePrincipalObjectId
-
-Write-Host "Configured Enterprise Application: enabled, assignment required, hidden from users, and default msiam_access app role disabled when present."
-
-$result = [pscustomobject]@{
-    ApplicationObjectId      = $ApplicationObjectId
-    ApplicationAppId         = $ApplicationAppId
-    ServicePrincipalObjectId = $ServicePrincipalObjectId
-    RedirectUri              = $RedirectUri
-    AcceptMappedClaims       = $AcceptMappedClaims
-}
-
-$result | ConvertTo-Json -Depth 20

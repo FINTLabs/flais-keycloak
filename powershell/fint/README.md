@@ -59,7 +59,7 @@ It can:
 └── modules
     ├── Configure-Application.ps1
     ├── Configure-ScimProvisioning.ps1
-    ├── Create-ClaimsMappingPolicy.ps1
+    ├── Configure-ClaimsMappingPolicy.ps1
     └── Create-EnterpriseApplication.ps1
 ```
 
@@ -161,12 +161,12 @@ Returned JSON properties:
 | `ApplicationAppId` | Application/client ID. |
 | `ServicePrincipalObjectId` | Object ID of the Enterprise Application / Service Principal. |
 
-### `modules/Create-ClaimsMappingPolicy.ps1`
+### `modules/Configure-ClaimsMappingPolicy.ps1`
 
 Creates or updates a FINT Claims Mapping Policy and assigns it to the Service Principal.
 
 ```powershell
-./modules/Create-ClaimsMappingPolicy.ps1 `
+./modules/Configure-ClaimsMappingPolicy.ps1 `
   -ServicePrincipalObjectId "<service-principal-object-id>" `
   -DisplayName "<policy-display-name>" `
   -EmployeeIdSourceAttribute "extensionAttribute10" `
