@@ -1,7 +1,5 @@
 package no.novari.keycloak.scim.application.endpoints
 
-import com.fasterxml.jackson.databind.JsonNode
-import com.unboundid.scim2.common.GenericScimResource
 import com.unboundid.scim2.common.messages.PatchOperation
 import com.unboundid.scim2.common.messages.PatchRequest
 import com.unboundid.scim2.common.utils.JsonUtils
@@ -34,6 +32,7 @@ import org.keycloak.models.RoleModel
 import org.keycloak.models.UserModel
 import org.keycloak.models.UserProvider
 import org.keycloak.organization.OrganizationProvider
+import tools.jackson.databind.JsonNode
 import java.net.URI
 
 @ExtendWith(MockKExtension::class)
@@ -77,6 +76,13 @@ class ScimUserEndpointTest {
         endpoint = ScimUserEndpoint(scimContext)
     }
 
+    private fun Response.asJsonNode(): JsonNode {
+        val json = entity as String
+        return JsonUtils.getObjectReader().readTree(json)
+    }
+
+    private fun Any.asJsonString(): String = JsonUtils.getObjectWriter().writeValueAsString(this)
+
     fun templateUser(user: UserModel) {
         every { realm.getRole(ScimRoles.SCIM_MANAGED_ROLE) } returns scimRole
         every { user.hasRole(scimRole) } returns true
@@ -106,7 +112,17 @@ class ScimUserEndpointTest {
 
         val response = endpoint.getUsers(usersUriInfo)
         assertEquals(Response.Status.OK.statusCode, response.status)
-        assertTrue(response.entity != null)
+        assertTrue(response.entity is String)
+
+        val node = response.asJsonNode()
+        assertEquals(1, node["totalResults"].asInt())
+
+        val resources = node["Resources"]
+        assertTrue(resources.isArray)
+
+        val returnedUser = resources.first()
+        assertEquals(userId, returnedUser["id"].asString())
+        assertEquals("alice.basic@telemark.no", returnedUser["userName"].asString())
     }
 
     @Test
@@ -115,7 +131,14 @@ class ScimUserEndpointTest {
             orgProvider.getMemberById(scimContext.organization, userId)
         } returns null
 
-        assertEquals(Response.Status.NOT_FOUND.statusCode, endpoint.getUser(userId, userUriInfo).status)
+        val response = endpoint.getUser(userId, userUriInfo)
+
+        assertEquals(Response.Status.NOT_FOUND.statusCode, response.status)
+        assertTrue(response.entity is String)
+
+        val node = response.asJsonNode()
+        assertEquals("404", node["status"].asString())
+        assertEquals("No user found with id $userId", node["detail"].asString())
     }
 
     @Test
@@ -129,23 +152,22 @@ class ScimUserEndpointTest {
         val response = endpoint.getUser(userId, userUriInfo)
 
         assertEquals(Response.Status.OK.statusCode, response.status)
-        assertTrue(response.entity is GenericScimResource)
+        assertTrue(response.entity is String)
 
-        val resource = response.entity as GenericScimResource
-        val node = resource.objectNode
+        val node = response.asJsonNode()
 
-        assertEquals(userId, node["id"].asText())
-        assertEquals("alice.basic@telemark.no", node["userName"].asText())
+        assertEquals(userId, node["id"].asString())
+        assertEquals("alice.basic@telemark.no", node["userName"].asString())
         assertEquals(true, node["active"].asBoolean())
-        assertEquals(extId, node["externalId"].asText())
+        assertEquals(extId, node["externalId"].asString())
 
         val emailNode = node["emails"].get(0)
-        assertEquals("alice.basic@telemark.no", emailNode.get("value").asText())
+        assertEquals("alice.basic@telemark.no", emailNode.get("value").asString())
         assertEquals(true, emailNode.get("primary").asBoolean())
 
         val nameNode = node["name"]
-        assertEquals("Alice", nameNode.get("givenName").asText())
-        assertEquals("Basic", nameNode.get("familyName").asText())
+        assertEquals("Alice", nameNode.get("givenName").asString())
+        assertEquals("Basic", nameNode.get("familyName").asString())
 
         val roleNode = node["roles"]
         assertEquals(
@@ -176,10 +198,16 @@ class ScimUserEndpointTest {
         every { orgProvider.getIdentityProviders(scimContext.organization) } returns
             emptyList<IdentityProviderModel>().stream()
 
-        val response = endpoint.createUser(usersUriInfo, scimUser)
+        val response = endpoint.createUser(usersUriInfo, scimUser.asJsonString())
 
         assertEquals(Response.Status.CREATED.statusCode, response.status)
+        assertTrue(response.entity is String)
         assertTrue(response.location.toString().contains(userId))
+
+        val node = response.asJsonNode()
+        assertEquals(userId, node["id"].asString())
+        assertEquals("alice.basic@telemark.no", node["userName"].asString())
+        assertEquals(extId, node["externalId"].asString())
 
         verify(exactly = 1) { user.grantRole(scimRole) }
         verify { orgProvider.addManagedMember(scimContext.organization, user) }
@@ -187,6 +215,31 @@ class ScimUserEndpointTest {
         verify { user.username = scimUser.userName }
         verify { user.isEnabled = scimUser.active!! }
         verify { user.setSingleAttribute("externalId", scimUser.externalId) }
+    }
+
+    @Test
+    fun `createUser returns 409 when user already exists`() {
+        val scimUser =
+            UserResource().apply {
+                userName = "alice.basic@telemark.no"
+                active = true
+                externalId = extId
+            }
+
+        every {
+            userProvider.getUserById(realm, scimUser.userName)
+        } returns user
+
+        val response = endpoint.createUser(usersUriInfo, scimUser.asJsonString())
+
+        assertEquals(Response.Status.CONFLICT.statusCode, response.status)
+        assertTrue(response.entity is String)
+
+        val node = response.asJsonNode()
+        assertEquals("409", node["status"].asString())
+        assertEquals("User already exists with id ${scimUser.userName}", node["detail"].asString())
+
+        verify(exactly = 0) { userProvider.addUser(any(), any()) }
     }
 
     @Test
@@ -206,9 +259,10 @@ class ScimUserEndpointTest {
         every { realm.getRole(ScimRoles.SCIM_MANAGED_ROLE) } returns scimRole
         every { orgProvider.addManagedMember(scimContext.organization, user) } returns true
 
-        val response = endpoint.createUser(usersUriInfo, scimUser)
+        val response = endpoint.createUser(usersUriInfo, scimUser.asJsonString())
 
         assertEquals(Response.Status.CREATED.statusCode, response.status)
+        assertTrue(response.entity is String)
 
         verify(exactly = 0) { orgProvider.getIdentityProviders(any()) }
         verify(exactly = 0) { userProvider.getFederatedIdentity(any(), any(), any()) }
@@ -222,7 +276,7 @@ class ScimUserEndpointTest {
         } throws RuntimeException()
 
         assertThrows<NotFoundException> {
-            endpoint.updateUser(userUriInfo, userId, UserResource())
+            endpoint.updateUser(userUriInfo, userId, UserResource().asJsonString())
         }
     }
 
@@ -238,7 +292,7 @@ class ScimUserEndpointTest {
         } returns false
 
         assertThrows<ForbiddenException> {
-            endpoint.updateUser(userUriInfo, userId, UserResource())
+            endpoint.updateUser(userUriInfo, userId, UserResource().asJsonString())
         }
     }
 
@@ -327,29 +381,34 @@ class ScimUserEndpointTest {
             userProvider.getFederatedIdentitiesStream(realm, user)
         } returns emptyList<FederatedIdentityModel>().stream()
 
-        val response =
-            endpoint.patchUser(
-                userUriInfo,
-                userId,
-                PatchRequest(
-                    listOf(
-                        PatchOperation.replace("name.givenName", "new"),
-                        PatchOperation.replace(
-                            "roles",
-                            JsonUtils.getObjectReader().readTree(
-                                """
-                                [
-                                  {"value":"admin","display":"admin","type":"WindowsAzureActiveDirectoryRole","primary":false},
-                                  {"value":"manager","display":"manager","type":"WindowsAzureActiveDirectoryRole","primary":false}
-                                ]
-                                """.trimIndent(),
-                            ),
+        val patchRequest =
+            PatchRequest(
+                listOf(
+                    PatchOperation.replace("name.givenName", "new"),
+                    PatchOperation.replace(
+                        "roles",
+                        JsonUtils.getObjectReader().readTree(
+                            """
+                            [
+                              {"value":"admin","display":"admin","type":"WindowsAzureActiveDirectoryRole","primary":false},
+                              {"value":"manager","display":"manager","type":"WindowsAzureActiveDirectoryRole","primary":false}
+                            ]
+                            """.trimIndent(),
                         ),
                     ),
                 ),
             )
 
+        val response =
+            endpoint.patchUser(
+                userUriInfo,
+                userId,
+                patchRequest.asJsonString(),
+            )
+
         assertEquals(Response.Status.OK.statusCode, response.status)
+        assertTrue(response.entity is String)
+
         verify { user.firstName = "new" }
 
         val rolesSlot = slot<List<String>>()
@@ -372,18 +431,22 @@ class ScimUserEndpointTest {
         every { userProvider.getFederatedIdentitiesStream(realm, user) } returns
             emptyList<FederatedIdentityModel>().stream()
 
+        val patchRequest =
+            PatchRequest(
+                listOf(
+                    PatchOperation.remove("urn:ietf:params:scim:schemas:extension:fint:2.0:User:employeeId"),
+                ),
+            )
+
         val response =
             endpoint.patchUser(
                 userUriInfo,
                 userId,
-                PatchRequest(
-                    listOf(
-                        PatchOperation.remove("urn:ietf:params:scim:schemas:extension:fint:2.0:User:employeeId"),
-                    ),
-                ),
+                patchRequest.asJsonString(),
             )
 
         assertEquals(Response.Status.OK.statusCode, response.status)
+        assertTrue(response.entity is String)
 
         verify(exactly = 1) { user.removeAttribute("employeeId") }
         verify(exactly = 0) { user.setAttribute(eq("employeeId"), any<List<String>>()) }
@@ -401,18 +464,22 @@ class ScimUserEndpointTest {
         every { userProvider.getFederatedIdentitiesStream(realm, user) } returns
             emptyList<FederatedIdentityModel>().stream()
 
+        val patchRequest =
+            PatchRequest(
+                listOf(
+                    PatchOperation.remove("roles"),
+                ),
+            )
+
         val response =
             endpoint.patchUser(
                 userUriInfo,
                 userId,
-                PatchRequest(
-                    listOf(
-                        PatchOperation.remove("roles"),
-                    ),
-                ),
+                patchRequest.asJsonString(),
             )
 
         assertEquals(Response.Status.OK.statusCode, response.status)
+        assertTrue(response.entity is String)
 
         verify(exactly = 1) { user.removeAttribute("roles") }
         verify(exactly = 0) { user.setAttribute(eq("roles"), any<List<String>>()) }
@@ -445,19 +512,25 @@ class ScimUserEndpointTest {
 
         val response = endpoint.getUser(userId, userUriInfo)
         assertEquals(Response.Status.OK.statusCode, response.status)
+        assertTrue(response.entity is String)
 
-        val resource = response.entity as GenericScimResource
-        val extNode = resource.objectNode["urn:ietf:params:scim:schemas:extension:fint:2.0:User"]
+        val node = response.asJsonNode()
+        val extNode = node["urn:ietf:params:scim:schemas:extension:fint:2.0:User"]
         assertTrue(extNode != null && extNode.isObject)
 
         extensionFields.forEach { prop ->
             val jsonValue: String? =
-                extNode.get(prop)?.takeUnless(JsonNode::isNull)?.asText()
+                extNode.get(prop)?.takeUnless(JsonNode::isNull)?.asString()
 
             assertEquals(expected[prop], jsonValue)
         }
 
-        val jsonFields = extNode.fieldNames().asSequence().toSet()
+        val jsonFields =
+            extNode
+                .properties()
+                .asSequence()
+                .map { it.key }
+                .toSet()
         assertEquals(extensionFields.toSet(), jsonFields)
     }
 
@@ -505,8 +578,13 @@ class ScimUserEndpointTest {
                 setExtension(ext)
             }
 
-        val response = endpoint.updateUser(userUriInfo, userId, updatedScimUser)
+        val response = endpoint.updateUser(userUriInfo, userId, updatedScimUser.asJsonString())
         assertEquals(Response.Status.OK.statusCode, response.status)
+        assertTrue(response.entity is String)
+
+        val node = response.asJsonNode()
+        assertEquals(userId, node["id"].asString())
+        assertEquals("alice.basic@telemark.no", node["userName"].asString())
 
         extensionFields.forEach { attr ->
             verify { user.setSingleAttribute(attr, expected[attr]) }

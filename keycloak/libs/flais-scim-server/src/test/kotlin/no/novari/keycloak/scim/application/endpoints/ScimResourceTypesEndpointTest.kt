@@ -1,22 +1,28 @@
 package no.novari.keycloak.scim.application.endpoints
 
-import com.unboundid.scim2.common.GenericScimResource
-import com.unboundid.scim2.common.ScimResource
 import com.unboundid.scim2.common.exceptions.ForbiddenException
 import com.unboundid.scim2.common.exceptions.ResourceNotFoundException
-import com.unboundid.scim2.common.messages.ListResponse
+import com.unboundid.scim2.common.utils.JsonUtils
+import jakarta.ws.rs.core.Response
 import no.novari.keycloak.scim.endpoints.ScimResourceTypesEndpoint
 import no.novari.keycloak.scim.endpoints.ScimUserEndpoint
 import no.novari.keycloak.scim.utils.TestUriInfo
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertNotNull
 import org.junit.jupiter.api.assertThrows
+import tools.jackson.databind.JsonNode
 import java.net.URI
 
 class ScimResourceTypesEndpointTest {
     private var uriInfo = TestUriInfo(URI("http://localhost/scim/v2/ResourceTypes"))
     private val endpoint = ScimResourceTypesEndpoint(listOf(ScimUserEndpoint::class))
+
+    private fun Response.asJsonNode(): JsonNode {
+        val json = entity as String
+        return JsonUtils.getObjectReader().readTree(json)
+    }
 
     @Test
     fun `search throws ForbiddenException when filter is provided`() {
@@ -27,14 +33,22 @@ class ScimResourceTypesEndpointTest {
 
     @Test
     fun `search returns resource types when no filter`() {
-        val response: ListResponse<ScimResource> = endpoint.search(uriInfo, null)
+        val response = endpoint.search(uriInfo, null)
+        val root = response.asJsonNode()
+
+        assertEquals(1, root["totalResults"].asInt())
+
+        val resources = root["Resources"]
+        assertTrue(resources.isArray)
 
         val userResourceType =
-            response.resources
-                .filterIsInstance<GenericScimResource>()
-                .firstOrNull { it.objectNode["name"].asText() == "User" }
+            resources.firstOrNull {
+                it["name"]?.asString() == "User"
+            }
 
         assertNotNull(userResourceType)
+        assertEquals("User", userResourceType!!["id"].asString())
+        assertEquals("User", userResourceType["name"].asString())
     }
 
     @Test
@@ -45,10 +59,10 @@ class ScimResourceTypesEndpointTest {
         val id = first.id
         val name = first.name
 
-        val node = endpoint.get(id, uriInfo).objectNode
+        val node = endpoint.get(id, uriInfo).asJsonNode()
 
-        assertEquals(id, node["id"].asText())
-        assertEquals(name, node["name"].asText())
+        assertEquals(id, node["id"].asString())
+        assertEquals(name, node["name"].asString())
     }
 
     @Test
@@ -59,10 +73,10 @@ class ScimResourceTypesEndpointTest {
         val id = first.id
         val name = first.name
 
-        val node = endpoint.get(name, uriInfo).objectNode
+        val node = endpoint.get(name, uriInfo).asJsonNode()
 
-        assertEquals(id, node["id"].asText())
-        assertEquals(name, node["name"].asText())
+        assertEquals(id, node["id"].asString())
+        assertEquals(name, node["name"].asString())
     }
 
     @Test

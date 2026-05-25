@@ -71,16 +71,16 @@ class ScimServiceProviderConfigEndpointTest {
         assertEquals(1, authSchemes.size())
 
         val scheme = authSchemes[0]
-        assertEquals("OAuth Bearer Token", scheme["name"].asText())
+        assertEquals("OAuth Bearer Token", scheme["name"].asString())
         assertEquals(
             "Authentication scheme using the OAuth Bearer Token Standard",
-            scheme["description"].asText(),
+            scheme["description"].asString(),
         )
-        assertEquals("https://www.rfc-editor.org/info/rfc6750", scheme["specUri"].asText())
-        assertEquals("oauthbearertoken", scheme["type"].asText())
+        assertEquals("https://www.rfc-editor.org/info/rfc6750", scheme["specUri"].asString())
+        assertEquals("oauthbearertoken", scheme["type"].asString())
         assertTrue(scheme["primary"].asBoolean())
 
         val meta = node["meta"]
-        assertEquals("ServiceProviderConfig", meta["resourceType"].asText())
+        assertEquals("ServiceProviderConfig", meta["resourceType"].asString())
     }
 }

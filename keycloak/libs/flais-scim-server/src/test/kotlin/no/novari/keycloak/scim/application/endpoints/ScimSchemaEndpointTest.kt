@@ -1,22 +1,29 @@
 package no.novari.keycloak.scim.application.endpoints
 
-import com.fasterxml.jackson.databind.node.ArrayNode
-import com.unboundid.scim2.common.GenericScimResource
 import com.unboundid.scim2.common.exceptions.ForbiddenException
 import com.unboundid.scim2.common.exceptions.ResourceNotFoundException
-import com.unboundid.scim2.common.messages.ListResponse
+import com.unboundid.scim2.common.utils.JsonUtils
+import jakarta.ws.rs.core.Response
 import no.novari.keycloak.scim.endpoints.ScimSchemaEndpoint
 import no.novari.keycloak.scim.endpoints.ScimUserEndpoint
 import no.novari.keycloak.scim.utils.TestUriInfo
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertNotNull
 import org.junit.jupiter.api.assertThrows
+import tools.jackson.databind.JsonNode
+import tools.jackson.databind.node.ArrayNode
 import java.net.URI
 
 class ScimSchemaEndpointTest {
     private var uriInfo = TestUriInfo(URI("http://localhost/scim/v2/Schemas"))
     private val endpoint = ScimSchemaEndpoint(listOf(ScimUserEndpoint::class))
+
+    private fun Response.asJsonNode(): JsonNode {
+        val json = entity as String
+        return JsonUtils.getObjectReader().readTree(json)
+    }
 
     @Test
     fun `search throws ForbiddenException when filter is provided`() {
@@ -27,46 +34,53 @@ class ScimSchemaEndpointTest {
 
     @Test
     fun `search returns schemas and user schema contains externalId attribute`() {
-        val response: ListResponse<GenericScimResource> = endpoint.search(uriInfo, null)
+        val response = endpoint.search(uriInfo, null)
+        val root = response.asJsonNode()
+
+        val resources = root["Resources"]
+        assertTrue(resources.isArray)
 
         val userSchema =
-            response.resources.firstOrNull {
-                it.objectNode["id"].asText() == "urn:ietf:params:scim:schemas:core:2.0:User"
+            resources.firstOrNull {
+                it["id"]?.asString() == "urn:ietf:params:scim:schemas:core:2.0:User"
             }
+
         assertNotNull(userSchema)
 
-        val attributesNode = userSchema.objectNode["attributes"] as ArrayNode
+        val attributesNode = userSchema!!["attributes"] as ArrayNode
+
         val externalAttr =
             attributesNode.firstOrNull { attr ->
-                attr["name"].asText() == "externalId"
+                attr["name"]?.asString() == "externalId"
             }
+
         assertNotNull(externalAttr)
 
-        assertEquals("string", externalAttr["type"].asText())
+        assertEquals("string", externalAttr!!["type"].asString())
         assertEquals(false, externalAttr["multiValued"].asBoolean())
-        assertEquals("Identifier for the User as defined by the client.", externalAttr["description"].asText())
+        assertEquals("Identifier for the User as defined by the client.", externalAttr["description"].asString())
         assertEquals(false, externalAttr["required"].asBoolean())
         assertEquals(true, externalAttr["caseExact"].asBoolean())
-        assertEquals("readWrite", externalAttr["mutability"].asText())
-        assertEquals("default", externalAttr["returned"].asText())
-        assertEquals("none", externalAttr["uniqueness"].asText())
+        assertEquals("readWrite", externalAttr["mutability"].asString())
+        assertEquals("default", externalAttr["returned"].asString())
+        assertEquals("none", externalAttr["uniqueness"].asString())
     }
 
     @Test
     fun `get returns schema when requested by id`() {
         val id = "urn:ietf:params:scim:schemas:core:2.0:User"
-        val node = endpoint.get(id, uriInfo).objectNode
+        val node = endpoint.get(id, uriInfo).asJsonNode()
 
-        assertEquals(id, node["id"].asText())
-        assertEquals("User", node["name"].asText())
+        assertEquals(id, node["id"].asString())
+        assertEquals("User", node["name"].asString())
     }
 
     @Test
     fun `get returns schema when requested by name`() {
-        val node = endpoint.get("User", uriInfo).objectNode
+        val node = endpoint.get("User", uriInfo).asJsonNode()
 
-        assertEquals("urn:ietf:params:scim:schemas:core:2.0:User", node["id"].asText())
-        assertEquals("User", node["name"].asText())
+        assertEquals("urn:ietf:params:scim:schemas:core:2.0:User", node["id"].asString())
+        assertEquals("User", node["name"].asString())
     }
 
     @Test

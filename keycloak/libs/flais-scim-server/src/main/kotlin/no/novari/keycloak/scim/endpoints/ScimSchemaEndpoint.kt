@@ -1,6 +1,5 @@
 package no.novari.keycloak.scim.endpoints
 
-import com.fasterxml.jackson.databind.node.ArrayNode
 import com.unboundid.scim2.common.GenericScimResource
 import com.unboundid.scim2.common.exceptions.ForbiddenException
 import com.unboundid.scim2.common.exceptions.ResourceNotFoundException
@@ -9,6 +8,7 @@ import com.unboundid.scim2.common.messages.ListResponse
 import com.unboundid.scim2.common.types.SchemaResource
 import com.unboundid.scim2.common.utils.ApiConstants.MEDIA_TYPE_SCIM
 import com.unboundid.scim2.common.utils.ApiConstants.QUERY_PARAMETER_FILTER
+import com.unboundid.scim2.common.utils.JsonUtils
 import com.unboundid.scim2.server.annotations.ResourceType
 import com.unboundid.scim2.server.utils.ResourcePreparer
 import com.unboundid.scim2.server.utils.SchemaAwareFilterEvaluator
@@ -19,9 +19,11 @@ import jakarta.ws.rs.Produces
 import jakarta.ws.rs.QueryParam
 import jakarta.ws.rs.core.Context
 import jakarta.ws.rs.core.MediaType
+import jakarta.ws.rs.core.Response
 import jakarta.ws.rs.core.UriInfo
 import no.novari.keycloak.scim.utils.ResourcePath
 import no.novari.keycloak.scim.utils.ResourceTypeDefinitionUtil.createResourceTypeDefinition
+import tools.jackson.databind.node.ArrayNode
 import kotlin.reflect.KClass
 
 @ResourceType(
@@ -39,24 +41,28 @@ class ScimSchemaEndpoint(
     fun search(
         @Context uriInfo: UriInfo,
         @QueryParam(QUERY_PARAMETER_FILTER) filterString: String?,
-    ): ListResponse<GenericScimResource> {
+    ): Response {
         if (!filterString.isNullOrEmpty()) {
             throw ForbiddenException("Filtering is not allowed")
         }
 
         val preparer = ResourcePreparer<GenericScimResource>(RESOURCE_TYPE_DEFINITION, uriInfo)
 
-        return ListResponse(
-            getSchemas()
-                .map { schema ->
-                    schema
-                        .asGenericScimResource()
-                        .also { resource ->
+        val listResponse =
+            ListResponse(
+                getSchemas()
+                    .map { schema ->
+                        schema.asGenericScimResource().also { resource ->
                             addExternalIdToUserSchemaJson(resource)
                             preparer.setResourceTypeAndLocation(resource)
                         }
-                },
-        )
+                    },
+            )
+
+        return Response
+            .ok(JsonUtils.getObjectWriter().writeValueAsString(listResponse))
+            .type(MEDIA_TYPE_SCIM)
+            .build()
     }
 
     @GET
@@ -65,21 +71,30 @@ class ScimSchemaEndpoint(
     fun get(
         @PathParam("id") id: String,
         @Context uriInfo: UriInfo,
-    ): GenericScimResource {
+    ): Response {
         val filter =
             Filter.or(
                 Filter.eq("id", id),
                 Filter.eq("name", id),
             )
+
         val filterEvaluator = SchemaAwareFilterEvaluator(RESOURCE_TYPE_DEFINITION)
         val preparer = ResourcePreparer<GenericScimResource>(RESOURCE_TYPE_DEFINITION, uriInfo)
+
         getSchemas().forEach { schema ->
             val resource = schema.asGenericScimResource()
+            addExternalIdToUserSchemaJson(resource)
+
             if (filter.visit(filterEvaluator, resource.objectNode)) {
                 preparer.setResourceTypeAndLocation(resource)
-                return resource
+
+                return Response
+                    .ok(JsonUtils.getObjectWriter().writeValueAsString(resource))
+                    .type(MEDIA_TYPE_SCIM)
+                    .build()
             }
         }
+
         throw ResourceNotFoundException("No schema defined with id $id")
     }
 
@@ -104,7 +119,7 @@ class ScimSchemaEndpoint(
     private fun addExternalIdToUserSchemaJson(resource: GenericScimResource) {
         val root = resource.objectNode
 
-        val schemaId = root.get("id")?.asText()
+        val schemaId = root.get("id")?.asString()
         if (schemaId != "urn:ietf:params:scim:schemas:core:2.0:User") return
 
         val attributesNode =
