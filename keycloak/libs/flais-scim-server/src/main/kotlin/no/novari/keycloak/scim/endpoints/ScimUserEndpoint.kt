@@ -5,7 +5,6 @@ import com.unboundid.scim2.common.annotations.Attribute
 import com.unboundid.scim2.common.messages.PatchRequest
 import com.unboundid.scim2.common.types.Email
 import com.unboundid.scim2.common.types.EnterpriseUserExtension
-import com.unboundid.scim2.common.types.Name
 import com.unboundid.scim2.common.types.Role
 import com.unboundid.scim2.common.utils.ApiConstants
 import com.unboundid.scim2.common.utils.JsonUtils
@@ -271,11 +270,6 @@ class ScimUserEndpoint(
                         value = user.email
                     },
                 )
-            name =
-                Name().apply {
-                    givenName = user.firstName
-                    familyName = user.lastName
-                }
             roles =
                 user
                     .getAttributeStream("rawRoles")
@@ -288,6 +282,8 @@ class ScimUserEndpoint(
                     employeeId = user.getFirstAttribute("employeeId")
                     studentNumber = user.getFirstAttribute("studentNumber")
                     userPrincipalName = user.getFirstAttribute("userPrincipalName")
+                    givenName = user.firstName
+                    familyName = user.lastName
                 },
             )
         }
@@ -300,14 +296,6 @@ class ScimUserEndpoint(
         user.isEnabled = scimUser.active!!
 
         user.setExternalId(scimUser.externalId)
-
-        scimUser.name?.let { name ->
-            user.firstName = name.givenName
-            user.lastName = name.familyName
-        } ?: run {
-            user.firstName = null
-            user.lastName = null
-        }
 
         scimUser.emails?.find { it.primary }?.let { email ->
             user.email = email.value
@@ -324,30 +312,44 @@ class ScimUserEndpoint(
             user.removeAttribute("roles")
             user.setAttribute(
                 "roles",
-                it.map { it.value },
+                it.map { role -> role.value },
             )
         } ?: run {
             user.removeAttribute("rawRoles")
             user.removeAttribute("roles")
         }
 
-        val fintUserExt = FintUserExtension::class.java
-        val attributeFields =
-            fintUserExt.declaredFields
-                .filter { it.isAnnotationPresent(Attribute::class.java) }
-        scimUser.getExtension(fintUserExt)?.let { ext ->
-            attributeFields.forEach { field ->
-                field.isAccessible = true
-                val value = field.get(ext)
+        val fintUserExtClass = FintUserExtension::class.java
+        val extension = scimUser.getExtension(fintUserExtClass)
 
-                if (value != null) {
-                    user.setSingleAttribute(field.name, value.toString())
-                } else {
-                    user.removeAttribute(field.name)
-                }
-            }
-        } ?: run {
+        val excludedFields = setOf("givenName", "familyName")
+
+        val attributeFields =
+            fintUserExtClass.declaredFields
+                .filter { it.isAnnotationPresent(Attribute::class.java) }
+                .filter { it.name !in excludedFields }
+
+        if (extension == null) {
+            user.firstName = null
+            user.lastName = null
+
             attributeFields.forEach { field ->
+                user.removeAttribute(field.name)
+            }
+
+            return
+        }
+
+        user.firstName = extension.givenName
+        user.lastName = extension.familyName
+
+        attributeFields.forEach { field ->
+            field.isAccessible = true
+            val value = field.get(extension)
+
+            if (value != null) {
+                user.setSingleAttribute(field.name, value.toString())
+            } else {
                 user.removeAttribute(field.name)
             }
         }

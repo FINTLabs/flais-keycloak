@@ -27,14 +27,20 @@ class ProvisionTest {
                         externalId = "11111111-1111-1111-1111-111111111111",
                         userName = Users.ALICE_TELEMARK,
                         active = true,
-                        name = ScimUser.Name(Users.ALICE_FIRST_NAME, Users.BASIC_LAST_NAME),
                         emails = listOf(ScimUser.Email(Users.ALICE_TELEMARK, primary = true)),
                         roles =
                             listOf(
                                 ScimUser.Role("read", "read", "WindowsAzureActiveDirectoryRole", false),
                                 ScimUser.Role("write", "write", "WindowsAzureActiveDirectoryRole", false),
                             ),
-                        fintUserExtension = ScimUser.FintUserExtension("1234", "1234", Users.ALICE_TELEMARK),
+                        fintUserExtension =
+                            ScimUser.FintUserExtension(
+                                Users.ALICE_TELEMARK,
+                                Users.BASIC_LAST_NAME,
+                                "1234",
+                                "1234",
+                                Users.ALICE_TELEMARK,
+                            ),
                     ),
                     ScimUser(
                         schemas =
@@ -44,14 +50,20 @@ class ProvisionTest {
                         externalId = "22222222-2222-2222-2222-222222222222",
                         userName = Users.JON_TELEMARK,
                         active = true,
-                        name = ScimUser.Name(Users.JON_FIRST_NAME, Users.BASIC_LAST_NAME),
                         emails = listOf(ScimUser.Email(Users.JON_TELEMARK, primary = true)),
                         roles =
                             listOf(
                                 ScimUser.Role("read", "read", "WindowsAzureActiveDirectoryRole", false),
                                 ScimUser.Role("write", "write", "WindowsAzureActiveDirectoryRole", false),
                             ),
-                        fintUserExtension = ScimUser.FintUserExtension("1234", "1234", Users.JON_TELEMARK),
+                        fintUserExtension =
+                            ScimUser.FintUserExtension(
+                                Users.JON_FIRST_NAME,
+                                Users.BASIC_LAST_NAME,
+                                "1234",
+                                "1234",
+                                Users.JON_TELEMARK,
+                            ),
                     ),
                 ),
             Orgs.ROGALAND to
@@ -65,14 +77,20 @@ class ProvisionTest {
                         externalId = "11111111-1111-1111-1111-111111111111",
                         userName = Users.ALICE_ROGALAND,
                         active = true,
-                        name = ScimUser.Name(Users.ALICE_FIRST_NAME, Users.BASIC_LAST_NAME),
                         emails = listOf(ScimUser.Email(Users.ALICE_ROGALAND, primary = true)),
                         roles =
                             listOf(
                                 ScimUser.Role("read", "read", "WindowsAzureActiveDirectoryRole", false),
                                 ScimUser.Role("write", "write", "WindowsAzureActiveDirectoryRole", false),
                             ),
-                        fintUserExtension = ScimUser.FintUserExtension("1234", "1234", Users.ALICE_ROGALAND),
+                        fintUserExtension =
+                            ScimUser.FintUserExtension(
+                                Users.ALICE_FIRST_NAME,
+                                Users.BASIC_LAST_NAME,
+                                "1234",
+                                "1234",
+                                Users.ALICE_ROGALAND,
+                            ),
                     ),
                     ScimUser(
                         schemas =
@@ -82,14 +100,20 @@ class ProvisionTest {
                         externalId = "22222222-2222-2222-2222-222222222222",
                         userName = Users.JON_ROGALAND,
                         active = true,
-                        name = ScimUser.Name(Users.JON_FIRST_NAME, Users.BASIC_LAST_NAME),
                         emails = listOf(ScimUser.Email(Users.JON_ROGALAND, primary = true)),
                         roles =
                             listOf(
                                 ScimUser.Role("read", "read", "WindowsAzureActiveDirectoryRole", false),
                                 ScimUser.Role("write", "write", "WindowsAzureActiveDirectoryRole", false),
                             ),
-                        fintUserExtension = ScimUser.FintUserExtension("1234", "1234", Users.JON_ROGALAND),
+                        fintUserExtension =
+                            ScimUser.FintUserExtension(
+                                Users.JON_FIRST_NAME,
+                                Users.BASIC_LAST_NAME,
+                                "1234",
+                                "1234",
+                                Users.JON_ROGALAND,
+                            ),
                     ),
                 ),
         )

@@ -69,8 +69,8 @@ This assignment controls:
 | `userName`                                                               | String  |     | Yes      |             |
 | `externalId`                                                             | String  |     | Yes      |             |
 | `roles`                                                                  | String  |     |          | Yes         |
-| `urn:ietf:params:scim:schemas:core:2.0:User:name.givenName`              | String  |     |          |             |
-| `urn:ietf:params:scim:schemas:core:2.0:User:name.familyName`             | String  |     |          |             |
+| `urn:ietf:params:scim:schemas:extension:fint:2.0:User:givenName`         | String  |     |          |             |
+| `urn:ietf:params:scim:schemas:extension:fint:2.0:User:familyName`        | String  |     |          |             |
 | `urn:ietf:params:scim:schemas:extension:fint:2.0:User:userPrincipalName` | String  |     |          |             |
 | `urn:ietf:params:scim:schemas:extension:fint:2.0:User:employeeId`        | String  |     |          |             |
 | `urn:ietf:params:scim:schemas:extension:fint:2.0:User:studentNumber`     | String  |     |          |             |
@@ -86,8 +86,8 @@ This assignment controls:
 | `emails[type eq "work"].value`                                           | `mail`                                                        |
 | `externalId`                                                             | `objectId`                                                    |
 | `roles`                                                                  | `AssertiveAppRoleAssignmentsComplex([appRoleAssignments])`    |
-| `urn:ietf:params:scim:schemas:core:2.0:User:name.givenName`              | `givenName`                                                   |
-| `urn:ietf:params:scim:schemas:core:2.0:User:name.familyName`             | `surname`                                                     |
+| `urn:ietf:params:scim:schemas:extension:fint:2.0:User:givenName`         | `givenName`                                                   |
+| `urn:ietf:params:scim:schemas:extension:fint:2.0:User:familyName`        | `surname`                                                     |
 | `urn:ietf:params:scim:schemas:extension:fint:2.0:User:userPrincipalName` | `userPrincipalName`                                           |
 | `urn:ietf:params:scim:schemas:extension:fint:2.0:User:employeeId`        | `extensionAttribute10`                                        |
 | `urn:ietf:params:scim:schemas:extension:fint:2.0:User:studentNumber`     | `extensionAttribute9`                                         |
@@ -99,9 +99,10 @@ This assignment controls:
 - Does not support the `remove` operation in `PATCH` when clearing an attribute value. The field is silently skipped.
     - Source: https://learn.microsoft.com/en-us/answers/questions/223936/sending-an-empty-value-with-user-provisioning-%28sci?page=1&orderby=Helpful&comment=answer-224218&translated=false
 - The feature flag `aadOptscim062020` does not follow SCIM RFC 7644.
-    - This is handled on our side but requires full definitions for core complex attributes (e.g., `name.givenName`) in the Attribute mapping. Example: `urn:ietf:params:scim:schemas:core:2.0:User:name.givenName`
+    - We try to avoide complex attributes where possible, Microsoft also points out they have limited support for this in their docs. (e.g., `name.givenName`) in the Attribute mapping. Example: `urn:ietf:params:scim:schemas:extension:fint:2.0:User:givenName`
     - RFC: https://datatracker.ietf.org/doc/html/rfc7644#section-3.5.2
     - Source: https://learn.microsoft.com/en-us/entra/identity/app-provisioning/application-provisioning-config-problem-scim-compatibility
+    - Source: https://learn.microsoft.com/en-us/entra/identity/app-provisioning/customize-application-attributes?source=recommendations#provisioning-a-custom-extension-attribute-to-a-scim-compliant-application
 - POST/PATCH payload is different for roles, so you end up having to wait 2 cycles for the roles to be provisioned correctly.
     - Solved by using the feature flag `aadOptscim062020`
     - Source: https://learn.microsoft.com/nb-no/entra/identity/app-provisioning/customize-application-attributes#provisioning-a-role-to-a-scim-app
