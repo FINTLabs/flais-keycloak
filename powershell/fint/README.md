@@ -1,463 +1,149 @@
-# FINT Entra ID / SCIM Setup
-
-PowerShell tooling for creating or connecting a Microsoft Entra Enterprise Application for FINT, configuring the related App Registration and Service Principal, assigning FINT token claims, and configuring SCIM provisioning toward a FINT-compatible SCIM endpoint.
-
-The main entrypoint is:
-
-```powershell
-pwsh ./Novari-IDP.ps1
-```
-
-## Contents
+# Overview
 
-- [What this tool does](#what-this-tool-does)
-- [Repository layout](#repository-layout)
-- [Prerequisites](#prerequisites)
-- [Required Microsoft Graph permissions](#required-microsoft-graph-permissions)
-- [Quick start](#quick-start)
-- [Interactive menu](#interactive-menu)
-- [Typical setup flows](#typical-setup-flows)
-- [Modules](#modules)
-- [Helpers](#helpers)
-- [SCIM provisioning details](#scim-provisioning-details)
-- [Claims mapping](#claims-mapping)
-- [Error handling and retry behavior](#error-handling-and-retry-behavior)
-- [Troubleshooting](#troubleshooting)
-- [Security notes](#security-notes)
-
-## What this tool does
-
-The setup process covers the Microsoft Entra ID side of a FINT identity provider and SCIM provisioning integration.
-
-It can:
-
-1. Create a non-gallery Enterprise Application.
-2. Connect to an existing Enterprise Application by Application AppId.
-3. Create or update a Claims Mapping Policy.
-4. Assign the Claims Mapping Policy to the Service Principal.
-5. Configure App Registration settings.
-6. Configure Enterprise Application / Service Principal settings.
-7. Configure SCIM provisioning toward a FINT SCIM endpoint.
-8. Start or pause the provisioning job.
-9. Show the active Microsoft Graph context.
-10. Show the current Enterprise Application selected in the session.
-
-## Repository layout
-
-```text
-├── Novari-IDP.ps1
-├── README.md
-├── helpers
-│   ├── ConsoleHelpers.ps1
-│   ├── EnterpriseApplicationHelpers.ps1
-│   ├── GenericHelpers.ps1
-│   ├── GraphContext.ps1
-│   ├── GraphRetry.ps1
-│   ├── Header.ps1
-│   ├── Menu.ps1
-│   └── RequiredScopes.ps1
-└── modules
-    ├── Configure-Application.ps1
-    ├── Configure-ScimProvisioning.ps1
-    ├── Configure-ClaimsMappingPolicy.ps1
-    └── Create-EnterpriseApplication.ps1
-```
+This directory contains a guided setup script for connecting Microsoft Entra ID to Keycloak.
 
-## Prerequisites
+It is intended for people who need to prepare an Entra Enterprise Application so it can work as an identity provider and provisioning source. In practical terms, the scripts help set up the application, define the information Keycloak should receive about users, and configure automatic user provisioning through SCIM.
 
-Run the scripts from PowerShell with access to Microsoft Graph.
+## What problem this solves
 
-Required PowerShell modules:
+A integration with Microsoft Entra ID needs several pieces to line up:
 
-```powershell
-Install-Module Microsoft.Graph.Authentication -Scope CurrentUser
-Install-Module Microsoft.Graph.Applications -Scope CurrentUser
-```
+- an Enterprise Application in Entra
+- an App Registration connected to that application
+- the right claims so Keycloak receives the user identifiers it expects
+- SCIM provisioning so users and access information can be synchronized
+- application roles that describe what users are allowed to access
 
-You need a Microsoft Entra app/client that can authenticate to Microsoft Graph using client credentials:
+Doing this manually can be repetitive and easy to get slightly wrong. This directory provides a guided setup flow that keeps those steps consistent.
 
-- Tenant ID
-- Client ID
-- Client Secret
+## Start
 
-`Novari-IDP.ps1` prompts for these values at startup and connects with `Connect-MgGraph -ClientSecretCredential`.
+The setup works like this:
 
-## Required Microsoft Graph permissions
+1. The user starts the main script.
+2. The script connects to Microsoft Graph.
+3. The user either creates a new Enterprise Application or connects to an existing one.
+4. The user chooses setup actions from a menu.
+5. Each menu action delegates to a focused module.
+6. Shared helper files handle things like input prompts, Graph connection checks, retries, and readable console output.
 
-The scripts validate the active Graph context before each operation. The validation is intentionally strict: missing or extra permissions cause the operation to fail fast.
+The main script is the front door. The modules do the actual setup work. The helpers keep the user experience and safety checks consistent.
 
-| Operation | Required permissions |
-|---|---|
-| Create Enterprise Application | `Application.ReadWrite.All`, `Policy.Read.All`, `Policy.ReadWrite.ApplicationConfiguration` |
-| Create or update Claims Mapping Policy | `Application.ReadWrite.All`, `Policy.Read.All`, `Policy.ReadWrite.ApplicationConfiguration`, `Synchronization.ReadWrite.All` |
-| Configure SCIM Provisioning | `Application.ReadWrite.All`, `Policy.Read.All`, `Policy.ReadWrite.ApplicationConfiguration`, `Synchronization.ReadWrite.All` |
 
-> Note: `Configure-Application.ps1` currently uses Graph application and service principal patch calls, but it does not call `Assert-MgContextHasExactlyRequiredScopes` directly. The other modules do.
+### `Novari-IDP.ps1`
 
-## Quick start
-
-From the repository root:
+This is the main entry point.
 
-```powershell
-pwsh ./Novari-IDP.ps1
-```
+It shows the header, asks for Microsoft Graph connection details, lets the user connect to an existing Enterprise Application if needed, and then presents the setup menu.
 
-The interactive flow prompts for:
+Think of this file as the coordinator for the whole setup.
 
-- Tenant ID
-- Client ID
-- Client Secret
-- Whether to connect an existing Enterprise Application
-
-## Typical setup flows
+### `modules/`
 
-### New setup
-
-```mermaid
-flowchart TD
-    A[Run Novari-IDP.ps1] --> B[Login to Microsoft Graph]
-    B --> C[Choose not to connect existing app]
-    C --> D[1. Create Enterprise Application]
-    D --> E[2. Create and assign Claims Mapping Policy]
-    E --> F[3. Configure Enterprise Application and App Registration]
-    F --> G[4. Configure FINT SCIM Provisioning]
-    G --> H[Assign users or groups to the Enterprise Application]
-    H --> I[Verify provisioning in Entra and the target SCIM system]
-```
-
-### Existing setup
-
-```mermaid
-flowchart TD
-    A[Run Novari-IDP.ps1] --> B[Login to Microsoft Graph]
-    B --> C[Connect existing Enterprise Application by Application AppId]
-    C --> D[2. Create, update, or assign Claims Mapping Policy]
-    D --> E[3. Configure or repair application settings]
-    E --> F[4. Configure or repair SCIM provisioning]
-```
-
-## Modules
-
-### `modules/Create-EnterpriseApplication.ps1`
-
-Creates a non-gallery Enterprise Application from the Microsoft application template.
-
-```powershell
-./modules/Create-EnterpriseApplication.ps1 -DisplayName "<display-name>"
-```
-
-Template ID used:
-
-```text
-8adf8e6e-67b2-4cf2-a259-e3dc5476c621
-```
-
-Returned JSON properties:
-
-| Property | Description |
-|---|---|
-| `DisplayName` | Enterprise Application display name. |
-| `ApplicationObjectId` | Object ID of the App Registration. |
-| `ApplicationAppId` | Application/client ID. |
-| `ServicePrincipalObjectId` | Object ID of the Enterprise Application / Service Principal. |
-
-### `modules/Configure-ClaimsMappingPolicy.ps1`
-
-Creates or updates a FINT Claims Mapping Policy and assigns it to the Service Principal.
-
-```powershell
-./modules/Configure-ClaimsMappingPolicy.ps1 `
-  -ServicePrincipalObjectId "<service-principal-object-id>" `
-  -DisplayName "<policy-display-name>" `
-  -EmployeeIdSourceAttribute "extensionAttribute10" `
-  -StudentNumberSourceAttribute "extensionAttribute9"
-```
-
-Behavior:
-
-- If the Service Principal has no assigned Claims Mapping Policy, the script creates one and assigns it.
-- If the Service Principal has exactly one assigned Claims Mapping Policy, the script updates that policy.
-- If the Service Principal has multiple assigned Claims Mapping Policies, the script stops instead of choosing one automatically.
-
-Created JWT claims:
-
-| JWT claim | Source object | Default source attribute |
-|---|---|---|
-| `employee_id` | `user` | `extensionAttribute10` |
-| `student_number` | `user` | `extensionAttribute9` |
-
-Returned JSON properties:
-
-| Property | Description |
-|---|---|
-| `ServicePrincipalObjectId` | Service Principal that received or already had the policy. |
-| `ClaimsMappingPolicyObjectId` | Policy object ID. |
-| `ClaimsMappingPolicyName` | Policy display name. |
-| `EmployeeIdSourceAttribute` | Source attribute used for `employee_id`. |
-| `StudentNumberSourceAttribute` | Source attribute used for `student_number`. |
-| `WasExistingPolicyUpdated` | `true` when an existing assigned policy was updated. |
-
-### `modules/Configure-Application.ps1`
-
-Configures both the App Registration and the Enterprise Application / Service Principal.
-
-```powershell
-./modules/Configure-Application.ps1 `
-  -ApplicationObjectId "<application-object-id>" `
-  -ApplicationAppId "<application-app-id>" `
-  -ServicePrincipalObjectId "<service-principal-object-id>" `
-  -RedirectUri "<keycloak-redirect-uri>" `
-  -AcceptMappedClaims $true
-```
-
-App Registration changes:
-
-| Setting | Value |
-|---|---|
-| `api.acceptMappedClaims` | `true` by default. |
-| Web redirect URI | The supplied Keycloak redirect URI. |
-| Default `User` app role value | Updated to `user`. |
-| Optional ID token claim | Adds `upn`. |
-| Microsoft Graph delegated permissions | Adds `User.Read` and `profile`. |
-
-Enterprise Application / Service Principal changes:
-
-| Setting | Value |
-|---|---|
-| `accountEnabled` | `true` |
-| `appRoleAssignmentRequired` | `true` |
-| `tags` | Adds `HideApp` when missing. |
-| Default `msiam_access` role | Disabled when present. |
-
-Returned JSON properties:
-
-| Property | Description |
-|---|---|
-| `ApplicationObjectId` | App Registration object ID. |
-| `ApplicationAppId` | Application/client ID. |
-| `ServicePrincipalObjectId` | Enterprise Application / Service Principal object ID. |
-| `RedirectUri` | Configured redirect URI. |
-| `AcceptMappedClaims` | Whether mapped claims are accepted. |
-
-### `modules/Configure-ScimProvisioning.ps1`
-
-Configures Entra provisioning toward the FINT SCIM endpoint.
-
-```powershell
-./modules/Configure-ScimProvisioning.ps1 `
-  -ServicePrincipalObjectId "<service-principal-object-id>" `
-  -TenantUrl "https://keycloak.example/realms/fint/scim/v2/<org-id>/" `
-  -SecretToken "" `
-  -ProvisionStatus On `
-  -EmployeeIdSourceAttribute "extensionAttribute10" `
-  -StudentNumberSourceAttribute "extensionAttribute9"
-```
-
-Behavior:
-
-1. Validates required Graph permissions.
-2. Reads available synchronization templates.
-3. Selects a SCIM-looking template when possible, otherwise falls back to the first template.
-4. Sets synchronization secrets.
-5. Reuses an existing matching synchronization job or creates one.
-6. Reads the synchronization schema.
-7. Updates the target user object to the SCIM core User schema.
-8. Adds the FINT target attributes.
-9. Replaces the user attribute mappings.
-10. Disables group mappings.
-11. Starts or pauses the provisioning job based on `-ProvisionStatus`.
-
-Returned JSON properties:
-
-| Property | Description |
-|---|---|
-| `ServicePrincipalObjectId` | Enterprise Application / Service Principal object ID. |
-| `SyncTemplateId` | Synchronization template used. |
-| `SyncJobId` | Synchronization job used or created. |
-| `TenantUrl` | SCIM tenant/base URL. |
-| `ProvisionStatus` | Requested provisioning status, `On` or `Off`. |
-| `TargetUserObjectName` | Target SCIM user object name. |
-| `EmployeeIdSourceAttribute` | Source attribute for FINT employee ID. |
-| `StudentNumberSourceAttribute` | Source attribute for FINT student number. |
-
-## Helpers
+This folder contains the main setup actions.
 
 | File | Purpose |
 |---|---|
-| `helpers/ConsoleHelpers.ps1` | Shared console section headings, object display, and script-result JSON parsing. |
-| `helpers/EnterpriseApplicationHelpers.ps1` | Enterprise Application validation, lookup, result creation, and display helpers. |
-| `helpers/GenericHelpers.ps1` | Shared prompt helpers and yes/no parsing. |
-| `helpers/GraphContext.ps1` | Microsoft Graph app-only login and context display. |
-| `helpers/GraphRetry.ps1` | Shared Microsoft Graph retry wrapper and detailed error reporting. |
-| `helpers/Header.ps1` | Console header and logo rendering. |
-| `helpers/Menu.ps1` | Interactive menu rendering and menu action dispatch. |
-| `helpers/RequiredScopes.ps1` | Strict Microsoft Graph permission validation. |
+| `Create-EnterpriseApplication.ps1` | Creates the Enterprise Application that represents the integration in Entra. |
+| `Configure-Application.ps1` | Applies the expected settings to the Enterprise Application and App Registration. |
+| `Configure-ClaimsMappingPolicy.ps1` | Defines which user information is sent as claims to. |
+| `Configure-ScimProvisioning.ps1` | Configures SCIM provisioning so users and access information can be synchronized. |
+| `Configure-AppRoles.ps1` | Applies the application roles used to represent access in related services. |
 
-## SCIM provisioning details
+Each module focuses on one part of the overall setup. This makes it easier to review, reuse, and troubleshoot a single area without reading the whole project at once.
 
-Synchronization secrets configured by `Configure-ScimProvisioning.ps1`:
+### `helpers/`
 
-| Key | Value |
+This folder contains shared support code used by the main script and modules.
+
+| File | Purpose |
 |---|---|
-| `BaseAddress` | The supplied SCIM tenant URL. |
-| `SecretToken` | The supplied secret token. The interactive entrypoint currently passes an empty string. |
-| `SyncAll` | `false`, meaning assigned users/groups only. |
-| `SyncNotificationSettings` | Delete threshold enabled with value `500`; notifications disabled. |
+| `ConsoleHelpers.ps1` | Makes console output easier to read. |
+| `EnterpriseApplicationHelpers.ps1` | Validates and displays information about the selected Enterprise Application. |
+| `GenericHelpers.ps1` | Handles common prompts and yes/no style input. |
+| `GraphContext.ps1` | Connects to Microsoft Graph and shows the active connection. |
+| `GraphRetry.ps1` | Adds retry and error handling around Microsoft Graph operations. |
+| `Header.ps1` | Prints the Novari header shown when the tool starts. |
+| `Menu.ps1` | Defines the interactive menu and routes choices to the right setup action. |
+| `RequiredScopes.ps1` | Checks that the Microsoft Graph connection has the expected permissions. |
 
-Provisioning behavior:
+The helpers are not separate setup steps. They are there to keep the experience predictable and to avoid repeating the same checks in every module.
 
-| Area | Behavior |
-|---|---|
-| Template selection | Prefers a template whose ID or description indicates SCIM. Falls back to the first template. |
-| Job creation | Reuses an existing matching job when possible; otherwise creates a new job. |
-| Target user object | Renamed to `urn:ietf:params:scim:schemas:core:2.0:User`. |
-| User flow types | `Add,Update,Delete`. |
-| Groups | Group mappings are disabled. |
-| Scope | Assigned users/groups only through `SyncAll=false`. |
-| Accidental delete threshold | Enabled with threshold `500`. |
+### `app-roles.json`
 
-### SCIM target attributes
+This file is the role catalogue used when configuring application roles.
 
-| Target attribute | Type | Required | Multivalued | Anchor |
-|---|---:|---:|---:|---:|
-| `id` | `String` | Yes | No | Yes |
-| `active` | `Boolean` | No | No | No |
-| `emails[type eq "work"].value` | `String` | No | No | No |
-| `userName` | `String` | Yes | No | No |
-| `externalId` | `String` | Yes | No | No |
-| `roles` | `String` | No | Yes | No |
-| `urn:ietf:params:scim:schemas:core:2.0:User:name.givenName` | `String` | No | No | No |
-| `urn:ietf:params:scim:schemas:core:2.0:User:name.familyName` | `String` | No | No | No |
-| `urn:ietf:params:scim:schemas:extension:fint:2.0:User:userPrincipalName` | `String` | No | No | No |
-| `urn:ietf:params:scim:schemas:extension:fint:2.0:User:employeeId` | `String` | No | No | No |
-| `urn:ietf:params:scim:schemas:extension:fint:2.0:User:studentNumber` | `String` | No | No | No |
+It describes the roles that can be added to the application, including their names, values, and descriptions. The setup uses this catalogue so that role definitions are managed in one place instead of being scattered across scripts.
 
-### SCIM attribute mappings
 
-| Source attribute / expression | Target attribute | Matching priority |
-|---|---|---:|
-| `objectId` | `userName` | `1` |
-| Soft-delete switch expression | `active` | `0` |
-| `mail` | `emails[type eq "work"].value` | `0` |
-| `objectId` | `externalId` | `0` |
-| App role assignments expression | `roles` | `0` |
-| `givenName` | `urn:ietf:params:scim:schemas:core:2.0:User:name.givenName` | `0` |
-| `surname` | `urn:ietf:params:scim:schemas:core:2.0:User:name.familyName` | `0` |
-| `userPrincipalName` | `urn:ietf:params:scim:schemas:extension:fint:2.0:User:userPrincipalName` | `0` |
-| `extensionAttribute10` by default | `urn:ietf:params:scim:schemas:extension:fint:2.0:User:employeeId` | `0` |
-| `extensionAttribute9` by default | `urn:ietf:params:scim:schemas:extension:fint:2.0:User:studentNumber` | `0` |
-
-## Claims mapping
-
-The Claims Mapping Policy adds FINT-specific claims to issued tokens.
-
-Example policy definition shape:
-
-```json
-{
-  "ClaimsMappingPolicy": {
-    "Version": 1,
-    "IncludeBasicClaimSet": "true",
-    "ClaimsSchema": [
-      {
-        "Source": "user",
-        "ID": "extensionAttribute10",
-        "JwtClaimType": "employee_id"
-      },
-      {
-        "Source": "user",
-        "ID": "extensionAttribute9",
-        "JwtClaimType": "student_number"
-      }
-    ]
-  }
-}
-```
-
-## Error handling and retry behavior
-
-Graph requests that use `Invoke-GraphWithRetry` get shared retry behavior.
-
-| Setting | Default |
-|---|---:|
-| Maximum attempts | `12` |
-| Initial delay | `5` seconds |
-| Maximum delay | `60` seconds |
-
-When a request with a JSON body fails, the failed request body is written to a temporary file named like:
+## Conceptual flow
 
 ```text
-graph-failed-request-<timestamp>-<guid>.json
+Start tool
+   ↓
+Connect to Microsoft Graph
+   ↓
+Create or select Enterprise Application
+   ↓
+Configure claims
+   ↓
+Configure application settings
+   ↓
+Configure SCIM provisioning
+   ↓
+Configure roles
+   ↓
+Review in Microsoft Entra
 ```
 
-Some calls use `-NoRetryOnBadRequest`, so HTTP 400 responses fail immediately. This is used for calls where retrying a bad payload is unlikely to help.
+The exact order may vary depending on whether the Enterprise Application already exists, but this is the intended shape of the setup.
 
-## Troubleshooting
+## Key concepts
 
-### Graph context has missing or extra permissions
+### Enterprise Application
 
-The scripts intentionally fail when the active context does not exactly match required permissions.
+The Enterprise Application is the tenant-side representation of the integration in Microsoft Entra ID. It is the object administrators see and manage when assigning users, configuring provisioning, and reviewing sign-in/provisioning status.
 
-Check the active context from the menu:
+### App Registration
 
-```text
-5. Show Active Graph Context
-```
+The App Registration is the application definition behind the Enterprise Application. Some settings live here, such as redirect behavior and token-related configuration.
 
-Then reconnect with the expected permissions for the operation.
+### Claims
 
-### Existing Enterprise Application cannot be found
+Claims are pieces of user information sent during authentication. This setup includes a claims mapping policy so Keycloak receives the identifiers it expects, such as employee or student identifiers.
 
-When connecting an existing application, the script expects an Application AppId GUID.
+### SCIM provisioning
 
-It then looks up:
+SCIM provisioning is used to synchronize users from Entra to Keycloak.
 
-1. A matching Service Principal using `appId`.
-2. A matching App Registration using the same `appId`.
+## Design principles
 
-The script fails if either lookup returns zero or multiple matches.
+This directory is organized around a few simple principles:
 
-### Enterprise Application display name is rejected
+- **One main entry point:** Start from `Novari-IDP.ps1`.
+- **One responsibility per module:** Each setup area has its own file.
+- **Shared safety checks:** Graph permissions, selected application details, and retry handling are centralized.
+- **Readable interaction:** The tool is menu-driven and prints context while it runs.
 
-The helper validation expects a Novari/FINT-looking Enterprise Application display name. If an existing Service Principal does not match the expected naming pattern, the script stops instead of configuring the wrong application.
+## Before running it
 
-### Default User app role is missing
+Before using the tool, the person running it should know:
 
-`Configure-Application.ps1` expects a default User role and changes its value to `user`.
+- which Microsoft Entra tenant the integration belongs to
+- whether a new Enterprise Application should be created or an existing one should be reused
+- the expected redirect URI for the identity provider setup
+- the SCIM endpoint/base URL
+- which Entra attributes should be used for employee and student identifiers
+- which organization value should be used when applying organization-specific role values
 
-The script searches for a role where:
+The person running the tool also needs a Microsoft Graph connection with the required rights to create and update the relevant Entra objects.
 
-- `displayName` is `User`, or
-- `value` is `User`, or
-- `value` is `user`
+## What to review after running it
 
-If none is found, configuration stops.
+After the setup has been run, review the result in Microsoft Entra and Keycloak:
 
-### SCIM template list is empty
-
-`Configure-ScimProvisioning.ps1` waits and retries while Graph prepares synchronization templates.
-
-If templates are still empty after the retry loop, the script stops because it cannot create a provisioning job without a template.
-
-### SCIM user object mapping cannot be found
-
-The script searches the synchronization schema for an object mapping where:
-
-- `sourceObjectName` is `User`
-- `targetObjectName` ends with `User`
-
-If this mapping is not found, the script warns and skips mapping updates. Inspect the schema URL shown in the warning.
-
-### Graph returns HTTP 400 during schema or secret updates
-
-Some calls use `-NoRetryOnBadRequest`, so HTTP 400 errors fail immediately.
-
-Check the warning output and the temporary failed request body JSON file for the exact payload sent to Microsoft Graph.
-
-## Security notes
-
-- Do not commit client secrets or SCIM tokens.
-- Prefer environment-specific secret handling outside the repository.
-- Review the generated Claims Mapping Policy before using it in production.
-- Review SCIM source attributes before enabling provisioning.
-- Confirm the SCIM tenant URL points to the intended FINT tenant or organization.
+- the Enterprise Application exists and has the expected name
+- application roles look correct
+- the expected claims are present
+- provisioning is configured and has the expected status
+- SCIM provisioning logs do not show unexpected errors
