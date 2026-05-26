@@ -40,17 +40,17 @@ function Get-ExistingEnterpriseApplication {
         return $null
     }
 
-    $applicationAppId = Read-RequiredValue "Application AppId"
+    $applicationAppId = Read-RequiredValue "Application (client) ID"
 
     $servicePrincipal = Get-SingleGraphObject `
         -Items @(Get-MgServicePrincipal -Filter "appId eq '$applicationAppId'" -ErrorAction Stop) `
-        -NoMatchMessage "No Enterprise Application found with Application AppId '$applicationAppId'." `
-        -MultipleMatchesMessage "Multiple service principals found for Application AppId '$applicationAppId'."
+        -NoMatchMessage "No Enterprise Application found with Application (client) ID '$applicationAppId'." `
+        -MultipleMatchesMessage "Multiple service principals found for Application (client) ID '$applicationAppId'."
 
     $application = Get-SingleGraphObject `
         -Items @(Get-MgApplication -Filter "appId eq '$applicationAppId'" -ErrorAction Stop) `
-        -NoMatchMessage "Found service principal '$($servicePrincipal.DisplayName)', but could not find matching application registration with AppId '$applicationAppId'." `
-        -MultipleMatchesMessage "Multiple application registrations found for Application AppId '$applicationAppId'."
+        -NoMatchMessage "Found service principal '$($servicePrincipal.DisplayName)', but could not find matching application registration with Application (client) ID '$applicationAppId'." `
+        -MultipleMatchesMessage "Multiple application registrations found for Application (client) ID '$applicationAppId'."
 
     Assert-NovariEnterpriseApplicationDisplayName `
         -DisplayName $servicePrincipal.DisplayName `
@@ -78,12 +78,12 @@ function Invoke-ConfigureEnterpriseApplication {
 
     $redirectUri = Read-RequiredValue "Keycloak redirect URI for IDP"
 
-    $ConfigureEnterpriseAppScript `
-        ApplicationObjectId $ExistingApplicationResult.ApplicationObjectId `
-        ApplicationAppId $ExistingApplicationResult.ApplicationAppId `
-        ServicePrincipalObjectId $ExistingApplicationResult.ServicePrincipalObjectId `
-        RedirectUri $redirectUri `
-        AcceptMappedClaims $true
+    & $ConfigureEnterpriseAppScript `
+        -ApplicationObjectId $ExistingApplicationResult.ApplicationObjectId `
+        -ApplicationAppId $ExistingApplicationResult.ApplicationAppId `
+        -ServicePrincipalObjectId $ExistingApplicationResult.ServicePrincipalObjectId `
+        -RedirectUri $redirectUri `
+        -AcceptMappedClaims $true
 }
 
 function Invoke-CreateClaimsMappingPolicy {
@@ -105,11 +105,11 @@ function Invoke-CreateClaimsMappingPolicy {
         -Prompt "Student number source attribute" `
         -DefaultValue "extensionAttribute9"
 
-    $CreateClaimsMappingPolicyScript `
-        ServicePrincipalObjectId $ExistingApplicationResult.ServicePrincipalObjectId `
-        DisplayName $displayName `
-        EmployeeIdSourceAttribute $employeeIdSource `
-        StudentNumberSourceAttribute $studentNumberSource
+    & $CreateClaimsMappingPolicyScript `
+        -ServicePrincipalObjectId $ExistingApplicationResult.ServicePrincipalObjectId `
+        -DisplayName $displayName `
+        -EmployeeIdSourceAttribute $employeeIdSource `
+        -StudentNumberSourceAttribute $studentNumberSource
 }
 
 function Invoke-ConfigureApplicationRoles {
@@ -119,8 +119,8 @@ function Invoke-ConfigureApplicationRoles {
     )
     Assert-NovariEnterpriseApplicationResult -ApplicationResult $ExistingApplicationResult
 
-    $ConfigureAppRolesScript `
-        ApplicationObjectId $ExistingApplicationResult.ApplicationObjectId
+    & $ConfigureAppRolesScript `
+        -ApplicationObjectId $ExistingApplicationResult.ApplicationObjectId
 }
 
 function Invoke-ConfigureScimProvisioning {
@@ -148,11 +148,11 @@ function Invoke-ConfigureScimProvisioning {
         -Prompt "Student number source attribute" `
         -DefaultValue "extensionAttribute9"
 
-    $ConfigureScimScript `
-        ServicePrincipalObjectId $servicePrincipalObjectId `
-        TenantUrl $tenantUrl `
-        EmployeeIdSourceAttribute $employeeIdSource `
-        StudentNumberSourceAttribute $studentNumberSource
+    & $ConfigureScimScript `
+        -ServicePrincipalObjectId $servicePrincipalObjectId `
+        -TenantUrl $tenantUrl `
+        -EmployeeIdSourceAttribute $employeeIdSource `
+        -StudentNumberSourceAttribute $studentNumberSource
 }
 
 . "$PSScriptRoot/helpers/Header.ps1"
