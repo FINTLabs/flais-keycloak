@@ -138,8 +138,8 @@ function Find-NovariExistingRoleById {
     )
 
     $matches = @($ExistingRoles | Where-Object {
-        -not [string]::IsNullOrWhiteSpace([string]$_.id) -and [string]$_.id -eq $Id
-    })
+            -not [string]::IsNullOrWhiteSpace([string]$_.id) -and [string]$_.id -eq $Id
+        })
 
     if ($matches.Count -gt 1) {
         throw "Multiple existing app roles use id '$Id'. Refusing to continue because the update target is ambiguous."
@@ -150,6 +150,38 @@ function Find-NovariExistingRoleById {
     }
 
     return $null
+}
+
+function Get-NovariExistingRolesMissingFromJson {
+    param(
+        [Parameter(Mandatory = $false)]
+        [object[]]$ExistingRoles = @(),
+
+        [Parameter(Mandatory = $false)]
+        [object[]]$JsonRoles = @()
+    )
+
+    $jsonRoleIds = @{}
+    foreach ($jsonRole in @($JsonRoles)) {
+        $jsonRoleId = Get-NovariJsonRoleId -Role $jsonRole
+        if (-not [string]::IsNullOrWhiteSpace([string]$jsonRoleId)) {
+            $jsonRoleIds[[string]$jsonRoleId] = $true
+        }
+    }
+
+    $missingFromJson = @()
+    foreach ($existingRole in @($ExistingRoles)) {
+        $existingRoleId = [string]$existingRole.id
+        if ([string]::IsNullOrWhiteSpace($existingRoleId)) {
+            continue
+        }
+
+        if (-not $jsonRoleIds.ContainsKey($existingRoleId)) {
+            $missingFromJson += $existingRole
+        }
+    }
+
+    return @($missingFromJson)
 }
 
 function Convert-NovariRoleCatalogOrganizationUrl {
@@ -418,15 +450,9 @@ function Write-NovariAppRoleChanges {
         }
     }
 
-    foreach ($key in @($existingByKey.Keys | Sort-Object)) {
-        if (-not $mergedByKey.ContainsKey($key)) {
-            $removed += $existingByKey[$key]
-        }
-    }
-
     Write-Host ""
     Write-Host "Planned app role changes for $TargetName"
-    Write-Host "Added: $($added.Count), Updated: $($changed.Count), Removed: $($removed.Count)"
+    Write-Host "Added: $($added.Count), Updated: $($changed.Count)"
 
     if ($added.Count -gt 0) {
         Write-Host ""
@@ -447,15 +473,7 @@ function Write-NovariAppRoleChanges {
         }
     }
 
-    if ($removed.Count -gt 0) {
-        Write-Host ""
-        Write-Host "Removed roles:"
-        foreach ($role in $removed) {
-            Write-Host "  - $($role.displayName) [$($role.value)]"
-        }
-    }
-
-    return ($added.Count + $changed.Count + $removed.Count)
+    return ($added.Count + $changed.Count)
 }
 
 function New-NovariApplicationAppRolePlan {
@@ -484,12 +502,17 @@ function New-NovariApplicationAppRolePlan {
         -JsonRoles $JsonRoles `
         -Organization $Organization
 
+    $rolesMissingFromJson = Get-NovariExistingRolesMissingFromJson `
+        -ExistingRoles $existingRoles `
+        -JsonRoles $JsonRoles
+
     return [pscustomobject]@{
-        TargetName    = "App Registration"
-        ObjectId      = $ObjectId
-        Uri           = "https://graph.microsoft.com/v1.0/applications/$ObjectId"
-        ExistingRoles = @($existingRoles)
-        MergedRoles   = @($mergedRoles)
+        TargetName           = "App Registration"
+        ObjectId             = $ObjectId
+        Uri                  = "https://graph.microsoft.com/v1.0/applications/$ObjectId"
+        ExistingRoles        = @($existingRoles)
+        MergedRoles          = @($mergedRoles)
+        RolesMissingFromJson = @($rolesMissingFromJson)
     }
 }
 
@@ -549,29 +572,37 @@ if ($shouldApplyChanges) {
     Write-Host "Configured App Registration app roles from JSON."
 }
 
-Write-Host "ApplicationObjectId:  $ApplicationObjectId"
-Write-Host "RolesJsonPath:        $((Resolve-Path -LiteralPath $RolesJsonPath).Path)"
 Write-Host "Organization:         $Organization"
 Write-Host "JsonRoleCount:        $(@($jsonRoles).Count)"
 Write-Host "ConfiguredRoleCount:  $(@($jsonRoles | Where-Object { -not [string]::IsNullOrWhiteSpace([string](Get-NovariJsonRoleId -Role $_)) }).Count)"
 Write-Host "SkippedRoleCount:     $(@($jsonRoles | Where-Object { [string]::IsNullOrWhiteSpace([string](Get-NovariJsonRoleId -Role $_)) }).Count)"
 Write-Host "ApplicationRoleCount: $(@($applicationRoles).Count)"
 
-Write-Host "Roles:"
+if ($shouldApplyChanges) {
+    Write-Host "Roles:"
 
-$jsonRoles | ForEach-Object {
-    $appRoleId = Get-NovariJsonRoleId -Role $_
+    $jsonRoles | ForEach-Object {
+        $appRoleId = Get-NovariJsonRoleId -Role $_
 
-    if (-not [string]::IsNullOrWhiteSpace([string]$appRoleId)) {
-        $displayName = [string](Get-NovariRolePropertyValue -Role $_ -Name 'displayName')
-        $value = [string](Convert-NovariRoleCatalogOrganizationUrl `
-            -Value (Get-NovariRolePropertyValue -Role $_ -Name 'value') `
-            -Organization $Organization)
+        if (-not [string]::IsNullOrWhiteSpace([string]$appRoleId)) {
+            $displayName = [string](Get-NovariRolePropertyValue -Role $_ -Name 'displayName')
+            $value = [string](Convert-NovariRoleCatalogOrganizationUrl `
+                    -Value (Get-NovariRolePropertyValue -Role $_ -Name 'value') `
+                    -Organization $Organization)
 
-        Write-Host "  Id:          $appRoleId"
-        Write-Host "  DisplayName: $displayName"
-        Write-Host "  Value:       $value"
-        Write-Host ""
+            Write-Host "  Id:          $appRoleId"
+            Write-Host "  DisplayName: $displayName"
+            Write-Host "  Value:       $value"
+            Write-Host ""
+        }
     }
 }
 
+$rolesMissingFromJson = @($applicationPlan.RolesMissingFromJson)
+if ($rolesMissingFromJson.Count -gt 0) {
+    Write-Host ""
+    Write-Host "App roles present in the app registration but missing from JSON:"
+    foreach ($role in $rolesMissingFromJson | Sort-Object displayName, value, id) {
+        Write-Host "  - $($role.displayName) [$($role.value)] ($($role.id))"
+    }
+}
