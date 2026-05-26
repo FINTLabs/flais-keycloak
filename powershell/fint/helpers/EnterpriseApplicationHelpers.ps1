@@ -94,7 +94,7 @@ function Write-EnterpriseApplicationResult {
         -Labels ([ordered]@{
             "Display Name"              = "DisplayName"
             "Application ObjectId"      = "ApplicationObjectId"
-            "Application AppId"         = "ApplicationAppId"
+            "Application (client) ID"   = "ApplicationAppId"
             "ServicePrincipal ObjectId" = "ServicePrincipalObjectId"
         })
 }

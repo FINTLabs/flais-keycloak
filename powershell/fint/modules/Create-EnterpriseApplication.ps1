@@ -27,9 +27,9 @@ $app = $inst.application
 $sp = $inst.servicePrincipal
 
 Write-Host "Created Enterprise Application:"
-Write-Host "  Application ObjectId:    $($app.id)"
-Write-Host "  Application AppId:       $($app.appId)"
-Write-Host "  ServicePrincipal Id:     $($sp.id)"
+Write-Host "  Application Object Id:    $($app.id)"
+Write-Host "  Application (client) ID:       $($app.appId)"
+Write-Host "  ServicePrincipal ID:     $($sp.id)"
 
 [pscustomobject]@{
     DisplayName              = $DisplayName

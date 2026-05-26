@@ -38,19 +38,7 @@ function Show-Header {
     Write-NovariLogo
 
     Write-Host ""
-    Write-Host "FINT Entra ID / SCIM Setup" -ForegroundColor Cyan
-    Write-Host "Entry menu for creating a FINT Entra Enterprise Application and configuring SCIM provisioning."
-    Write-Host ""
-    Write-Host "Bootstrap / startup:"
-    Write-Host "  - Create non-gallery Enterprise Application"
-    Write-Host "  - Optionally connect existing Enterprise Application"
-    Write-Host "  - Create Claims Mapping Policy"
-    Write-Host "  - Assign Claims Mapping Policy to service principal"
-    Write-Host ""
-    Write-Host "Configure:"
-    Write-Host "  - App Registration settings"
-    Write-Host "  - Enterprise Application settings"
-    Write-Host "  - SCIM provisioning"
-    Write-Host ""
+    Write-Host "FINT Entra ID Setup for Keycloak" -ForegroundColor Cyan
+    Write-Host "Script for creating a FINT Entra Enterprise Application and configuration."
     Write-Host "--------------------------------------------------------------------------------"
 }
