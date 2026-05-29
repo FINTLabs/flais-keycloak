@@ -34,7 +34,7 @@ services:
             - keycloak
 
     keycloak-pg:
-        image: postgres:17.5
+        image: postgres:18-alpine
         environment:
             POSTGRES_DB: keycloak
             POSTGRES_USER: keycloak
@@ -52,7 +52,7 @@ services:
     # Authentik
     # ----------------------
     authentik-pg:
-        image: postgres:16-alpine
+        image: postgres:18-alpine
         environment:
             POSTGRES_USER: postgres
             POSTGRES_PASSWORD: devpass
@@ -63,7 +63,7 @@ services:
             - keycloak
 
     authentik:
-        image: ghcr.io/goauthentik/server:2025.10.1
+        image: ghcr.io/goauthentik/server:2026.5.2
         command: server
         environment:
             AUTHENTIK_SECRET_KEY: "authentik"
@@ -90,7 +90,7 @@ services:
             - keycloak
 
     authentik-worker:
-        image: ghcr.io/goauthentik/server:2025.10.1
+        image: ghcr.io/goauthentik/server:2026.5.2
         command: worker
         environment:
             AUTHENTIK_SECRET_KEY: "authentik"
