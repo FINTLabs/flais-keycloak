@@ -22,7 +22,7 @@ services:
         ports:
             - "5432"
         tmpfs:
-            - /var/lib/postgresql/data
+            - /var/lib/postgresql
 
     authentik:
         ports:
