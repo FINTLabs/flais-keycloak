@@ -86,6 +86,11 @@ entries:
           client_type: "confidential"
           client_id: "entra-rogaland"
           client_secret: "test-secret"
+
+          grant_types:
+              - authorization_code
+              - refresh_token
+
           signing_key:
               !Find [
                   authentik_crypto.certificatekeypair,
@@ -136,8 +141,11 @@ entries:
           redirect_uris:
               - url: "^http://localhost:[0-9]{1,5}/realms/external/broker/entra-rogaland/endpoint$"
                 matching_mode: regex
+                redirect_uri_type: authorization
+
               - url: "^http://127\\.0\\.0\\.1:[0-9]{1,5}/realms/external/broker/entra-rogaland/endpoint$"
                 matching_mode: regex
+                redirect_uri_type: authorization
 
     - model: authentik_core.application
       state: present

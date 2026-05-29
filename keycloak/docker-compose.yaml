@@ -98,6 +98,8 @@ services:
             AUTHENTIK_POSTGRESQL__USER: postgres
             AUTHENTIK_POSTGRESQL__PASSWORD: devpass
             AUTHENTIK_POSTGRESQL__NAME: authentik
+            AUTHENTIK_BOOTSTRAP_EMAIL: "admin@admin.no"
+            AUTHENTIK_BOOTSTRAP_PASSWORD: "admin"
         depends_on: [ authentik-pg ]
         volumes: [ "./config/authentik/:/blueprints/custom/:ro" ]
         networks:
