@@ -11,7 +11,7 @@ function Show-Menu {
 
     Write-Host "2. Create and assign Claims Mapping Policy"
     Write-Host "3. Configure Enterprise Application + App Registration settings"
-    Write-Host "4. Configure FINT SCIM Provisioning"
+    Write-Host "4. Configure SCIM Provisioning"
     Write-Host "5. Configure Application Roles"
     Write-Host "6. Show Active Graph Context"
     Write-Host "7. Show Current Enterprise Application"

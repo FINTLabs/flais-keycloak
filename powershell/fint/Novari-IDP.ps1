@@ -95,7 +95,7 @@ function Invoke-CreateClaimsMappingPolicy {
 
     $displayName = Read-DefaultedValue `
         -Prompt "Claims Mapping Policy display name" `
-        -DefaultValue "$($ExistingApplicationResult.DisplayName) - FINT Claims Mapping Policy"
+        -DefaultValue "$($ExistingApplicationResult.DisplayName) - Claims Mapping Policy"
 
     $employeeIdSource = Read-DefaultedValue `
         -Prompt "Employee ID source attribute" `

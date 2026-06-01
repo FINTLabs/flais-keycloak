@@ -38,7 +38,7 @@ function Show-Header {
     Write-NovariLogo
 
     Write-Host ""
-    Write-Host "FINT Entra ID Setup for Keycloak" -ForegroundColor Cyan
-    Write-Host "Script for creating a FINT Entra Enterprise Application and configuration."
+    Write-Host "Entra ID Setup for Keycloak (Realm: FINT)" -ForegroundColor Cyan
+    Write-Host "Script for creating an Entra Enterprise Application and configuration."
     Write-Host "--------------------------------------------------------------------------------"
 }

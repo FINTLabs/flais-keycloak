@@ -27,7 +27,7 @@ Assert-MgContextHasExactlyRequiredScopes -RequiredScopes @(
     "Synchronization.ReadWrite.All"
 )
 
-function Set-FintApplicationRegistrationConfig {
+function Set-ApplicationRegistrationConfig {
     param(
         [Parameter(Mandatory = $true)]
         [string]$ApplicationObjectId
@@ -156,7 +156,7 @@ function Set-EnterpriseApplicationConfig {
         -BodyJson ($body | ConvertTo-Json -Depth 20) | Out-Null
 }
 
-Set-FintApplicationRegistrationConfig `
+Set-ApplicationRegistrationConfig `
     -ApplicationObjectId $ApplicationObjectId
 
 Set-EnterpriseApplicationConfig `

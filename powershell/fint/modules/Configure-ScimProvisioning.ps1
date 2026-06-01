@@ -443,7 +443,7 @@ function New-Mapping {
 }
 
 $spId = $ServicePrincipalObjectId
-$fintTenantUrl = $TenantUrl
+$TenantUrl = $TenantUrl
 
 $tplUri = "https://graph.microsoft.com/v1.0/servicePrincipals/$spId/synchronization/templates"
 
@@ -479,7 +479,7 @@ $secretsBody = @{
     value = @(
         @{
             key   = "BaseAddress"
-            value = $fintTenantUrl
+            value = $TenantUrl
         },
         @{
             key   = "SecretToken"
@@ -625,7 +625,7 @@ else {
     $targetEmployeeId = "urn:ietf:params:scim:schemas:extension:fint:2.0:User:employeeId"
     $targetStudentNumber = "urn:ietf:params:scim:schemas:extension:fint:2.0:User:studentNumber"
 
-    $fintAttributes = @(
+    $Attributes = @(
         @{
             Name        = $targetId
             Type        = "String"
@@ -706,7 +706,7 @@ else {
     )
 
     $allowedAttributeNames = @(
-        $fintAttributes |
+        $Attributes |
         ForEach-Object { $_.Name }
     )
 
@@ -716,7 +716,7 @@ else {
         -TargetObjectName $targetUserObjectName `
         -AllowedAttributeNames $allowedAttributeNames
 
-    foreach ($attr in $fintAttributes) {
+    foreach ($attr in $Attributes) {
         Add-TargetAttributeDefinition `
             -Schema $schema `
             -TargetDirectoryName $userRule.targetDirectoryName `
@@ -729,7 +729,7 @@ else {
     }
 
     $allowedTargets = @(
-        $fintAttributes |
+        $Attributes |
         Where-Object { $_.Name -ne $targetId } |
         ForEach-Object { $_.Name }
     )
@@ -853,7 +853,7 @@ else {
         -BodyJson $schemaJson `
         -NoRetryOnBadRequest | Out-Null
 
-    Write-Host "Schema updated: target User object set to '$targetUserObjectName'; FINT user attributes/mappings applied; groups disabled."
+    Write-Host "Schema updated: target User object set to '$targetUserObjectName'; user attributes/mappings applied; groups disabled."
 }
 
 if ($ProvisionStatus -eq "On") {
@@ -897,7 +897,7 @@ $result = [pscustomobject]@{
     ServicePrincipalObjectId     = $spId
     SyncTemplateId               = $template.id
     SyncJobId                    = $jobId
-    TenantUrl                    = $fintTenantUrl
+    TenantUrl                    = $TenantUrl
     ProvisionStatus              = $ProvisionStatus
     TargetUserObjectName         = "urn:ietf:params:scim:schemas:core:2.0:User"
     EmployeeIdSourceAttribute    = $EmployeeIdSourceAttribute

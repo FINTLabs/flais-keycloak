@@ -31,7 +31,7 @@ Assert-MgContextHasExactlyRequiredScopes -RequiredScopes @(
     "Synchronization.ReadWrite.All"
 )
 
-function New-FintClaimsMappingDefinition {
+function New-ClaimsMappingDefinition {
     param(
         [Parameter(Mandatory = $true)]
         [string]$EmployeeIdSource,
@@ -60,7 +60,7 @@ function New-FintClaimsMappingDefinition {
     } | ConvertTo-Json -Depth 10 -Compress
 }
 
-function Get-FintServicePrincipalClaimsMappingPolicies {
+function Get-ClaimsMappingPoliciesForServicePrincipal {
     param(
         [Parameter(Mandatory = $true)]
         [string]$ServicePrincipalId,
@@ -79,7 +79,7 @@ function Get-FintServicePrincipalClaimsMappingPolicies {
         -InitialDelaySeconds $DelaySeconds
 }
 
-function New-FintClaimsMappingPolicy {
+function New-ClaimsMappingPolicy {
     param(
         [Parameter(Mandatory = $true)]
         [string]$DefinitionJson,
@@ -107,7 +107,7 @@ function New-FintClaimsMappingPolicy {
         -InitialDelaySeconds $DelaySeconds
 }
 
-function Update-FintClaimsMappingPolicy {
+function Update-ClaimsMappingPolicy {
     param(
         [Parameter(Mandatory = $true)]
         [string]$PolicyId,
@@ -145,7 +145,7 @@ function Update-FintClaimsMappingPolicy {
         -InitialDelaySeconds $DelaySeconds
 }
 
-function Add-FintClaimsMappingPolicyToServicePrincipal {
+function Add-ClaimsMappingPolicyToServicePrincipal {
     param(
         [Parameter(Mandatory = $true)]
         [string]$ServicePrincipalId,
@@ -175,11 +175,11 @@ function Add-FintClaimsMappingPolicyToServicePrincipal {
     Write-Host "Assigned Claims Mapping Policy $PolicyId to service principal $ServicePrincipalId."
 }
 
-$claimsMapping = New-FintClaimsMappingDefinition `
+$claimsMapping = New-ClaimsMappingDefinition `
     -EmployeeIdSource $EmployeeIdSourceAttribute `
     -StudentNumberSource $StudentNumberSourceAttribute
 
-$assignedPoliciesResponse = Get-FintServicePrincipalClaimsMappingPolicies `
+$assignedPoliciesResponse = Get-ClaimsMappingPoliciesForServicePrincipal `
     -ServicePrincipalId $ServicePrincipalObjectId `
     -MaxAttempts $MaxRetries `
     -DelaySeconds $RetryDelaySeconds
@@ -195,7 +195,7 @@ if ($assignedClaimsMappingPolicies.Count -eq 1) {
 
     Write-Host "Service principal $ServicePrincipalObjectId already has Claims Mapping Policy $($existingPolicy.id). Updating existing policy instead of creating a new one."
 
-    $policy = Update-FintClaimsMappingPolicy `
+    $policy = Update-ClaimsMappingPolicy `
         -PolicyId $existingPolicy.id `
         -DefinitionJson $claimsMapping `
         -DisplayName $DisplayName `
@@ -207,7 +207,7 @@ if ($assignedClaimsMappingPolicies.Count -eq 1) {
     Write-Host "  Id:   $($policy.id)"
 }
 else {
-    $policy = New-FintClaimsMappingPolicy `
+    $policy = New-ClaimsMappingPolicy `
         -DefinitionJson $claimsMapping `
         -DisplayName $DisplayName `
         -MaxAttempts $MaxRetries `
@@ -217,7 +217,7 @@ else {
     Write-Host "  Name: $($policy.displayName)"
     Write-Host "  Id:   $($policy.id)"
 
-    Add-FintClaimsMappingPolicyToServicePrincipal `
+    Add-ClaimsMappingPolicyToServicePrincipal `
         -ServicePrincipalId $ServicePrincipalObjectId `
         -PolicyId $policy.id `
         -MaxAttempts $MaxRetries `
