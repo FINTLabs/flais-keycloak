@@ -22,7 +22,7 @@ services:
         ports:
             - "5432"
         tmpfs:
-            - /var/lib/postgresql/data
+            - /var/lib/postgresql
 
     authentik:
         ports:
@@ -32,7 +32,7 @@ services:
     # Helper services
     # ----------------------
     flais-keycloak-demo:
-        image: nginx:1.29.2-alpine
+        image: nginx:1.31.1-alpine-slim
         ports:
             - "80"
         volumes:

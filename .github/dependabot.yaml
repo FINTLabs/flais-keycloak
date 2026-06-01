@@ -50,3 +50,9 @@ updates:
         schedule:
             interval: "weekly"
             day: "sunday"
+
+    -   package-ecosystem: "docker-compose"
+        directory: "/keycloak/"
+        schedule:
+            interval: "weekly"
+            day: "sunday"

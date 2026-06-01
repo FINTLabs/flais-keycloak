@@ -34,7 +34,7 @@ services:
             - keycloak
 
     keycloak-pg:
-        image: postgres:17.5
+        image: postgres:18-alpine
         environment:
             POSTGRES_DB: keycloak
             POSTGRES_USER: keycloak
@@ -52,18 +52,18 @@ services:
     # Authentik
     # ----------------------
     authentik-pg:
-        image: postgres:16-alpine
+        image: postgres:18-alpine
         environment:
             POSTGRES_USER: postgres
             POSTGRES_PASSWORD: devpass
             POSTGRES_DB: authentik
         tmpfs:
-            - /var/lib/postgresql/data
+            - /var/lib/postgresql
         networks:
             - keycloak
 
     authentik:
-        image: ghcr.io/goauthentik/server:2025.10.1
+        image: ghcr.io/goauthentik/server:2026.5.2
         command: server
         environment:
             AUTHENTIK_SECRET_KEY: "authentik"
@@ -90,7 +90,7 @@ services:
             - keycloak
 
     authentik-worker:
-        image: ghcr.io/goauthentik/server:2025.10.1
+        image: ghcr.io/goauthentik/server:2026.5.2
         command: worker
         environment:
             AUTHENTIK_SECRET_KEY: "authentik"
@@ -98,6 +98,8 @@ services:
             AUTHENTIK_POSTGRESQL__USER: postgres
             AUTHENTIK_POSTGRESQL__PASSWORD: devpass
             AUTHENTIK_POSTGRESQL__NAME: authentik
+            AUTHENTIK_BOOTSTRAP_EMAIL: "admin@admin.no"
+            AUTHENTIK_BOOTSTRAP_PASSWORD: "admin"
         depends_on: [ authentik-pg ]
         volumes: [ "./config/authentik/:/blueprints/custom/:ro" ]
         networks:
