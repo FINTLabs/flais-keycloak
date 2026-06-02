@@ -63,6 +63,7 @@ WORKDIR /opt/keycloak
 ENV KC_DB=postgres
 ENV KC_HEALTH_ENABLED=true
 ENV KC_METRICS_ENABLED=true
+ENV KC_EVENT_METRICS_USER_ENABLED=true
 
 COPY --from=flais-keycloak-builder /flais-keycloak-jars/*.jar /opt/keycloak/providers/
 
