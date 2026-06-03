@@ -137,16 +137,16 @@ function Find-NovariExistingRoleById {
         [string]$Id
     )
 
-    $matches = @($ExistingRoles | Where-Object {
+    $matchesExisting = @($ExistingRoles | Where-Object {
             -not [string]::IsNullOrWhiteSpace([string]$_.id) -and [string]$_.id -eq $Id
         })
 
-    if ($matches.Count -gt 1) {
+    if ($matchesExisting.Count -gt 1) {
         throw "Multiple existing app roles use id '$Id'. Refusing to continue because the update target is ambiguous."
     }
 
-    if ($matches.Count -eq 1) {
-        return $matches[0]
+    if ($matchesExisting.Count -eq 1) {
+        return $matchesExisting[0]
     }
 
     return $null
@@ -332,8 +332,31 @@ function Merge-NovariAppRoles {
             -ExistingRole $existing
 
         if ($usedValues.ContainsKey($newRole.value)) {
-            throw "Duplicate role value '$($newRole.value)' in JSON or existing app roles. Role values must be unique."
+            Write-Host "Skipping JSON app role '$($newRole.displayName)' because duplicate role value '$($newRole.value)' was already handled." -ForegroundColor Red
+            continue
         }
+
+        $existingRoleWithSameValue = @($ExistingRoles | Where-Object {
+                -not [string]::IsNullOrWhiteSpace([string]$_.value) -and
+                [string]$_.value -eq [string]$newRole.value -and
+                [string]$_.id -ne [string]$newRole.id
+            })
+
+        if ($existingRoleWithSameValue.Count -gt 0) {
+            Write-Host "Skipping JSON app role '$($newRole.displayName)' because role value '$($newRole.value)' already exists on the application. Existing role is kept unchanged." -ForegroundColor Red
+
+            foreach ($sameValueRole in $existingRoleWithSameValue) {
+                $sameValueRoleId = [string]$sameValueRole.id
+                if (-not [string]::IsNullOrWhiteSpace($sameValueRoleId) -and -not $handledExistingRoleIds.ContainsKey($sameValueRoleId)) {
+                    $mergedRoles += $sameValueRole
+                    $handledExistingRoleIds[$sameValueRoleId] = $true
+                }
+            }
+
+            $usedValues[[string]$newRole.value] = $true
+            continue
+        }
+
         $usedValues[$newRole.value] = $true
 
         $mergedRoles += $newRole
@@ -349,7 +372,8 @@ function Merge-NovariAppRoles {
         }
 
         if ($existingRole.value -and $usedValues.ContainsKey([string]$existingRole.value)) {
-            throw "Duplicate existing role value '$($existingRole.value)' found on the application. Refusing to continue."
+            Write-Host "Skipping existing app role '$($existingRole.displayName)' because duplicate role value '$($existingRole.value)' was found on the application." -ForegroundColor Red
+            continue
         }
 
         if ($existingRole.value) {
@@ -418,7 +442,6 @@ function Write-NovariAppRoleChanges {
     }
 
     $added = @()
-    $removed = @()
     $changed = @()
 
     foreach ($key in @($mergedByKey.Keys | Sort-Object)) {
