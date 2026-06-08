@@ -540,7 +540,7 @@ function New-EmployeeTypeConditionalAttributeSource {
         throw "At least one non-empty employeeType match value is required."
     }
 
-    $switchExpression = "Switch(ToLower([$EmployeeTypeAttributeName]), `"`""
+    $switchExpression = "Switch(ToLower([$EmployeeTypeAttributeName]), `"`", `"`""
 
     $switchParameters = @(
         @{
@@ -548,7 +548,7 @@ function New-EmployeeTypeConditionalAttributeSource {
             value = New-ToLowerAttributeSource -Name $EmployeeTypeAttributeName
         },
         @{
-            key   = "switchValue"
+            key   = "defaultValue"
             value = New-ConstantSource -Value ""
         }
     )
@@ -568,23 +568,12 @@ function New-EmployeeTypeConditionalAttributeSource {
     }
 
     $switchExpression += ")"
-    $expression = "IgnoreFlowIfNullOrEmpty($switchExpression)"
 
     return @{
         type       = "Function"
-        name       = "IgnoreFlowIfNullOrEmpty"
-        expression = $expression
-        parameters = @(
-            @{
-                key   = "source"
-                value = @{
-                    type       = "Function"
-                    name       = "Switch"
-                    expression = $switchExpression
-                    parameters = $switchParameters
-                }
-            }
-        )
+        name       = "Switch"
+        expression = $switchExpression
+        parameters = $switchParameters
     }
 }
 
