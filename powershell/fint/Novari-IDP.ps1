@@ -13,7 +13,7 @@ $ErrorActionPreference = "Stop"
 
 $CreateEnterpriseAppScript = "$PSScriptRoot/modules/Create-EnterpriseApplication.ps1"
 $CreateClaimsMappingPolicyScript = "$PSScriptRoot/modules/Configure-ClaimsMappingPolicy.ps1"
-$ConfigureEnterpriseAppScript = "$PSScriptRoot/modules/Configure-Application.ps1"
+$ConfigureAppScript = "$PSScriptRoot/modules/Configure-Application.ps1"
 $ConfigureScimScript = "$PSScriptRoot/modules/Configure-ScimProvisioning.ps1"
 $ConfigureAppRolesScript = "$PSScriptRoot/modules/Configure-AppRoles.ps1"
 
@@ -69,7 +69,7 @@ function Get-ExistingEnterpriseApplication {
     return $result
 }
 
-function Invoke-ConfigureEnterpriseApplication {
+function Invoke-ConfigureApplication {
     param(
         [Parameter(Mandatory = $false)]
         [object]$ExistingApplicationResult
@@ -78,7 +78,7 @@ function Invoke-ConfigureEnterpriseApplication {
 
     $redirectUri = Read-RequiredValue "Keycloak redirect URI for IDP"
 
-    & $ConfigureEnterpriseAppScript `
+    & $ConfigureAppScript `
         -ApplicationObjectId $ExistingApplicationResult.ApplicationObjectId `
         -ApplicationAppId $ExistingApplicationResult.ApplicationAppId `
         -ServicePrincipalObjectId $ExistingApplicationResult.ServicePrincipalObjectId `

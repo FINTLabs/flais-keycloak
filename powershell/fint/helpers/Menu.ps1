@@ -43,13 +43,11 @@ function Invoke-MenuChoice {
         }
 
         "3" {
-            Invoke-ConfigureEnterpriseApplication `
+            Invoke-ConfigureApplication `
                 -ExistingApplicationResult $script:LastEnterpriseApplicationResult
         }
 
         "4" {
-            $servicePrincipalObjectId = $null
-
             Invoke-ConfigureScimProvisioning `
                 -ExistingServicePrincipalObjectId $script:LastEnterpriseApplicationResult.ServicePrincipalObjectId
         }
