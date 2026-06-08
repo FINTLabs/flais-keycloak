@@ -16,7 +16,20 @@ param(
     [string]$EmployeeIdSourceAttribute = "extensionAttribute10",
 
     [Parameter(Mandatory = $false)]
-    [string]$StudentNumberSourceAttribute = "extensionAttribute9"
+    [string]$StudentNumberSourceAttribute = "extensionAttribute9",
+
+    [Parameter(Mandatory = $false)]
+    [ValidateSet("Direct", "EmployeeType")]
+    [string]$IdentifierMappingMode = "Direct",
+
+    [Parameter(Mandatory = $false)]
+    [string]$EmployeeTypeSourceAttribute,
+
+    [Parameter(Mandatory = $false)]
+    [string[]]$EmployeeTypeEmployeeValues,
+
+    [Parameter(Mandatory = $false)]
+    [string[]]$EmployeeTypeStudentValues
 )
 
 Set-StrictMode -Version Latest
@@ -31,6 +44,71 @@ Assert-MgContextHasExactlyRequiredScopes -RequiredScopes @(
     "Policy.ReadWrite.ApplicationConfiguration",
     "Synchronization.ReadWrite.All"
 )
+
+function Assert-SafeProvisioningExpressionValue {
+    param(
+        [Parameter(Mandatory)]
+        [string]$Value,
+
+        [Parameter(Mandatory)]
+        [string]$ParameterName
+    )
+
+    if ($Value -match '["\[\]]') {
+        throw "$ParameterName contains unsupported characters for a provisioning expression: $Value"
+    }
+}
+
+function Assert-IdentifierMappingOptions {
+    if ([string]::IsNullOrWhiteSpace($EmployeeIdSourceAttribute)) {
+        throw "EmployeeIdSourceAttribute cannot be empty. It should be provided by the caller, or use the default extensionAttribute10."
+    }
+
+    if ([string]::IsNullOrWhiteSpace($StudentNumberSourceAttribute)) {
+        throw "StudentNumberSourceAttribute cannot be empty. It should be provided by the caller, or use the default extensionAttribute9."
+    }
+
+    if ([string]::IsNullOrWhiteSpace($IdentifierMappingMode)) {
+        throw "IdentifierMappingMode is required. Pass Direct or EmployeeType from the caller script."
+    }
+
+    if ($IdentifierMappingMode -eq "EmployeeType") {
+        if ([string]::IsNullOrWhiteSpace($EmployeeTypeSourceAttribute)) {
+            throw "EmployeeTypeSourceAttribute is required when IdentifierMappingMode is EmployeeType."
+        }
+
+        if (-not $EmployeeTypeEmployeeValues -or @($EmployeeTypeEmployeeValues).Length -eq 0) {
+            throw "EmployeeTypeEmployeeValues must contain at least one value when IdentifierMappingMode is EmployeeType."
+        }
+
+        if (-not $EmployeeTypeStudentValues -or @($EmployeeTypeStudentValues).Length -eq 0) {
+            throw "EmployeeTypeStudentValues must contain at least one value when IdentifierMappingMode is EmployeeType."
+        }
+    }
+
+    Assert-SafeProvisioningExpressionValue -Value $EmployeeIdSourceAttribute -ParameterName "EmployeeIdSourceAttribute"
+    Assert-SafeProvisioningExpressionValue -Value $StudentNumberSourceAttribute -ParameterName "StudentNumberSourceAttribute"
+
+    if ($IdentifierMappingMode -eq "EmployeeType") {
+        Assert-SafeProvisioningExpressionValue -Value $EmployeeTypeSourceAttribute -ParameterName "EmployeeTypeSourceAttribute"
+
+        foreach ($value in @($EmployeeTypeEmployeeValues + $EmployeeTypeStudentValues)) {
+            Assert-SafeProvisioningExpressionValue -Value $value -ParameterName "EmployeeType match value"
+        }
+    }
+}
+
+Assert-IdentifierMappingOptions
+
+Write-Host "Identifier mapping mode: $IdentifierMappingMode"
+Write-Host "employeeId source attribute: $EmployeeIdSourceAttribute"
+Write-Host "studentNumber source attribute: $StudentNumberSourceAttribute"
+
+if ($IdentifierMappingMode -eq "EmployeeType") {
+    Write-Host "employeeType source attribute: $EmployeeTypeSourceAttribute"
+    Write-Host "employeeId is populated when employeeType matches: $($EmployeeTypeEmployeeValues -join ', ')"
+    Write-Host "studentNumber is populated when employeeType matches: $($EmployeeTypeStudentValues -join ', ')"
+}
 
 function Set-AttrMapping {
     param(
@@ -343,6 +421,198 @@ function New-AttributeSource {
         expression = "[$Name]"
         parameters = @()
     }
+}
+
+function New-SwitchAttributeSource {
+    param(
+        [Parameter(Mandatory)]
+        [string]$Name
+    )
+
+    return @{
+        type       = "Function"
+        name       = "Switch"
+        expression = "Switch([$Name], [$Name], `"`", `"`")"
+        parameters = @(
+            @{
+                key   = "source"
+                value = @{
+                    expression = "[$Name]"
+                    name       = $Name
+                    type       = "Attribute"
+                    parameters = @()
+                }
+            },
+            @{
+                key   = "defaultValue"
+                value = @{
+                    expression = "[$Name]"
+                    name       = $Name
+                    type       = "Attribute"
+                    parameters = @()
+                }
+            },
+            @{
+                key   = "switchValue"
+                value = @{
+                    expression = '""'
+                    name       = ""
+                    type       = "Constant"
+                    parameters = @()
+                }
+            },
+            @{
+                key   = "switchValue"
+                value = @{
+                    expression = '""'
+                    name       = ""
+                    type       = "Constant"
+                    parameters = @()
+                }
+            }
+        )
+    }
+}
+
+function New-ToLowerAttributeSource {
+    param(
+        [Parameter(Mandatory)]
+        [string]$Name
+    )
+
+    return @{
+        type       = "Function"
+        name       = "ToLower"
+        expression = "ToLower([$Name])"
+        parameters = @(
+            @{
+                key   = "source"
+                value = @{
+                    expression = "[$Name]"
+                    name       = $Name
+                    type       = "Attribute"
+                    parameters = @()
+                }
+            }
+        )
+    }
+}
+
+function New-ConstantSource {
+    param(
+        [AllowEmptyString()]
+        [Parameter(Mandatory)]
+        [string]$Value
+    )
+
+    return @{
+        expression = "`"$Value`""
+        name       = $Value
+        type       = "Constant"
+        parameters = @()
+    }
+}
+
+function New-EmployeeTypeConditionalAttributeSource {
+    param(
+        [Parameter(Mandatory)]
+        [string]$ValueAttributeName,
+
+        [Parameter(Mandatory)]
+        [string]$EmployeeTypeAttributeName,
+
+        [Parameter(Mandatory)]
+        [string[]]$MatchValues
+    )
+
+    if (-not $MatchValues -or @($MatchValues).Length -eq 0) {
+        throw "At least one employeeType match value is required."
+    }
+
+    $normalizedMatchValues = @(
+        $MatchValues |
+        ForEach-Object { $_.Trim().ToLowerInvariant() } |
+        Where-Object { -not [string]::IsNullOrWhiteSpace($_) } |
+        Select-Object -Unique
+    )
+
+    if ($normalizedMatchValues.Count -eq 0) {
+        throw "At least one non-empty employeeType match value is required."
+    }
+
+    $switchExpression = "Switch(ToLower([$EmployeeTypeAttributeName]), `"`""
+
+    $switchParameters = @(
+        @{
+            key   = "source"
+            value = New-ToLowerAttributeSource -Name $EmployeeTypeAttributeName
+        },
+        @{
+            key   = "switchValue"
+            value = New-ConstantSource -Value ""
+        }
+    )
+
+    foreach ($matchValue in $normalizedMatchValues) {
+        $switchExpression += ", `"$matchValue`", [$ValueAttributeName]"
+
+        $switchParameters += @{
+            key   = "switchValue"
+            value = New-ConstantSource -Value $matchValue
+        }
+
+        $switchParameters += @{
+            key   = "switchValue"
+            value = New-AttributeSource -Name $ValueAttributeName
+        }
+    }
+
+    $switchExpression += ")"
+    $expression = "IgnoreFlowIfNullOrEmpty($switchExpression)"
+
+    return @{
+        type       = "Function"
+        name       = "IgnoreFlowIfNullOrEmpty"
+        expression = $expression
+        parameters = @(
+            @{
+                key   = "source"
+                value = @{
+                    type       = "Function"
+                    name       = "Switch"
+                    expression = $switchExpression
+                    parameters = $switchParameters
+                }
+            }
+        )
+    }
+}
+
+function New-FintIdentifierSource {
+    param(
+        [Parameter(Mandatory)]
+        [ValidateSet("employeeId", "studentNumber")]
+        [string]$Identifier,
+
+        [Parameter(Mandatory)]
+        [string]$ValueAttributeName
+    )
+
+    if ($IdentifierMappingMode -eq "Direct") {
+        return New-SwitchAttributeSource -Name $ValueAttributeName
+    }
+
+    if ($Identifier -eq "employeeId") {
+        return New-EmployeeTypeConditionalAttributeSource `
+            -ValueAttributeName $ValueAttributeName `
+            -EmployeeTypeAttributeName $EmployeeTypeSourceAttribute `
+            -MatchValues $EmployeeTypeEmployeeValues
+    }
+
+    return New-EmployeeTypeConditionalAttributeSource `
+        -ValueAttributeName $ValueAttributeName `
+        -EmployeeTypeAttributeName $EmployeeTypeSourceAttribute `
+        -MatchValues $EmployeeTypeStudentValues
 }
 
 function New-SwitchIsSoftDeletedSource {
@@ -800,7 +1070,7 @@ else {
         New-Mapping `
             -TargetAttributeName $targetGivenName `
             -MatchingPriority 0 `
-            -Source (New-AttributeSource -Name "givenName")
+            -Source (New-SwitchAttributeSource -Name "givenName")
     )
 
     Set-AttrMapping `
@@ -810,7 +1080,7 @@ else {
         New-Mapping `
             -TargetAttributeName $targetFamilyName `
             -MatchingPriority 0 `
-            -Source (New-AttributeSource -Name "surname")
+            -Source (New-SwitchAttributeSource -Name "surname")
     )
 
     Set-AttrMapping `
@@ -820,7 +1090,7 @@ else {
         New-Mapping `
             -TargetAttributeName $targetUpn `
             -MatchingPriority 0 `
-            -Source (New-AttributeSource -Name "userPrincipalName")
+            -Source (New-SwitchAttributeSource -Name "userPrincipalName")
     )
 
     Set-AttrMapping `
@@ -830,7 +1100,11 @@ else {
         New-Mapping `
             -TargetAttributeName $targetEmployeeId `
             -MatchingPriority 0 `
-            -Source (New-AttributeSource -Name $EmployeeIdSourceAttribute)
+            -Source (
+            New-FintIdentifierSource `
+                -Identifier "employeeId" `
+                -ValueAttributeName $EmployeeIdSourceAttribute
+        )
     )
 
     Set-AttrMapping `
@@ -840,7 +1114,11 @@ else {
         New-Mapping `
             -TargetAttributeName $targetStudentNumber `
             -MatchingPriority 0 `
-            -Source (New-AttributeSource -Name $StudentNumberSourceAttribute)
+            -Source (
+            New-FintIdentifierSource `
+                -Identifier "studentNumber" `
+                -ValueAttributeName $StudentNumberSourceAttribute
+        )
     )
 
     $schema."@odata.type" = "#microsoft.graph.synchronizationSchema"
@@ -902,6 +1180,10 @@ $result = [pscustomobject]@{
     TargetUserObjectName         = "urn:ietf:params:scim:schemas:core:2.0:User"
     EmployeeIdSourceAttribute    = $EmployeeIdSourceAttribute
     StudentNumberSourceAttribute = $StudentNumberSourceAttribute
+    IdentifierMappingMode        = $IdentifierMappingMode
+    EmployeeTypeSourceAttribute  = $EmployeeTypeSourceAttribute
+    EmployeeTypeEmployeeValues   = $EmployeeTypeEmployeeValues
+    EmployeeTypeStudentValues    = $EmployeeTypeStudentValues
 }
 
 $result | ConvertTo-Json -Depth 20

@@ -140,6 +140,7 @@ function Invoke-ConfigureScimProvisioning {
     Write-Host "Using Enterprise Application: $($servicePrincipal.DisplayName)" -ForegroundColor Green
 
     $tenantUrl = Read-RequiredValue "SCIM Tenant URL / BaseAddress"
+
     $employeeIdSource = Read-DefaultedValue `
         -Prompt "Employee ID source attribute" `
         -DefaultValue "extensionAttribute10"
@@ -148,11 +149,54 @@ function Invoke-ConfigureScimProvisioning {
         -Prompt "Student number source attribute" `
         -DefaultValue "extensionAttribute9"
 
-    & $ConfigureScimScript `
-        -ServicePrincipalObjectId $servicePrincipalObjectId `
-        -TenantUrl $tenantUrl `
-        -EmployeeIdSourceAttribute $employeeIdSource `
-        -StudentNumberSourceAttribute $studentNumberSource
+    $identifierMappingMode = Read-ChoiceDefaultedValue `
+        -Prompt "Identifier mapping mode. Use Direct or EmployeeType" `
+        -DefaultValue "Direct" `
+        -AllowedValues @("Direct", "EmployeeType")
+
+    $configureScimParams = @{
+        ServicePrincipalObjectId     = $servicePrincipalObjectId
+        TenantUrl                    = $tenantUrl
+        EmployeeIdSourceAttribute    = $employeeIdSource
+        StudentNumberSourceAttribute = $studentNumberSource
+        IdentifierMappingMode        = $identifierMappingMode
+    }
+
+    if ($identifierMappingMode -eq "EmployeeType") {
+        $employeeTypeSource = Read-DefaultedValue `
+            -Prompt "Source attribute to match employee type from" `
+            -DefaultValue "employeeType"
+
+        [string[]]$employeeTypeEmployeeValues = @(
+            ConvertTo-NonEmptyStringArray -Value (
+                Read-DefaultedValue `
+                    -Prompt "employeeType values that should populate employeeId, comma separated" `
+                    -DefaultValue "ansatt,tilsett"
+            )
+        )
+
+        [string[]]$employeeTypeStudentValues = @(
+            ConvertTo-NonEmptyStringArray -Value (
+                Read-DefaultedValue `
+                    -Prompt "employeeType values that should populate studentNumber, comma separated" `
+                    -DefaultValue "elev"
+            )
+        )
+
+        if (-not $employeeTypeEmployeeValues -or $employeeTypeEmployeeValues.Length -eq 0) {
+            throw "At least one employeeType value is required for employeeId."
+        }
+
+        if (-not $employeeTypeStudentValues -or $employeeTypeStudentValues.Length -eq 0) {
+            throw "At least one employeeType value is required for studentNumber."
+        }
+
+        $configureScimParams.EmployeeTypeSourceAttribute = $employeeTypeSource
+        $configureScimParams.EmployeeTypeEmployeeValues = $employeeTypeEmployeeValues
+        $configureScimParams.EmployeeTypeStudentValues = $employeeTypeStudentValues
+    }
+
+    & $ConfigureScimScript @configureScimParams
 }
 
 . "$PSScriptRoot/helpers/Header.ps1"
