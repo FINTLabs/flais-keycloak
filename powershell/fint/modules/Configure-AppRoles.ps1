@@ -13,9 +13,7 @@ $ErrorActionPreference = "Stop"
 . "$PSScriptRoot/../helpers/RequiredScopes.ps1"
 
 Assert-MgContextHasExactlyRequiredScopes -RequiredScopes @(
-    "Application.ReadWrite.All",
-    "Policy.Read.All",
-    "Policy.ReadWrite.ApplicationConfiguration",
+    "Application.ReadWrite.OwnedBy",
     "Synchronization.ReadWrite.All"
 )
 
