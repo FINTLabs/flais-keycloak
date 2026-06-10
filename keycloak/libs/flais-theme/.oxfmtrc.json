@@ -1,14 +1,14 @@
 {
-    "$schema": "./node_modules/oxfmt/configuration_schema.json",
-    "endOfLine": "lf",
-    "insertFinalNewline": true,
-    "useTabs": false,
-    "tabWidth": 4,
-    "printWidth": 80,
-    "ignorePatterns": [
-        "dist/**",
-        "build/**",
-        "node_modules/**",
-        "storybook-static/**"
-    ]
+  "$schema": "./node_modules/oxfmt/configuration_schema.json",
+  "endOfLine": "lf",
+  "insertFinalNewline": true,
+  "useTabs": false,
+  "tabWidth": 2,
+  "printWidth": 80,
+  "ignorePatterns": [
+    "dist/**",
+    "build/**",
+    "node_modules/**",
+    "storybook-static/**"
+  ]
 }
