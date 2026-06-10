@@ -39,7 +39,7 @@ jobs:
         runs-on: ubuntu-latest
         defaults:
             run:
-                working-directory: libs/flais-theme
+                working-directory: keycloak/libs/flais-theme
         steps:
             - name: Checkout code
               uses: actions/checkout@v6
