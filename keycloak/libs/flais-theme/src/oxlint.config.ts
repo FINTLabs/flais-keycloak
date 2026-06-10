@@ -13,11 +13,7 @@ export default defineConfig({
         suspicious: "warn",
         pedantic: "off",
     },
-    plugins: [
-        "typescript",
-        "react",
-        "oxc",
-    ],
+    plugins: ["typescript", "react", "oxc"],
     env: {
         browser: true,
         node: true,
