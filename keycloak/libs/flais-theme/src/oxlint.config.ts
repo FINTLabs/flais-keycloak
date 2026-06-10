@@ -22,8 +22,8 @@ export default defineConfig({
     rules: {
         "react/react-in-jsx-scope": "off",
         "react/rules-of-hooks": "error",
-        "react/exhaustive-deps": "warn",
-        "typescript/no-explicit-any": "warn",
-        "no-console": "warn",
+        "react/exhaustive-deps": "error",
+        "typescript/no-explicit-any": "error",
+        "no-console": "error",
     },
 });
