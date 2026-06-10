@@ -8,6 +8,8 @@
     },
     "scripts": {
         "dev": "vite",
+        "format": "oxfmt . --write",
+        "format:check": "oxfmt . --check",
         "lint": "oxlint .",
         "lint:fix": "oxlint . --fix",
         "check": "npm run lint && tsc --noEmit",
