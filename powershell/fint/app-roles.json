@@ -1,0 +1,337 @@
+{
+    "roles": [
+        {
+            "id": "bff4c724-1e5b-4467-8816-c981a702de10",
+            "displayName": "Drosjeloyve Admin",
+            "value": "https://role-catalog.vigoiks.no/<organization>/drosjeloyve/admin",
+            "description": "Gir tilgang til rollen Drosjeloyve Admin.",
+            "allowedMemberTypes": [
+                "User"
+            ]
+        },
+        {
+            "id": "b885105c-7bf4-44e3-9686-5fa33b7e8a5f",
+            "displayName": "EGrunnerverv Grunnerverver",
+            "value": "https://role-catalog.vigoiks.no/<organization>/egrunnerverv/grunnerverver",
+            "description": "Medlem gir tilgang som grunnerverver i fylkeskommunen",
+            "allowedMemberTypes": [
+                "User"
+            ]
+        },
+        {
+            "id": "41a128a8-4657-4003-9b09-ab683629527a",
+            "displayName": "Elevfakturering Admin",
+            "value": "https://role-catalog.vigoiks.no/<organization>/elevfakturering/admin",
+            "description": "Denne rollen gir en opphoyet tilgang til Elevfakturering og gir tilgang til a fakturere elever pa samtlige skoler.",
+            "allowedMemberTypes": [
+                "User"
+            ]
+        },
+        {
+            "id": "086c35fd-8afa-44ee-b4dd-75cc98ef06f8",
+            "displayName": "Elevfakturering User",
+            "value": "https://role-catalog.vigoiks.no/<organization>/elevfakturering/user",
+            "description": "Denne rollen gir tilgang til Elevfakturering og til a fakturere elevene pa de skolene hvor brukeren har et undervisningsforhold.",
+            "allowedMemberTypes": [
+                "User"
+            ]
+        },
+        {
+            "id": "bf6b9eab-c3ee-4896-9e5c-8b6e958a4312",
+            "displayName": "Flyt Admin",
+            "value": "https://role-catalog.vigoiks.no/<organization>/flyt/admin",
+            "description": "Medlem av rollen har tilgang til admin tilgang til applikasjonen.",
+            "allowedMemberTypes": [
+                "User"
+            ]
+        },
+        {
+            "id": "84e3b7d2-2916-47fc-aa7e-81ef544e6edd",
+            "displayName": "Flyt Developer",
+            "value": "https://role-catalog.vigoiks.no/<organization>/flyt/developer",
+            "description": "Medlem av rollen har tilgang til applikasjonen som utvikler.",
+            "allowedMemberTypes": [
+                "User"
+            ]
+        },
+        {
+            "id": "06fac2d9-70bc-4c7f-bb69-4e1538aa2748",
+            "displayName": "Flyt User",
+            "value": "https://role-catalog.vigoiks.no/<organization>/flyt/user",
+            "description": "Medlem av rollen har tilgang til applikasjonen.",
+            "allowedMemberTypes": [
+                "User"
+            ]
+        },
+        {
+            "id": "d7d1353c-2f49-4a51-9412-51020bdf5992",
+            "displayName": "ISY Road User",
+            "value": "https://role-catalog.vigoiks.no/<organization>/isyroad/user",
+            "description": "Medlem av rollen har tilgang til ISY-ROAD applikasjonen.",
+            "allowedMemberTypes": [
+                "User"
+            ]
+        },
+        {
+            "id": "ac8e8960-e7c9-4a6d-b9d4-16f695d4b694",
+            "displayName": "Kontroll Admin",
+            "value": "https://role-catalog.vigoiks.no/<organization>/kontroll/admin",
+            "description": "Gir tilgang som admin i hele losningen",
+            "allowedMemberTypes": [
+                "User"
+            ]
+        },
+        {
+            "id": "2fa207b5-3b97-4d20-b4a1-c59c567a3bb5",
+            "displayName": "Kontroll Developer",
+            "value": "https://role-catalog.vigoiks.no/<organization>/kontroll/developer",
+            "description": "Intern rolle til utviklere i Novari for FINT-kontroll",
+            "allowedMemberTypes": [
+                "User"
+            ]
+        },
+        {
+            "id": "6239bce4-8ca3-43ea-98c8-e4a21199492f",
+            "displayName": "Kontroll User",
+            "value": "https://role-catalog.vigoiks.no/<organization>/kontroll/user",
+            "description": "Gir tilgang som bruker",
+            "allowedMemberTypes": [
+                "User"
+            ]
+        },
+        {
+            "id": "42bc63b8-1371-4cf2-ac67-f4e4c2c9a9d2",
+            "displayName": "Personalmappe Admin",
+            "value": "https://role-catalog.vigoiks.no/<organization>/personalmappe/admin",
+            "description": "Gir tilgang til rollen Personalmappe Admin.",
+            "allowedMemberTypes": [
+                "User"
+            ]
+        },
+        {
+            "id": "e0bd59c3-526e-4069-860c-b1de13e47ec5",
+            "displayName": "Qlik NPrinting FK NewsStand",
+            "value": "https://role-catalog.vigoiks.no/<organization>/qlik/nprint/fk-newsstand",
+            "description": "Medlem av rollen jobber i fylkesadmin. og skal ha tilgang til NewsStand  i NPrinting (brukes i kombinasjon med en eller flere av de andre FK – rollene pa fylkesniva)",
+            "allowedMemberTypes": [
+                "User"
+            ]
+        },
+        {
+            "id": "49b7160c-3601-4636-94fb-8e8038b6e5ec",
+            "displayName": "NPrinting FK Utvikler",
+            "value": "https://role-catalog.vigoiks.no/<organization>/qlik/nprint/fk-utvikler",
+            "description": "Medlem av rollen er radgiver i fylkesadmin. og ansvarlig for a lage NPrinting jobber for fylkeskommunen (brukes i kombinasjon med en eller flere av de andre FK – rollene pa fylkesniva)",
+            "allowedMemberTypes": [
+                "User"
+            ]
+        },
+        {
+            "id": "48581061-b70b-49eb-9c98-748df9310186",
+            "displayName": "Qlik Sense FK Dokumentasjon",
+            "value": "https://role-catalog.vigoiks.no/<organization>/qlik/qliksense/fk-dokumentasjon",
+            "description": "Medlem arbeider med dokumentasjon i fylkesadministrasjonen. Far tilgang til data pa individniva.",
+            "allowedMemberTypes": [
+                "User"
+            ]
+        },
+        {
+            "id": "a97ff09d-0b16-4425-8c1b-f7dfe1c84072",
+            "displayName": "Qlik Sense FK Fagopplaring MV",
+            "value": "https://role-catalog.vigoiks.no/<organization>/qlik/qliksense/fk-fagopplaring-MV",
+            "description": "Medlem arbeider med fagopplaring i fylkesadministrasjonen. Far tilgang til data for modulbasert opplaring",
+            "allowedMemberTypes": [
+                "User"
+            ]
+        },
+        {
+            "id": "5c77f257-4bab-43f6-a53a-b4543167461c",
+            "displayName": "Qlik Sense FK Fagopplaring",
+            "value": "https://role-catalog.vigoiks.no/<organization>/qlik/qliksense/fk-fagopplaring",
+            "description": "Medlem arbeider med fagopplaring i fylkesadministrasjonen. Far tilgang til og InSchool-data pa individniva for alle skolene.",
+            "allowedMemberTypes": [
+                "User"
+            ]
+        },
+        {
+            "id": "3d8b6fa6-c777-4a80-9426-44b36178079d",
+            "displayName": "Qlik Sense FK Inntak OT",
+            "value": "https://role-catalog.vigoiks.no/<organization>/qlik/qliksense/fk-inntak-ot",
+            "description": "Medlem er radgiver i fylkesadministrasjonen og arbeider med data som skal overfores fra Opplaring til OT. Far tilgang til InSchool-data pa individniva for alle skolene.",
+            "allowedMemberTypes": [
+                "User"
+            ]
+        },
+        {
+            "id": "7f73fdb1-3623-41d2-87d7-1b1e903fc80b",
+            "displayName": "Qlik Sense FK Inntak",
+            "value": "https://role-catalog.vigoiks.no/<organization>/qlik/qliksense/fk-inntak",
+            "description": "Medlem arbeider med inntak i fylkesadministrasjonen. Far tilgang til InSchool-data pa individniva for alle skolene.",
+            "allowedMemberTypes": [
+                "User"
+            ]
+        },
+        {
+            "id": "40907ec3-4b36-47ce-b839-ba1d78435333",
+            "displayName": "Qlik Sense FK InSchool Kontroll",
+            "value": "https://role-catalog.vigoiks.no/<organization>/qlik/qliksense/fk-inschool-kontroll",
+            "description": "Kontroll av overforingsdata til InSchool pa fylkesniva",
+            "allowedMemberTypes": [
+                "User"
+            ]
+        },
+        {
+            "id": "c1d65d06-3374-41fd-877e-d4a96b77eaef",
+            "displayName": "Qlik Sense FK Leder",
+            "value": "https://role-catalog.vigoiks.no/<organization>/qlik/qliksense/fk-leder",
+            "description": "Medlem er leder i fylkesadministrasjonen. Far tilgang til statistikk, analyse og rapporter med overordnet data ned pa klasseniva fra alle skoler. Far tilgang til okonomi og HR data.",
+            "allowedMemberTypes": [
+                "User"
+            ]
+        },
+        {
+            "id": "25e3c77d-e3f3-4208-b33a-65b2a8fc60d4",
+            "displayName": "Qlik Sense FK Okonomi",
+            "value": "https://role-catalog.vigoiks.no/<organization>/qlik/qliksense/fk-okonomi",
+            "description": "Medlem arbeider med okonomi i fylkesadministrasjonen. Far tilgang til data pa individniva.",
+            "allowedMemberTypes": [
+                "User"
+            ]
+        },
+        {
+            "id": "f14ccc62-7046-4756-8677-a514fc92a7a7",
+            "displayName": "Qlik Sense FK OT Fylkesadministrator",
+            "value": "https://role-catalog.vigoiks.no/<organization>/qlik/qliksense/fk-ot-fylkesadministrator",
+            "description": "Medlem arbeider i fylkesadministrasjon for oppfolgingstjenesten og har tilgang til OT-modulen. Det kreves at en har en aktiv bruker i OT med tilgang til minst 1 OT-enhet. Far med det tilgang til data fra OT pa individniva for den/de OT-enhetene medlemmet har ansvar for",
+            "allowedMemberTypes": [
+                "User"
+            ]
+        },
+        {
+            "id": "7b27d8da-1df2-42ee-afd6-f0fa12becaa4",
+            "displayName": "Qlik Sense FK Skjermet",
+            "value": "https://role-catalog.vigoiks.no/<organization>/qlik/qliksense/fk-skjermet",
+            "description": "Medlem arbeider med spesialundervisning og/eller har behov for sarlig kategori av personopplysninger i fylkesadministrasjonen.",
+            "allowedMemberTypes": [
+                "User"
+            ]
+        },
+        {
+            "id": "a41eca83-84c3-430d-8335-18646d69cc74",
+            "displayName": "Qlik Sense FK Skole",
+            "value": "https://role-catalog.vigoiks.no/<organization>/qlik/qliksense/fk-skole",
+            "description": "Medlem arbeider med analyse av utdanningsdata i fylkesadministrasjonen. Far tilgang til InSchool-data pa individniva for alle skolenenalyse av utdanningsdata. Far tilgang til InSchool-data pa individniva for alle skolene.",
+            "allowedMemberTypes": [
+                "User"
+            ]
+        },
+        {
+            "id": "75345aa9-149e-40aa-9717-767e6f7e727c",
+            "displayName": "Qlik Sense FK Skoleeier Fagopplaring",
+            "value": "https://role-catalog.vigoiks.no/<organization>/qlik/qliksense/fk-skoleeier-fagopplaring",
+            "description": "Medlem av rollen far tilgang til alle skolenes fagopplaringsdata",
+            "allowedMemberTypes": [
+                "User"
+            ]
+        },
+        {
+            "id": "200f756d-8c46-4ad1-bb15-cf2b04acd695",
+            "displayName": "Qlik Sense FK Skoleeier",
+            "value": "https://role-catalog.vigoiks.no/<organization>/qlik/qliksense/fk-skoleeier",
+            "description": "Medlem av rollen er VIS ansvarlig i fylkesadministrasjonen. Far tilgang til InSchool-data pa individniva for alle skolene",
+            "allowedMemberTypes": [
+                "User"
+            ]
+        },
+        {
+            "id": "71a4353f-0d00-4569-bb35-759f907faf48",
+            "displayName": "Qlik Sense FK Systemansvarlig",
+            "value": "https://role-catalog.vigoiks.no/<organization>/qlik/qliksense/fk-systemansvarlig",
+            "description": "Jobber i fylkesadministrasjonen. Far tilgang til brukerstatisikk og lisensoversikt i Qlik losningen",
+            "allowedMemberTypes": [
+                "User"
+            ]
+        },
+        {
+            "id": "e8190566-f5c1-48d6-8353-ee169aa4eb44",
+            "displayName": "Qlik Sense FK VO",
+            "value": "https://role-catalog.vigoiks.no/<organization>/qlik/qliksense/fk-vo",
+            "description": "Medlem arbeider med voksenopplaring i fylkesadministrasjonen. Far tilgang til og InSchool-data pa individniva for alle skolene",
+            "allowedMemberTypes": [
+                "User"
+            ]
+        },
+        {
+            "id": "612ab0c6-3872-422a-a96c-9d778bfcb6b2",
+            "displayName": "Qlik Sense OT Fagkoordinator",
+            "value": "https://role-catalog.vigoiks.no/<organization>/qlik/qliksense/ot-fagkoordinator",
+            "description": "Medlem arbeider i oppfolgingstjenesten og har tilgang til OT-modulen. Det kreves at en har en aktiv bruker i OT med tilgang til minst 1 OT-enhet. Far med det tilgang til data fra OT pa individniva for den/de OT-enhetene medlemmet har ansvar for",
+            "allowedMemberTypes": [
+                "User"
+            ]
+        },
+        {
+            "id": "4b4376b1-75fe-4ec9-9164-7cabd1cc709d",
+            "displayName": "Qlik Sense OT Radgiver",
+            "value": "https://role-catalog.vigoiks.no/<organization>/qlik/qliksense/ot-radgiver",
+            "description": "Medlem arbeider som ansvarlig saksbehandler i oppfolgingstjenesten og har tilgang til OT-modulen. Det kreves at en har en aktiv bruker i OT med tilgang til minst 1 OT-enhet. Far med data fra OT pa individniva for ungdommene medlemmet har ansvar for",
+            "allowedMemberTypes": [
+                "User"
+            ]
+        },
+        {
+            "id": "d3b91ea5-aa6e-46ce-98df-80cfbe48e21b",
+            "displayName": "Qlik Sense Skole Fagopplaring",
+            "value": "https://role-catalog.vigoiks.no/<organization>/qlik/qliksense/skole-fagopplaring",
+            "description": "Medlem arbeider pa skole med fagopplaring. Far tilgang til VIGO pa individniva",
+            "allowedMemberTypes": [
+                "User"
+            ]
+        },
+        {
+            "id": "58ec6916-f80b-4795-98d3-08d3af2b47e6",
+            "displayName": "Qlik Sense Skole InSchool Kontroll",
+            "value": "https://role-catalog.vigoiks.no/<organization>/qlik/qliksense/skole-inschool-kontroll",
+            "description": "Kontroll av overforingsdata fra InSchool pa skoleniva (egen skole iht relasjon i FINT)",
+            "allowedMemberTypes": [
+                "User"
+            ]
+        },
+        {
+            "id": "236a1d9a-bf32-4215-a50c-c481282b047e",
+            "displayName": "Qlik Sense Skole Skjermet",
+            "value": "https://role-catalog.vigoiks.no/<organization>/qlik/qliksense/skole-skjermet",
+            "description": "Medlem arbeider med spesialundervisning og/eller har behov for sarlig kategori av personopplysninger",
+            "allowedMemberTypes": [
+                "User"
+            ]
+        },
+        {
+            "id": "a96a68a6-b7f3-4709-a36b-98afc787441c",
+            "displayName": "Qlik Sense Skole Skoleadministrasjon",
+            "value": "https://role-catalog.vigoiks.no/<organization>/qlik/qliksense/skole-skoleadministrasjon",
+            "description": "Medlem arbeider i administrasjonen pa en skole (f.eks. konsulent, adm.leder). Far tilgang til InSchool-data pa individniva fra egen skole",
+            "allowedMemberTypes": [
+                "User"
+            ]
+        },
+        {
+            "id": "0694857e-b3aa-47f6-af52-b71c96abf3cf",
+            "displayName": "Qlik Sense Skole Skoleledelse",
+            "value": "https://role-catalog.vigoiks.no/<organization>/qlik/qliksense/skole-skoleledelse",
+            "description": "Medlem sitter i ledelsen pa en skole (f.eks. rektor, ass.rektor, avd.leder). Far tilgang VIGO og InSchool-data pa individniva for egen skole.",
+            "allowedMemberTypes": [
+                "User"
+            ]
+        },
+        {
+            "id": "d181d595-39ae-42c1-a25c-84c8ecc48ad9",
+            "displayName": "Samtykke User",
+            "value": "https://role-catalog.vigoiks.no/<organization>/samtykke/user",
+            "description": "Gir tilgang til rollen Samtykke User.",
+            "allowedMemberTypes": [
+                "User"
+            ]
+        }
+    ]
+}
