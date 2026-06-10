@@ -34,7 +34,7 @@ jobs:
             lib_name: "playwright"
         secrets: inherit
 
-    check-frontend-formatting:
+    check-theme-formatting:
         name: Check frontend code formatting
         runs-on: ubuntu-latest
         defaults:
