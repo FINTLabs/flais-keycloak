@@ -56,17 +56,15 @@ const ImageDropdownInputComponent = ({
         const idx = itemsRef.current.findIndex(
             (el) => el === document.activeElement,
         );
-        let next = idx;
         if (e.key === "ArrowDown") {
             e.preventDefault();
-            next = (idx + 1) % itemsRef.current.length;
-            itemsRef.current[next]?.focus();
+            itemsRef.current[(idx + 1) % itemsRef.current.length]?.focus();
         }
         if (e.key === "ArrowUp") {
             e.preventDefault();
-            next =
-                (idx - 1 + itemsRef.current.length) % itemsRef.current.length;
-            itemsRef.current[next]?.focus();
+            itemsRef.current[
+                (idx - 1 + itemsRef.current.length) % itemsRef.current.length
+            ]?.focus();
         }
         if (["Escape", "Tab"].includes(e.key)) {
             setOpen(false);
