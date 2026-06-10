@@ -1,7 +1,7 @@
-import React, { ReactNode } from 'react'
+import React, { ReactNode } from "react";
 
 export interface PageWrapperProps {
-  children: ReactNode
+  children: ReactNode;
 }
 
 const PageWrapperComponent = ({ children }: PageWrapperProps) => {
@@ -9,7 +9,7 @@ const PageWrapperComponent = ({ children }: PageWrapperProps) => {
     <div className="min-h-screen flex items-center justify-center bg-cream px-4">
       {children}
     </div>
-  )
-}
+  );
+};
 
-export const PageWrapper = React.memo(PageWrapperComponent)
+export const PageWrapper = React.memo(PageWrapperComponent);

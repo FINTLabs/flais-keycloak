@@ -1,8 +1,8 @@
-import React from 'react'
+import React from "react";
 
 export interface IdpButtonProps {
-  alias: string
-  name: string
+  alias: string;
+  name: string;
 }
 
 const IdpButtonComponent = ({ alias, name }: IdpButtonProps) => {
@@ -38,7 +38,7 @@ const IdpButtonComponent = ({ alias, name }: IdpButtonProps) => {
         />
       </svg>
     </button>
-  )
-}
+  );
+};
 
-export const IdpButton = React.memo(IdpButtonComponent)
+export const IdpButton = React.memo(IdpButtonComponent);

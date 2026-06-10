@@ -4,21 +4,23 @@ import React, {
   useEffect,
   KeyboardEvent,
   HTMLAttributes,
-} from 'react'
-import ArrowDown from './icons/ArrowDown'
+} from "react";
+import ArrowDown from "./icons/ArrowDown";
 
 export interface ImageOption {
-  id: string
-  label: string
-  imageUrl?: string
+  id: string;
+  label: string;
+  imageUrl?: string;
 }
-export interface ImageDropdownInputProps
-  extends Omit<HTMLAttributes<HTMLDivElement>, 'onChange'> {
-  name: string
-  options: ImageOption[]
-  value: string | null
-  onChange: (id: string) => void
-  placeholder?: string
+export interface ImageDropdownInputProps extends Omit<
+  HTMLAttributes<HTMLDivElement>,
+  "onChange"
+> {
+  name: string;
+  options: ImageOption[];
+  value: string | null;
+  onChange: (id: string) => void;
+  placeholder?: string;
 }
 
 const ImageDropdownInputComponent = ({
@@ -26,13 +28,13 @@ const ImageDropdownInputComponent = ({
   options,
   value,
   onChange,
-  placeholder = 'Velg tilhørighet',
+  placeholder = "Velg tilhørighet",
   className,
   ...rest
 }: ImageDropdownInputProps) => {
-  const [open, setOpen] = useState(false)
-  const containerRef = useRef<HTMLDivElement>(null)
-  const itemsRef = useRef<(HTMLButtonElement | null)[]>([])
+  const [open, setOpen] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const itemsRef = useRef<(HTMLButtonElement | null)[]>([]);
 
   // close on outside click
   useEffect(() => {
@@ -41,41 +43,40 @@ const ImageDropdownInputComponent = ({
         containerRef.current &&
         !containerRef.current.contains(e.target as Node)
       ) {
-        setOpen(false)
+        setOpen(false);
       }
-    }
-    document.addEventListener('mousedown', onClick)
-    return () => document.removeEventListener('mousedown', onClick)
-  }, [])
+    };
+    document.addEventListener("mousedown", onClick);
+    return () => document.removeEventListener("mousedown", onClick);
+  }, []);
 
   // keyboard nav
   const onKeyDown = (e: KeyboardEvent) => {
-    if (!open) return
+    if (!open) return;
     const idx = itemsRef.current.findIndex(
-      (el) => el === document.activeElement
-    )
-    let next = idx
-    if (e.key === 'ArrowDown') {
-      e.preventDefault()
-      next = (idx + 1) % itemsRef.current.length
-      itemsRef.current[next]?.focus()
+      (el) => el === document.activeElement,
+    );
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      itemsRef.current[(idx + 1) % itemsRef.current.length]?.focus();
     }
-    if (e.key === 'ArrowUp') {
-      e.preventDefault()
-      next = (idx - 1 + itemsRef.current.length) % itemsRef.current.length
-      itemsRef.current[next]?.focus()
+    if (e.key === "ArrowUp") {
+      e.preventDefault();
+      itemsRef.current[
+        (idx - 1 + itemsRef.current.length) % itemsRef.current.length
+      ]?.focus();
     }
-    if (['Escape', 'Tab'].includes(e.key)) {
-      setOpen(false)
+    if (["Escape", "Tab"].includes(e.key)) {
+      setOpen(false);
     }
-  }
+  };
 
-  const selected = options.find((o) => o.id === value) ?? null
+  const selected = options.find((o) => o.id === value) ?? null;
 
   return (
     <div
       ref={containerRef}
-      className={`relative w-full text-left ${className || ''}`}
+      className={`relative w-full text-left ${className || ""}`}
       {...rest}
     >
       {/* ========== trigger ========== */}
@@ -84,7 +85,7 @@ const ImageDropdownInputComponent = ({
         <input
           type="text"
           readOnly
-          value={selected?.label || ''}
+          value={selected?.label || ""}
           placeholder={selected ? undefined : placeholder}
           onClick={() => setOpen((o) => !o)}
           aria-haspopup="listbox"
@@ -118,7 +119,7 @@ const ImageDropdownInputComponent = ({
       </div>
 
       {/* real form value */}
-      <input type="hidden" name={name} value={value || ''} />
+      <input type="hidden" name={name} value={value || ""} />
 
       {/* ========== menu ========== */}
       {open && (
@@ -132,23 +133,23 @@ const ImageDropdownInputComponent = ({
           "
         >
           {options.map((opt, idx) => {
-            const isSel = opt.id === value
+            const isSel = opt.id === value;
             return (
               <li key={opt.id} role="option" aria-selected={isSel}>
                 <button
                   ref={(el) => {
-                    itemsRef.current[idx] = el
+                    itemsRef.current[idx] = el;
                   }}
                   onClick={() => {
-                    onChange(opt.id)
-                    setOpen(false)
+                    onChange(opt.id);
+                    setOpen(false);
                   }}
                   className={`
                     flex items-center w-full px-4 py-2 text-left text-base
                     ${
                       isSel
-                        ? 'bg-gray-100 font-semibold text-gray-900'
-                        : 'text-gray-700 hover:bg-gray-50'
+                        ? "bg-gray-100 font-semibold text-gray-900"
+                        : "text-gray-700 hover:bg-gray-50"
                     }
                     focus:outline-none focus:bg-gray-200
                   `}
@@ -163,12 +164,12 @@ const ImageDropdownInputComponent = ({
                   <span className="truncate">{opt.label}</span>
                 </button>
               </li>
-            )
+            );
           })}
         </ul>
       )}
     </div>
-  )
-}
+  );
+};
 
-export const ImageDropdownInput = React.memo(ImageDropdownInputComponent)
+export const ImageDropdownInput = React.memo(ImageDropdownInputComponent);

@@ -1,7 +1,7 @@
-import React from 'react'
+import React from "react";
 
 export interface SubmitButtonProps {
-  text: string
+  text: string;
 }
 
 const SubmitButtonComponent = ({ text }: SubmitButtonProps) => {
@@ -14,7 +14,7 @@ const SubmitButtonComponent = ({ text }: SubmitButtonProps) => {
     >
       {text}
     </button>
-  )
-}
+  );
+};
 
-export const SubmitButton = React.memo(SubmitButtonComponent)
+export const SubmitButton = React.memo(SubmitButtonComponent);
