@@ -25,6 +25,15 @@ buildscript {
     }
 }
 
+configurations.configureEach {
+    resolutionStrategy.eachDependency {
+        if (requested.group == "ch.qos.logback" && requested.name == "logback-core") {
+            useVersion(libs.versions.logback.get())
+            because("Override transitive Logback version to avoid CVEs")
+        }
+    }
+}
+
 group = "no.novari"
 
 dependencies {

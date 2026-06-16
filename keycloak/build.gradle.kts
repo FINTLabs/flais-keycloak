@@ -12,6 +12,26 @@ plugins {
     alias(libs.plugins.kover)
 }
 
+buildscript {
+    configurations.classpath {
+        resolutionStrategy.eachDependency {
+            if (requested.group == "ch.qos.logback") {
+                useVersion(libs.versions.logback.get())
+                because("Override Ktlint Plugin transitive Logback version to avoid CVEs in the bundled version")
+            }
+        }
+    }
+}
+
+configurations.configureEach {
+    resolutionStrategy.eachDependency {
+        if (requested.group == "ch.qos.logback" && requested.name == "logback-core") {
+            useVersion(libs.versions.logback.get())
+            because("Override transitive Logback version to avoid CVEs")
+        }
+    }
+}
+
 group = "no.novari"
 
 kotlin {
