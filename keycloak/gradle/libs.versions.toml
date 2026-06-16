@@ -14,6 +14,7 @@ protobuf = "4.35.1"
 plexus = "4.0.3"
 log4j = "2.26.0"
 logback = "1.5.34"
+open-telemetry = "1.63.0"
 
 junit = "6.1.0"
 testcontainers = "2.0.5"
@@ -36,6 +37,7 @@ okhttp-bom = { module = "com.squareup.okhttp3:okhttp-bom", version.ref = "okhttp
 netty-bom = { module = "io.netty:netty-bom", version.ref = "netty" }
 protobuf-bom = { module = "com.google.protobuf:protobuf-bom", version.ref = "protobuf" }
 log4j-bom = { module = "org.apache.logging.log4j:log4j-bom", version.ref = "log4j" }
+open-telemetry-bom = { module = "io.opentelemetry:opentelemetry-bom", version.ref = "open-telemetry" }
 
 keycloak-core = { module = "org.keycloak:keycloak-core", version.ref = "keycloak" }
 keycloak-services = { module = "org.keycloak:keycloak-services", version.ref = "keycloak" }

@@ -45,6 +45,9 @@ dependencies {
     implementation(platform(libs.protobuf.bom)) {
         because("Override Keycloak Services Protobuf version to avoid CVEs in the bundled version")
     }
+    implementation(platform(libs.open.telemetry.bom)) {
+        because("Override Keycloak Services Open Telemetry version to avoid CVEs in the bundled version")
+    }
 
     implementation(libs.scim.server.sdk)
     implementation(libs.nimbusds.jwt)
