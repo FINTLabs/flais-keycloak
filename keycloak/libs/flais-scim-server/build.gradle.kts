@@ -10,6 +10,21 @@ plugins {
     alias(libs.plugins.kover)
 }
 
+buildscript {
+    configurations.classpath {
+        resolutionStrategy.eachDependency {
+            if (requested.group == "org.codehaus.plexus") {
+                useVersion(libs.versions.plexus.get())
+                because("Override Shadow Gradle Plugin transitive Plexus-Utils version to avoid CVEs in the bundled version")
+            }
+            if (requested.group == "org.apache.logging.log4j") {
+                useVersion(libs.versions.log4j.get())
+                because("Override Shadow Gradle Plugin transitive Log4j version to avoid CVEs in the bundled version")
+            }
+        }
+    }
+}
+
 group = "no.novari"
 
 dependencies {
