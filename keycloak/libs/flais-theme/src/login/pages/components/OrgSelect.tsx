@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from "react";
 import { I18n } from "../../i18n.ts";
-import { ImageDropdownInput } from "./ImageDropdownInput.tsx";
+import { LogoDropdownInput } from "./LogoDropdownInput.tsx";
 
 export interface OrgSelectProps {
   i18n: I18n;
@@ -11,6 +11,17 @@ export interface OrgSelectProps {
   }[];
 }
 
+const getLogosUrl = (logo?: string) => {
+  if (!logo) return undefined;
+
+  if(URL.canParse(logo)) return logo
+
+  const baseUrl = import.meta.env.BASE_URL.replace(/\/$/, "");
+  const filename = logo.replace(/^\/+/, "");
+
+  return `${baseUrl}/${filename}`;
+};
+
 const OrgSelectComponent = ({ i18n, organizations }: OrgSelectProps) => {
   const [selectedIdp, setSelectedIdp] = useState<string>("");
 
@@ -19,7 +30,7 @@ const OrgSelectComponent = ({ i18n, organizations }: OrgSelectProps) => {
       organizations.map((org) => ({
         id: org.alias,
         label: org.name,
-        imageUrl: org.logo,
+        logosUrl: getLogosUrl(org.logo),
       })),
     [organizations],
   );
@@ -30,7 +41,7 @@ const OrgSelectComponent = ({ i18n, organizations }: OrgSelectProps) => {
         {i18n.msgStr("chooseOrg")}
       </label>
 
-      <ImageDropdownInput
+      <LogoDropdownInput
         id="selected_org"
         placeholder={i18n.msgStr("chooseOrg")}
         name="selected_org"

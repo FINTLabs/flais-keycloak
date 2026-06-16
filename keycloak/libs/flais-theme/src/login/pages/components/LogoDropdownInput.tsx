@@ -7,23 +7,23 @@ import React, {
 } from "react";
 import ArrowDown from "./icons/ArrowDown";
 
-export interface ImageOption {
+export interface LogoOption {
   id: string;
   label: string;
-  imageUrl?: string;
+  logosUrl?: string;
 }
-export interface ImageDropdownInputProps extends Omit<
+export interface LogoDropdownInputProps extends Omit<
   HTMLAttributes<HTMLDivElement>,
   "onChange"
 > {
   name: string;
-  options: ImageOption[];
+  options: LogoOption[];
   value: string | null;
   onChange: (id: string) => void;
   placeholder?: string;
 }
 
-const ImageDropdownInputComponent = ({
+const LogoDropdownInputComponent = ({
   name,
   options,
   value,
@@ -31,7 +31,7 @@ const ImageDropdownInputComponent = ({
   placeholder = "Velg tilhørighet",
   className,
   ...rest
-}: ImageDropdownInputProps) => {
+}: LogoDropdownInputProps) => {
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const itemsRef = useRef<(HTMLButtonElement | null)[]>([]);
@@ -154,9 +154,9 @@ const ImageDropdownInputComponent = ({
                     focus:outline-none focus:bg-gray-200
                   `}
                 >
-                  {opt.imageUrl && (
+                  {opt.logosUrl && (
                     <img
-                      src={opt.imageUrl}
+                      src={opt.logosUrl}
                       alt=""
                       className="h-8 w-8 rounded-full object-cover mr-3 flex-shrink-0"
                     />
@@ -172,4 +172,4 @@ const ImageDropdownInputComponent = ({
   );
 };
 
-export const ImageDropdownInput = React.memo(ImageDropdownInputComponent);
+export const LogoDropdownInput = React.memo(LogoDropdownInputComponent);
