@@ -11,15 +11,13 @@ plugins {
 }
 
 group = "no.novari"
-version = "1.0"
 
 dependencies {
     implementation(platform(libs.keycloak.spi.bom))
     implementation(platform(libs.resteasy.bom))
-
-    testImplementation(platform(libs.junit.bom))
-    testRuntimeOnly(libs.junit.platform.launcher)
-
+    implementation(platform(libs.netty.bom)) {
+        because("Override Keycloak transitive Netty version to avoid CVEs in the bundled version")
+    }
     implementation(libs.scim.server.sdk)
     implementation(libs.nimbusds.jwt)
 
@@ -28,9 +26,12 @@ dependencies {
     compileOnly(libs.keycloak.server.spi)
     compileOnly(libs.keycloak.server.spi.priv)
 
+    testImplementation(platform(libs.junit.bom))
     testImplementation(libs.junit.jupiter)
     testImplementation(libs.mockk)
     testImplementation(libs.resteasy.core)
+
+    testRuntimeOnly(libs.junit.platform.launcher)
 }
 
 configurations {

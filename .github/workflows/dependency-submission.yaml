@@ -7,15 +7,18 @@ on:
       - main
     paths:
       - "**/*.gradle.kts"
-      - "buildSrc/**"
-      - "gradle.properties"
-      - "gradle/**"
+      - "**/buildSrc/**"
+      - "**/gradle.properties"
+      - "**/gradle/**"
+  schedule:
+    - cron: "20 3 * * 0,3,5"
 
 jobs:
   dependencies:
     runs-on: ubuntu-latest
     permissions:
-      contents: write
+      contents: read
+      id-token: write
     steps:
       - uses: actions/checkout@v6
 

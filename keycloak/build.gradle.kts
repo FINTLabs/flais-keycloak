@@ -13,7 +13,6 @@ plugins {
 }
 
 group = "no.novari"
-version = "1.0.0"
 
 kotlin {
     jvmToolchain(21)
@@ -36,6 +35,9 @@ val koverCli by configurations.creating {
 
 dependencies {
     implementation(kotlin("stdlib"))
+    implementation(platform(libs.netty.bom)) {
+        because("Override Keycloak transitive Netty version to avoid CVEs in the bundled version")
+    }
     implementation(platform(libs.keycloak.spi.bom))
     implementation(platform(libs.resteasy.bom))
     implementation(platform(libs.okhttp.bom))

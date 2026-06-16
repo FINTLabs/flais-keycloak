@@ -9,6 +9,7 @@ docker-compose = "0.17.21"
 awaitility = "4.3.0"
 mockk = "1.14.11"
 resteasy = "6.2.14.Final"
+netty = "4.2.15.Final"
 
 junit = "6.1.0"
 testcontainers = "2.0.5"
@@ -28,6 +29,7 @@ resteasy-bom = { module = "org.jboss.resteasy:resteasy-bom", version.ref = "rest
 junit-bom = { module = "org.junit:junit-bom", version.ref = "junit" }
 testcontainers-bom = { module = "org.testcontainers:testcontainers-bom", version.ref = "testcontainers" }
 okhttp-bom = { module = "com.squareup.okhttp3:okhttp-bom", version.ref = "okhttp" }
+netty-bom = { module = "io.netty:netty-bom", version.ref = "netty" }
 
 keycloak-core = { module = "org.keycloak:keycloak-core", version.ref = "keycloak" }
 keycloak-services = { module = "org.keycloak:keycloak-services", version.ref = "keycloak" }
