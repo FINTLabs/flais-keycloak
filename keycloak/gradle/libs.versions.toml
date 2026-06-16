@@ -17,11 +17,17 @@ slf4j = "2.0.18"
 okhttp = "5.4.0"
 
 kover = "0.9.8"
-
 playwright = "1.60.0"
 
+scim-server-sdk = "5.0.0"
+nimbusds-jwt = "10.9.1"
+
 [libraries]
-kotlin-stdlib = { module = "org.jetbrains.kotlin:kotlin-stdlib", version.ref = "kotlin" }
+keycloak-spi-bom = { module = "org.keycloak.bom:keycloak-spi-bom", version.ref = "keycloak" }
+resteasy-bom = { module = "org.jboss.resteasy:resteasy-bom", version.ref = "resteasy" }
+junit-bom = { module = "org.junit:junit-bom", version.ref = "junit" }
+testcontainers-bom = { module = "org.testcontainers:testcontainers-bom", version.ref = "testcontainers" }
+okhttp-bom = { module = "com.squareup.okhttp3:okhttp-bom", version.ref = "okhttp" }
 
 keycloak-core = { module = "org.keycloak:keycloak-core", version.ref = "keycloak" }
 keycloak-services = { module = "org.keycloak:keycloak-services", version.ref = "keycloak" }
@@ -30,28 +36,21 @@ keycloak-server-spi-priv = { module = "org.keycloak:keycloak-server-spi-private"
 
 keycloak-admin-client = { module = "org.keycloak:keycloak-admin-client", version.ref = "kc-admin" }
 
-scim-server-sdk = { module = "com.unboundid.product.scim2:scim2-sdk-server", version = "5.0.0" }
-nimbusds-jwt = { module = "com.nimbusds:nimbus-jose-jwt", version = "10.9.1" }
-
+scim-server-sdk = { module = "com.unboundid.product.scim2:scim2-sdk-server", version.ref = "scim-server-sdk" }
+nimbusds-jwt = { module = "com.nimbusds:nimbus-jose-jwt", version.ref = "nimbusds-jwt" }
 mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
-resteasy-core = { module = "org.jboss.resteasy:resteasy-core", version.ref = "resteasy" }
+awaitility-kotlin = { module = "org.awaitility:awaitility-kotlin", version.ref = "awaitility" }
+kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinx-serialization-json" }
+slf4j-simple = { module = "org.slf4j:slf4j-simple", version.ref = "slf4j" }
+kover-cli = { module = "org.jetbrains.kotlinx:kover-cli", version.ref = "kover" }
+playwright = { module = "com.microsoft.playwright:playwright", version.ref = "playwright" }
 
-junit-jupiter = { module = "org.junit.jupiter:junit-jupiter", version.ref = "junit" }
-junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher", version.ref = "junit" }
-
+resteasy-core = { module = "org.jboss.resteasy:resteasy-core" }
+junit-jupiter = { module = "org.junit.jupiter:junit-jupiter" }
+junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher" }
 testcontainers-core = { module = "org.testcontainers:testcontainers", version.ref = "testcontainers" }
 testcontainers-junit-jupiter = { module = "org.testcontainers:testcontainers-junit-jupiter", version.ref = "testcontainers" }
-
-awaitility-kotlin = { module = "org.awaitility:awaitility-kotlin", version.ref = "awaitility" }
-
-kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinx-serialization-json" }
-
-slf4j-simple = { module = "org.slf4j:slf4j-simple", version.ref = "slf4j" }
-okhttp = { module = "com.squareup.okhttp3:okhttp", version.ref = "okhttp" }
-
-kover-cli = { module = "org.jetbrains.kotlinx:kover-cli", version.ref = "kover" }
-
-playwright = { module = "com.microsoft.playwright:playwright", version.ref = "playwright" }
+okhttp = { module = "com.squareup.okhttp3:okhttp" }
 
 [plugins]
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }

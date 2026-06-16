@@ -13,14 +13,11 @@ plugins {
 group = "no.novari"
 version = "1.0"
 
-java {
-    toolchain { languageVersion.set(JavaLanguageVersion.of(21)) }
-}
-
 dependencies {
-    testRuntimeOnly(libs.junit.platform.launcher)
+    implementation(platform(libs.keycloak.spi.bom))
 
-    implementation(libs.kotlin.stdlib)
+    testImplementation(platform(libs.junit.bom))
+    testRuntimeOnly(libs.junit.platform.launcher)
 
     compileOnly(libs.keycloak.core)
     compileOnly(libs.keycloak.services)
@@ -29,14 +26,18 @@ dependencies {
 
     testImplementation(libs.junit.jupiter)
     testImplementation(libs.mockk)
-    testImplementation(libs.keycloak.core)
-    testImplementation(libs.keycloak.services)
 }
 
 tasks.withType<KotlinCompile>().configureEach {
     compilerOptions {
         jvmTarget.set(JvmTarget.JVM_21)
         freeCompilerArgs.add("-Xjsr305=strict")
+    }
+}
+
+configurations {
+    testImplementation {
+        extendsFrom(compileOnly.get())
     }
 }
 

@@ -1,3 +1,4 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import java.text.SimpleDateFormat
 import java.util.Date
 
@@ -14,23 +15,52 @@ plugins {
 group = "no.novari"
 version = "1.0.0"
 
+kotlin {
+    jvmToolchain(21)
+
+    compilerOptions {
+        jvmTarget.set(JvmTarget.JVM_21)
+    }
+}
+
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(21))
+    }
+}
+
 val koverCli by configurations.creating {
     isCanBeConsumed = false
     isCanBeResolved = true
 }
 
 dependencies {
-    testRuntimeOnly(libs.junit.platform.launcher)
-    testRuntimeOnly(libs.slf4j.simple)
+    implementation(kotlin("stdlib"))
+    implementation(platform(libs.keycloak.spi.bom))
+    implementation(platform(libs.resteasy.bom))
+    implementation(platform(libs.okhttp.bom))
+    implementation(libs.keycloak.core)
+    implementation(libs.keycloak.services)
+    implementation(libs.keycloak.server.spi)
+    implementation(libs.keycloak.server.spi.priv)
+    implementation(libs.keycloak.admin.client)
+    implementation(libs.scim.server.sdk)
+    implementation(libs.nimbusds.jwt)
+    implementation(libs.kotlinx.serialization.json)
+    implementation(libs.resteasy.core)
+    implementation(libs.slf4j.simple)
+    implementation(libs.okhttp)
 
-    testImplementation(libs.keycloak.admin.client)
+    testImplementation(platform(libs.junit.bom))
+    testImplementation(platform(libs.testcontainers.bom))
+    testImplementation(libs.mockk)
+    testImplementation(libs.awaitility.kotlin)
     testImplementation(libs.junit.jupiter)
     testImplementation(libs.testcontainers.core)
     testImplementation(libs.testcontainers.junit.jupiter)
-    testImplementation(libs.kotlinx.serialization.json)
-    testImplementation(libs.okhttp)
-    testImplementation(libs.awaitility.kotlin)
     testImplementation(libs.playwright)
+
+    testRuntimeOnly(libs.junit.platform.launcher)
 
     koverCli(libs.kover.cli)
 }

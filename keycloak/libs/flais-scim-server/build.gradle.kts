@@ -13,14 +13,13 @@ plugins {
 group = "no.novari"
 version = "1.0"
 
-java {
-    toolchain { languageVersion.set(JavaLanguageVersion.of(21)) }
-}
-
 dependencies {
+    implementation(platform(libs.keycloak.spi.bom))
+    implementation(platform(libs.resteasy.bom))
+
+    testImplementation(platform(libs.junit.bom))
     testRuntimeOnly(libs.junit.platform.launcher)
 
-    implementation(libs.kotlin.stdlib)
     implementation(libs.scim.server.sdk)
     implementation(libs.nimbusds.jwt)
 
@@ -31,9 +30,13 @@ dependencies {
 
     testImplementation(libs.junit.jupiter)
     testImplementation(libs.mockk)
-    testImplementation(libs.keycloak.core)
-    testImplementation(libs.keycloak.services)
     testImplementation(libs.resteasy.core)
+}
+
+configurations {
+    testImplementation {
+        extendsFrom(compileOnly.get())
+    }
 }
 
 tasks.withType<KotlinCompile>().configureEach {
