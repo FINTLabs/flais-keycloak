@@ -1,6 +1,7 @@
 name: Submit Dependency Graph
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - main
@@ -25,3 +26,5 @@ jobs:
 
       - name: Generate and submit dependency graph
         uses: gradle/actions/dependency-submission@v6
+        with:
+          build-root-directory: keycloak
