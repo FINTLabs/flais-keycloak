@@ -18,6 +18,10 @@ dependencies {
     implementation(platform(libs.netty.bom)) {
         because("Override Keycloak transitive Netty version to avoid CVEs in the bundled version")
     }
+    implementation(platform(libs.protobuf.bom)) {
+        because("Override Keycloak Services Protobuf version to avoid CVEs in the bundled version")
+    }
+
     implementation(libs.scim.server.sdk)
     implementation(libs.nimbusds.jwt)
 
