@@ -20,6 +20,7 @@ const kcContextExtensionPerPage: KcContextExtensionPerPage = {
       {
         alias: "test",
         name: "Testing",
+        logo: "logo/telemark.png"
       },
     ],
     url: {
