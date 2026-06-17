@@ -29,6 +29,20 @@ allprojects {
 }
 
 subprojects {
+    plugins.withId("org.jetbrains.kotlin.jvm") {
+        extensions.configure<org.jetbrains.kotlin.gradle.dsl.KotlinJvmProjectExtension> {
+            jvmToolchain(21)
+        }
+    }
+
+    plugins.withId("java") {
+        extensions.configure<JavaPluginExtension> {
+            toolchain {
+                languageVersion.set(JavaLanguageVersion.of(21))
+            }
+        }
+    }
+
     buildscript {
         configurations.classpath {
             resolutionStrategy.eachDependency {
@@ -67,30 +81,28 @@ val koverCli by configurations.creating {
 }
 
 dependencies {
-    implementation(kotlin("stdlib"))
-    implementation(platform(libs.netty.bom)) {
+    testImplementation(platform(libs.netty.bom)) {
         because("Override Keycloak transitive Netty version to avoid CVEs in the bundled version")
     }
-    implementation(platform(libs.protobuf.bom)) {
+    testImplementation(platform(libs.protobuf.bom)) {
         because("Override Keycloak Services Protobuf version to avoid CVEs in the bundled version")
     }
-    implementation(platform(libs.open.telemetry.bom)) {
+    testImplementation(platform(libs.open.telemetry.bom)) {
         because("Override Keycloak Services Open Telemetry version to avoid CVEs in the bundled version")
     }
-    implementation(platform(libs.keycloak.spi.bom))
-    implementation(platform(libs.resteasy.bom))
-    implementation(platform(libs.okhttp.bom))
-    implementation(libs.keycloak.core)
-    implementation(libs.keycloak.services)
-    implementation(libs.keycloak.server.spi)
-    implementation(libs.keycloak.server.spi.priv)
-    implementation(libs.keycloak.admin.client)
-    implementation(libs.scim.server.sdk)
-    implementation(libs.nimbusds.jwt)
-    implementation(libs.kotlinx.serialization.json)
-    implementation(libs.resteasy.core)
-    implementation(libs.slf4j.simple)
-    implementation(libs.okhttp)
+    testImplementation(platform(libs.keycloak.spi.bom))
+    testImplementation(platform(libs.resteasy.bom))
+    testImplementation(platform(libs.okhttp.bom))
+
+    testImplementation(libs.keycloak.core)
+    testImplementation(libs.keycloak.services)
+    testImplementation(libs.keycloak.server.spi)
+    testImplementation(libs.keycloak.server.spi.priv)
+    testImplementation(libs.keycloak.admin.client)
+    testImplementation(libs.scim.server.sdk)
+    testImplementation(libs.nimbusds.jwt)
+    testImplementation(libs.kotlinx.serialization.json)
+    testImplementation(libs.okhttp)
 
     testImplementation(platform(libs.junit.bom))
     testImplementation(platform(libs.testcontainers.bom))
@@ -102,6 +114,7 @@ dependencies {
     testImplementation(libs.playwright)
 
     testRuntimeOnly(libs.junit.platform.launcher)
+    testRuntimeOnly(libs.slf4j.simple)
 
     koverCli(libs.kover.cli)
 }
