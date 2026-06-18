@@ -146,9 +146,10 @@ const LogoDropdownInputComponent = ({
                   }}
                   className={`
                     flex items-center w-full px-4 py-2 text-left text-base
-                    ${isSel
-                      ? "bg-gray-100 font-semibold text-gray-900"
-                      : "text-gray-700 hover:bg-gray-50"
+                    ${
+                      isSel
+                        ? "bg-gray-100 font-semibold text-gray-900"
+                        : "text-gray-700 hover:bg-gray-50"
                     }
                     focus:outline-none focus:bg-gray-200
                   `}
