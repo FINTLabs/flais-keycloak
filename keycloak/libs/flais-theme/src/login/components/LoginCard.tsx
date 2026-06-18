@@ -1,4 +1,4 @@
-import React, { ReactNode } from "react";
+import React, { type ReactNode } from "react";
 
 export interface LoginCardProps {
   logo: string;
@@ -12,12 +12,12 @@ const LoginCardComponent = ({ logo, children }: LoginCardProps) => {
       role="region"
       aria-labelledby="login-title"
     >
-      <div className="flex justify-center mb-2">
+      <div className="mb-2 flex justify-center">
         <img src={logo} alt="" className="h-24 w-auto" aria-hidden="true" />
       </div>
 
-      <div className="relative bg-white shadow-lg border border-gray-100">
-        <div className="pt-6 px-8 pb-8 space-y-6">{children}</div>
+      <div className="relative border border-gray-100 bg-white shadow-lg">
+        <div className="space-y-6 px-8 pb-8 pt-6">{children}</div>
       </div>
     </section>
   );

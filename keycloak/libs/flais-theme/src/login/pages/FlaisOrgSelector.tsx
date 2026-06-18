@@ -1,22 +1,45 @@
-import React from "react";
+import React, { useMemo } from "react";
 import logo from "../assets/images/novari_logo.png";
 
 import { I18n } from "../i18n.ts";
-import { SubmitButton } from "./components/SubmitButton.tsx";
-import { PageWrapper } from "./components/PageWrapper.tsx";
-import { OrgSelect } from "./components/OrgSelect.tsx";
-import { LoginHeader } from "./components/LoginHeader.tsx";
-import { LoginCard } from "./components/LoginCard.tsx";
 import { KcContext } from "../KcContext.ts";
+import { getLogosUrl } from "../utils/logo-url.ts";
+import { LoginCard } from "../components/LoginCard.tsx";
+import { LoginHeader } from "../components/LoginHeader.tsx";
+import { OrgSelect } from "../components/OrgSelect.tsx";
+import { PageWrapper } from "../components/PageWrapper.tsx";
+import { SubmitButton } from "../components/SubmitButton.tsx";
 
 export interface FlaisOrgSelectorProps {
   kcContext: Extract<KcContext, { pageId: "flais-org-selector.ftl" }>;
   i18n: I18n;
 }
 
-const FlaisOrgSelectorComponent = (props: FlaisOrgSelectorProps) => {
-  const { kcContext, i18n } = props;
+const EXCLUDED_ORG_ALIASES = ["id-porten"];
+
+const FlaisOrgSelectorComponent = ({
+  kcContext,
+  i18n,
+}: FlaisOrgSelectorProps) => {
   const { organizations, url } = kcContext;
+
+  const sortByName = <T extends { name: string }>(items: T[]) =>
+    [...items].sort((a, b) =>
+      a.name.localeCompare(b.name, "nb", { sensitivity: "base" }),
+    );
+
+  const sortedOrganizations = useMemo(
+    () => sortByName(organizations),
+    [organizations],
+  );
+
+  const otherSignInOptions = useMemo(
+    () =>
+      sortByName(
+        organizations.filter((org) => EXCLUDED_ORG_ALIASES.includes(org.alias)),
+      ),
+    [organizations],
+  );
 
   return (
     <PageWrapper>
@@ -25,13 +48,48 @@ const FlaisOrgSelectorComponent = (props: FlaisOrgSelectorProps) => {
           title={i18n.msgStr("chooseOrg")}
           subtitle={i18n.msgStr("chooseOrgSubtitle")}
         />
+
         <form
           className="space-y-5"
           method="POST"
           action={url.registrationAction}
         >
-          <OrgSelect i18n={i18n} organizations={organizations} />
-          <SubmitButton text={i18n.msgStr("continue").toUpperCase()} />
+          <OrgSelect
+            i18n={i18n}
+            organizations={sortedOrganizations}
+            excludedAliases={EXCLUDED_ORG_ALIASES}
+          />
+
+          <SubmitButton text={i18n.msgStr("continue")} />
+
+          {otherSignInOptions.length > 0 && (
+            <section className="mt-2" aria-labelledby="other-sign-in-options">
+              <h2 id="other-sign-in-options" className="mb-3 text-lg font-bold">
+                {i18n.msgStr("otherSignInOptions")}
+              </h2>
+
+              {otherSignInOptions.map((org) => (
+                <button
+                  key={org.alias}
+                  type="submit"
+                  name="selected_org"
+                  value={org.alias}
+                  className="flex w-full items-center gap-4 p-2 hover:cursor-pointer hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+                >
+                  {org.logo && (
+                    <img
+                      src={getLogosUrl(org.logo)}
+                      alt={org.name}
+                      aria-hidden="true"
+                      className="h-10 w-10"
+                    />
+                  )}
+
+                  <span className="text-lg">{org.name}</span>
+                </button>
+              ))}
+            </section>
+          )}
         </form>
       </LoginCard>
     </PageWrapper>

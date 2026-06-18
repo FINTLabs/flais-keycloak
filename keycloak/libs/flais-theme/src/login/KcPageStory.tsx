@@ -23,8 +23,8 @@ const kcContextExtensionPerPage: KcContextExtensionPerPage = {
         logo: "https://flaispublicresources.blob.core.windows.net/keycloak/frid_iks.svg",
       },
       {
-        alias: "osloskolen",
-        name: "Osloskolen",
+        alias: "oslo-skolen",
+        name: "Oslo skolen",
         logo: "https://flaispublicresources.blob.core.windows.net/keycloak/oslo_skolen.svg",
       },
       {
@@ -75,7 +75,7 @@ const kcContextExtensionPerPage: KcContextExtensionPerPage = {
       {
         alias: "more-og-romsdal",
         name: "Møre og Romsdal",
-        logo: "https://flaispublicresources.blob.core.windows.net/keycloak/more-og-romsdal.svg",
+        logo: "https://flaispublicresources.blob.core.windows.net/keycloak/more_og_romsdal.svg",
       },
       {
         alias: "agder",
@@ -106,6 +106,11 @@ const kcContextExtensionPerPage: KcContextExtensionPerPage = {
         alias: "novari",
         name: "Novari IKS",
         logo: "https://flaispublicresources.blob.core.windows.net/keycloak/novari_iks.svg",
+      },
+      {
+        alias: "id-porten",
+        name: "ID-Porten",
+        logo: "https://flaispublicresources.blob.core.windows.net/keycloak/id-porten.svg",
       },
     ],
     url: {

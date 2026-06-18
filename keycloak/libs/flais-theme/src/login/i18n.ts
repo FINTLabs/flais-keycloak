@@ -9,9 +9,10 @@ const { useI18n, ofTypeI18n } = i18nBuilder
     no: {
       chooseIdp: "Velg identitetsleverandør",
       chooseIdpSubtitle: "Velg metoden du ønsker å bruke for å logge inn",
-      chooseOrg: "Velg tilhøringhet",
+      chooseOrg: "Velg tilhørighet",
       chooseOrgSubtitle: "Velg hvilken organisasjon du ønsker å logge inn hos",
       continue: "Fortsett",
+      otherSignInOptions: "Andre påloggingsalternativer",
     },
     en: {
       chooseIdp: "Choose identity provider",
@@ -19,6 +20,7 @@ const { useI18n, ofTypeI18n } = i18nBuilder
       chooseOrg: "Choose affiliation",
       chooseOrgSubtitle: "Choose the organization you want to log in with",
       continue: "Continue",
+      otherSignInOptions: "Other sign-in options",
     },
   })
   .build();

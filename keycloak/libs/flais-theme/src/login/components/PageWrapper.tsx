@@ -1,4 +1,4 @@
-import React, { ReactNode } from "react";
+import React, { type ReactNode } from "react";
 
 export interface PageWrapperProps {
   children: ReactNode;
@@ -6,9 +6,9 @@ export interface PageWrapperProps {
 
 const PageWrapperComponent = ({ children }: PageWrapperProps) => {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-cream px-4">
+    <main className="flex min-h-screen items-center justify-center bg-cream px-4">
       {children}
-    </div>
+    </main>
   );
 };
 
