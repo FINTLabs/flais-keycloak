@@ -23,18 +23,12 @@ object PwFlow {
         page: Page,
         orgName: String,
     ) {
-        val listBoxWrapper =
-            page
-                .locator("input[placeholder=\"Choose affiliation\"]")
-                .locator("..")
-                .locator("..")
+        page.locator("#selected_org").click()
 
-        listBoxWrapper.getByRole(AriaRole.BUTTON).click()
-
-        listBoxWrapper
+        page
             .getByRole(AriaRole.LISTBOX)
             .getByRole(
-                AriaRole.BUTTON,
+                AriaRole.OPTION,
                 Locator.GetByRoleOptions().setName(orgName),
             ).click()
     }
