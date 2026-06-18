@@ -6,7 +6,7 @@ import React, {
   useRef,
   useState,
 } from "react";
-import Chevron, { ChevronDirection } from "./icons/Chevron";
+import { Chevron, type ChevronDirection } from "./icons/Chevron";
 
 export interface LogoOption {
   id: string;
@@ -218,9 +218,10 @@ const LogoDropdownInputComponent = ({
                   className={`
                     flex w-full items-center px-4 py-2 text-left text-base
                     focus:outline-none focus:bg-gray-200
-                    ${isSelected
-                      ? "bg-gray-100 font-semibold text-gray-900"
-                      : "text-gray-700 hover:bg-gray-50"
+                    ${
+                      isSelected
+                        ? "bg-gray-100 font-semibold text-gray-900"
+                        : "text-gray-700 hover:bg-gray-50"
                     }
                   `}
                 >
