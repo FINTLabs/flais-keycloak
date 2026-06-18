@@ -155,8 +155,8 @@ const LogoDropdownInputComponent = ({
         }}
         onKeyDown={handleTriggerKeyDown}
         className="
-    flex h-12 w-full items-center gap-2 rounded-md text-base
-    border border-gray-300 bg-white px-3 text-left text-gray-700
+    flex min-h-12 w-full items-center gap-2 rounded-md text-base
+    border border-gray-300 bg-white px-3 py-2 text-left text-gray-700 sm:min-h-14 sm:px-4
     hover:bg-gray-50
     focus:z-10 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary
   "
@@ -197,7 +197,7 @@ const LogoDropdownInputComponent = ({
           tabIndex={-1}
           onKeyDown={handleListboxKeyDown}
           className="
-            absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white shadow-lg
+            absolute z-10 mt-1 max-h-64 w-full overflow-auto rounded-md bg-white shadow-lg sm:max-h-72
             ring-1 ring-black ring-opacity-5 focus:outline-none
           "
         >
@@ -216,7 +216,7 @@ const LogoDropdownInputComponent = ({
                   aria-selected={isSelected}
                   onClick={() => selectOption(option.id)}
                   className={`
-                    flex w-full items-center px-4 py-2 text-left text-base
+                    flex w-full items-center px-3 py-2.5 text-left text-base sm:px-4 sm:py-3
                     focus:outline-none focus:bg-gray-200
                     ${
                       isSelected

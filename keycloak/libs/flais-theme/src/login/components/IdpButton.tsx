@@ -13,7 +13,7 @@ const IdpButtonComponent = ({ alias, name }: IdpButtonProps) => {
       value={alias}
       className="
         flex w-full cursor-pointer items-center justify-between rounded-none
-        bg-white px-4 py-3
+        bg-white px-4 py-3 text-sm sm:px-5 sm:py-4 sm:text-base
         transition-colors duration-150 ease-in-out
         hover:bg-gray-50
         active:bg-gray-100
