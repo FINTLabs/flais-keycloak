@@ -1,3 +1,4 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import java.text.SimpleDateFormat
 import java.util.Date
 
@@ -11,8 +12,68 @@ plugins {
     alias(libs.plugins.kover)
 }
 
+allprojects {
+    repositories {
+        gradlePluginPortal()
+        mavenCentral()
+    }
+
+    configurations.configureEach {
+        resolutionStrategy.eachDependency {
+            if (requested.group == "ch.qos.logback" && requested.name == "logback-core") {
+                useVersion(libs.versions.logback.get())
+                because("Override transitive Logback version to avoid CVEs")
+            }
+        }
+    }
+}
+
+subprojects {
+    plugins.withId("org.jetbrains.kotlin.jvm") {
+        extensions.configure<org.jetbrains.kotlin.gradle.dsl.KotlinJvmProjectExtension> {
+            jvmToolchain(21)
+        }
+    }
+
+    plugins.withId("java") {
+        extensions.configure<JavaPluginExtension> {
+            toolchain {
+                languageVersion.set(JavaLanguageVersion.of(21))
+            }
+        }
+    }
+
+    buildscript {
+        configurations.classpath {
+            resolutionStrategy.eachDependency {
+                if (requested.group == "org.codehaus.plexus") {
+                    useVersion(libs.versions.plexus.get())
+                    because("Override Shadow Gradle Plugin transitive Plexus-Utils version to avoid CVEs in the bundled version")
+                }
+                if (requested.group == "org.apache.logging.log4j") {
+                    useVersion(libs.versions.log4j.get())
+                    because("Override Shadow Gradle Plugin transitive Log4j version to avoid CVEs in the bundled version")
+                }
+            }
+        }
+    }
+}
+
 group = "no.novari"
-version = "1.0.0"
+
+kotlin {
+    jvmToolchain(21)
+
+    compilerOptions {
+        jvmTarget.set(JvmTarget.JVM_21)
+    }
+}
+
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(21))
+    }
+}
 
 val koverCli by configurations.creating {
     isCanBeConsumed = false
@@ -20,26 +81,42 @@ val koverCli by configurations.creating {
 }
 
 dependencies {
-    testRuntimeOnly(libs.junit.platform.launcher)
-    testRuntimeOnly(libs.slf4j.simple)
+    testImplementation(platform(libs.netty.bom)) {
+        because("Override Keycloak transitive Netty version to avoid CVEs in the bundled version")
+    }
+    testImplementation(platform(libs.protobuf.bom)) {
+        because("Override Keycloak Services Protobuf version to avoid CVEs in the bundled version")
+    }
+    testImplementation(platform(libs.open.telemetry.bom)) {
+        because("Override Keycloak Services Open Telemetry version to avoid CVEs in the bundled version")
+    }
+    testImplementation(platform(libs.keycloak.spi.bom))
+    testImplementation(platform(libs.resteasy.bom))
+    testImplementation(platform(libs.okhttp.bom))
 
+    testImplementation(libs.keycloak.core)
+    testImplementation(libs.keycloak.services)
+    testImplementation(libs.keycloak.server.spi)
+    testImplementation(libs.keycloak.server.spi.priv)
     testImplementation(libs.keycloak.admin.client)
+    testImplementation(libs.scim.server.sdk)
+    testImplementation(libs.nimbusds.jwt)
+    testImplementation(libs.kotlinx.serialization.json)
+    testImplementation(libs.okhttp)
+
+    testImplementation(platform(libs.junit.bom))
+    testImplementation(platform(libs.testcontainers.bom))
+    testImplementation(libs.mockk)
+    testImplementation(libs.awaitility.kotlin)
     testImplementation(libs.junit.jupiter)
     testImplementation(libs.testcontainers.core)
     testImplementation(libs.testcontainers.junit.jupiter)
-    testImplementation(libs.kotlinx.serialization.json)
-    testImplementation(libs.okhttp)
-    testImplementation(libs.awaitility.kotlin)
     testImplementation(libs.playwright)
 
-    koverCli(libs.kover.cli)
-}
+    testRuntimeOnly(libs.junit.platform.launcher)
+    testRuntimeOnly(libs.slf4j.simple)
 
-allprojects {
-    repositories {
-        gradlePluginPortal()
-        mavenCentral()
-    }
+    koverCli(libs.kover.cli)
 }
 
 kover {

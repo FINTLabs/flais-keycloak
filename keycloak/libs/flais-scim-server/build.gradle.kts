@@ -11,16 +11,20 @@ plugins {
 }
 
 group = "no.novari"
-version = "1.0"
-
-java {
-    toolchain { languageVersion.set(JavaLanguageVersion.of(21)) }
-}
 
 dependencies {
-    testRuntimeOnly(libs.junit.platform.launcher)
+    implementation(platform(libs.keycloak.spi.bom))
+    implementation(platform(libs.resteasy.bom))
+    implementation(platform(libs.netty.bom)) {
+        because("Override Keycloak transitive Netty version to avoid CVEs in the bundled version")
+    }
+    implementation(platform(libs.protobuf.bom)) {
+        because("Override Keycloak Services Protobuf version to avoid CVEs in the bundled version")
+    }
+    implementation(platform(libs.open.telemetry.bom)) {
+        because("Override Keycloak Services Open Telemetry version to avoid CVEs in the bundled version")
+    }
 
-    implementation(libs.kotlin.stdlib)
     implementation(libs.scim.server.sdk)
     implementation(libs.nimbusds.jwt)
 
@@ -29,11 +33,18 @@ dependencies {
     compileOnly(libs.keycloak.server.spi)
     compileOnly(libs.keycloak.server.spi.priv)
 
+    testImplementation(platform(libs.junit.bom))
     testImplementation(libs.junit.jupiter)
     testImplementation(libs.mockk)
-    testImplementation(libs.keycloak.core)
-    testImplementation(libs.keycloak.services)
     testImplementation(libs.resteasy.core)
+
+    testRuntimeOnly(libs.junit.platform.launcher)
+}
+
+configurations {
+    testImplementation {
+        extendsFrom(compileOnly.get())
+    }
 }
 
 tasks.withType<KotlinCompile>().configureEach {
