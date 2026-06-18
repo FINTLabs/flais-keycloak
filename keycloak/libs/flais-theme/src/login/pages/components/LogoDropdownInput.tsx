@@ -146,20 +146,21 @@ const LogoDropdownInputComponent = ({
                   }}
                   className={`
                     flex items-center w-full px-4 py-2 text-left text-base
-                    ${
-                      isSel
-                        ? "bg-gray-100 font-semibold text-gray-900"
-                        : "text-gray-700 hover:bg-gray-50"
+                    ${isSel
+                      ? "bg-gray-100 font-semibold text-gray-900"
+                      : "text-gray-700 hover:bg-gray-50"
                     }
                     focus:outline-none focus:bg-gray-200
                   `}
                 >
                   {opt.logosUrl && (
-                    <img
-                      src={opt.logosUrl}
-                      alt=""
-                      className="h-8 w-8 rounded-full object-cover mr-3 flex-shrink-0"
-                    />
+                    <span className="mr-3 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full overflow-hidden">
+                      <img
+                        src={opt.logosUrl}
+                        alt="logo"
+                        className="max-h-full max-w-full object-contain"
+                      />
+                    </span>
                   )}
                   <span className="truncate">{opt.label}</span>
                 </button>
