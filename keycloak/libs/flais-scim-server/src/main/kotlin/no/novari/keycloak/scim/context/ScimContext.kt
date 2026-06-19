@@ -3,6 +3,7 @@ package no.novari.keycloak.scim.context
 import jakarta.ws.rs.NotFoundException
 import no.novari.keycloak.scim.config.OrganizationScimConfig
 import no.novari.keycloak.scim.config.ScimConfig
+import org.jboss.logging.Logger
 import org.keycloak.models.KeycloakSession
 import org.keycloak.models.OrganizationModel
 import org.keycloak.models.RealmModel
@@ -15,6 +16,8 @@ class ScimContext internal constructor(
     val orgProvider: OrganizationProvider,
     val organization: OrganizationModel,
 )
+
+private val logger: Logger = Logger.getLogger(ScimContext::class.java)
 
 fun createScimContext(
     session: KeycloakSession,
@@ -31,7 +34,16 @@ fun createScimContext(
             ?: throw NotFoundException("Organization not found")
 
     val config = OrganizationScimConfig(organization)
-    config.validateConfig()
+    runCatching {
+        config.validateConfig()
+    }.onFailure {
+        logger.warnf(it, "Invalid SCIM configuration. organizationId=%s", organizationId)
+    }.getOrThrow()
+
+    logger.debugf(
+        "Resolved SCIM context. organizationId=%s",
+        organizationId,
+    )
 
     return ScimContext(
         config,

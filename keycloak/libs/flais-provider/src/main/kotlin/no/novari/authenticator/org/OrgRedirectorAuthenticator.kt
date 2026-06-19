@@ -29,7 +29,7 @@ class OrgRedirectorAuthenticator : IdentityProviderAuthenticator() {
             return
         }
 
-        logger.infof("Redirecting to selected provider: %s", idp.alias)
+        logger.infof("Redirecting to selected identity provider. idp=%s", idp.alias)
         doRedirect(context, idp.alias)
     }
 }

@@ -63,7 +63,7 @@ class OrgSpecificAttributeMapper :
         keycloakSession: KeycloakSession,
         clientSessionCtx: ClientSessionContext,
     ) {
-        logger.debugf("Adding org claim to token for %s", userSession.user.username)
+        logger.debugf("Adding org claim to token. userId=%s", userSession.user.id)
 
         val value =
             getAttributeValue(
