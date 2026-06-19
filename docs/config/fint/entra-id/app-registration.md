@@ -62,6 +62,8 @@ Additional roles required by the application will also be defined here.
 
 To add custom claims to token see [Entra Claims Mapping Policy](/docs/entra/custom-claims.md)
 
+For default setup, we rely on SCIM for provisioning the user with correct attributes. Custom claims mapper is only needed for importing custom attributes from token on login.
+
 To allow custom claims with **Claims Mapping Policy**, update the application manifest.
 
 | Property                 | Value  |

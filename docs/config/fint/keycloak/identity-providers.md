@@ -81,7 +81,6 @@ Some settings may differ depending on the vendor or specific integration.
 
 | Name                             | Mapper type        | Claim        | Target attribute    | Sync mode |
 | -------------------------------- | ------------------ | ------------ | ------------------- | --------- |
-| `map_employee_id_to_employee_id` | Attribute importer | `employeeId` | `employeeId`        | Inherit   |
-| `map_upn_to_user_principal_name` | Attribute importer | `upn`        | `userPrincipalName` | Inherit   |
 | `map_roles_to_roles`             | Attribute importer | `roles`      | `roles`             | Inherit   |
+| `map_upn_to_user_principal_name` | Attribute importer | `upn`        | `userPrincipalName` | Inherit   |
 | `map_oid_to_external_id`         | Attribute importer | `oid`        | `externalId`        | Inherit   |
