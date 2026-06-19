@@ -10,8 +10,7 @@ $ErrorActionPreference = "Stop"
 . "$PSScriptRoot/../helpers/RequiredScopes.ps1"
 
 Assert-MgContextHasExactlyRequiredScopes -RequiredScopes @(
-    "Application.ReadWrite.OwnedBy",
-    "Synchronization.ReadWrite.All"
+    "Application.ReadWrite.OwnedBy"
 )
 
 $templateIdNonGallery = "8adf8e6e-67b2-4cf2-a259-e3dc5476c621"
