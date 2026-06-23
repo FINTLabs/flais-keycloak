@@ -1,4 +1,4 @@
-# Identity providers
+# Entra ID
 
 Configuration of a single **Identity Provider (IDP)**.
 
