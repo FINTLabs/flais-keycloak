@@ -29,9 +29,11 @@ SCIM does not participate in interactive login, but to provision users before th
 
 ### User creation
 
-- Users may be created in advance via SCIM
+- Users will be created in advance via SCIM
 - Users may also be created implicitly during first broker login
-- Both paths result in the same internal user model
+    - SCIM is required for the following attributes to be populated:
+        - employeeId
+        - studentNumber
 
 ### User updates
 
