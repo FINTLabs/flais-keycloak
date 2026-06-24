@@ -12,21 +12,20 @@ const IdpButtonComponent = ({ alias, name }: IdpButtonProps) => {
       name="identity_provider"
       value={alias}
       className="
-        w-full flex items-center justify-between
-        px-4 py-3
-        bg-white
+        flex w-full cursor-pointer items-center justify-between rounded-none
+        bg-white px-4 py-3 text-sm sm:px-5 sm:py-4 sm:text-base
+        transition-colors duration-150 ease-in-out
         hover:bg-gray-50
         active:bg-gray-100
         focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary
-        transition-colors duration-150 ease-in-out
-        cursor-pointer
-        rounded-none
       "
     >
-      <span className="text-accent font-medium">{name}</span>
+      <span className="font-medium text-accent">{name}</span>
       <svg
-        className="h-5 w-5 text-gray-400 flex-shrink-0"
+        aria-hidden="true"
+        className="h-5 w-5 shrink-0 text-gray-400"
         fill="none"
+        focusable="false"
         stroke="currentColor"
         viewBox="0 0 24 24"
       >

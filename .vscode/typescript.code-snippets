@@ -1,0 +1,25 @@
+{
+	"React Component": {
+		"prefix": "react-component",
+		"description": "Creates a react function component with props",
+		"body": [
+			"import React from \"react\"",
+			"",
+			"export interface ${1:name}Props {",
+			"\t${0}",
+			"}",
+			"",
+			"const ${1:name}Component = (props: ${1:name}Props) => {",
+			"}",
+			"",
+			"export const ${1:name} = React.memo(${1:name}Component)"
+		],
+		"scope": "typescriptreact"
+	},
+	"React Propless Component": {
+		"prefix": "react-component-propless",
+		"description": "Creates a react function component without props",
+		"body": ["export const ${1:name} = () => (${0})"],
+		"scope": "typescriptreact"
+	},
+}

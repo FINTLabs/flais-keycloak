@@ -8,9 +8,12 @@ const SubmitButtonComponent = ({ text }: SubmitButtonProps) => {
   return (
     <button
       type="submit"
-      className="w-full py-3 font-medium rounded-lg
-             bg-primary text-white hover:bg-primary/90
-             focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+      className="
+        w-full rounded-lg bg-primary px-4 py-3 text-sm font-medium uppercase text-white
+        sm:py-3.5 sm:text-base
+        hover:bg-primary/90
+        focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2
+      "
     >
       {text}
     </button>
