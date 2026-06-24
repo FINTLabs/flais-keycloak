@@ -1,3 +1,5 @@
 .idea
 .gradle
 local-cluster
+.vscode
+!.vscode/typescript.code-snippets
