@@ -63,6 +63,7 @@ class ClientOrgAccessProviderTest {
 
         every { context.authenticationSession } returns authSession
         every { authSession.client } returns client
+        every { client.clientId } returns "test-client"
         every { session.getProvider(OrganizationProvider::class.java) } returns orgProvider
 
         provider = DefaultClientOrgAccessProvider(session)

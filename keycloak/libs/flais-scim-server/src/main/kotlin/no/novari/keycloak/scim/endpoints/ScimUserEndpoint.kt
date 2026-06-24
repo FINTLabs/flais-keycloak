@@ -36,6 +36,7 @@ import no.novari.keycloak.scim.utils.EntraScimTransformer
 import no.novari.keycloak.scim.utils.ResourcePath
 import no.novari.keycloak.scim.utils.ResourceTypeDefinitionUtil.createResourceTypeDefinition
 import no.novari.keycloak.scim.utils.ScimRoles
+import org.jboss.logging.Logger
 import org.keycloak.models.FederatedIdentityModel
 import org.keycloak.models.UserModel
 import org.keycloak.util.JsonSerialization
@@ -51,11 +52,20 @@ import kotlin.streams.asSequence
 class ScimUserEndpoint(
     private val scimContext: ScimContext,
 ) {
+    private val logger: Logger = Logger.getLogger(ScimUserEndpoint::class.java)
+
     @GET
     @Produces(ApiConstants.MEDIA_TYPE_SCIM, MediaType.APPLICATION_JSON)
     fun getUsers(
         @Context uriInfo: UriInfo,
     ): Response {
+        logger.debugf(
+            "SCIM user search requested. org=%s filter=%s startIndex=%s count=%s",
+            scimContext.organization.alias,
+            uriInfo.queryParameters.getFirst(ApiConstants.QUERY_PARAMETER_FILTER),
+            uriInfo.queryParameters.getFirst(ApiConstants.QUERY_PARAMETER_PAGE_START_INDEX),
+            uriInfo.queryParameters.getFirst(ApiConstants.QUERY_PARAMETER_PAGE_SIZE),
+        )
         val searchHandler = SearchHandler<UserResource>(RESOURCE_TYPE_DEFINITION, uriInfo)
         val scimRole =
             requireNotNull(scimContext.realm.getRole(ScimRoles.SCIM_MANAGED_ROLE)) {
@@ -73,6 +83,7 @@ class ScimUserEndpoint(
                 .map { translateUser(it) }
                 .asSequence()
         val searchResult = searchHandler.createSearchResult(userResources)
+        logger.debugf("SCIM user search completed. org=%s", scimContext.organization.alias)
         return Response.ok(searchResult).build()
     }
 
@@ -86,16 +97,19 @@ class ScimUserEndpoint(
         val user =
             scimContext.orgProvider
                 .getMemberById(scimContext.organization, id)
-                ?: return Response
-                    .status(Response.Status.NOT_FOUND)
-                    .type(ApiConstants.MEDIA_TYPE_SCIM)
-                    .entity(
-                        mapOf(
-                            "schemas" to listOf("urn:ietf:params:scim:api:messages:2.0:Error"),
-                            "status" to 404,
-                            "detail" to "No user found with id $id",
-                        ),
-                    ).build()
+                ?: run {
+                    logger.debugf("SCIM user lookup returned no result. org=%s userId=%s", scimContext.organization.alias, id)
+                    return Response
+                        .status(Response.Status.NOT_FOUND)
+                        .type(ApiConstants.MEDIA_TYPE_SCIM)
+                        .entity(
+                            mapOf(
+                                "schemas" to listOf("urn:ietf:params:scim:api:messages:2.0:Error"),
+                                "status" to 404,
+                                "detail" to "No user found with id $id",
+                            ),
+                        ).build()
+                }
         assertUserScimManaged(user)
 
         val scimUser =
@@ -126,9 +140,11 @@ class ScimUserEndpoint(
 
         val userProvider = scimContext.session.users()
         if (userProvider.getUserById(scimContext.realm, scimUser.userName) != null) {
+            logger.warnf("SCIM user create conflict. org=%s", scimContext.organization.alias)
             return Response.status(Response.Status.CONFLICT).build()
         }
 
+        logger.debugf("Creating SCIM user. org=%s", scimContext.organization.alias)
         val user = userProvider.addUser(scimContext.realm, scimUser.userName)
         val scimRole =
             requireNotNull(scimContext.realm.getRole(ScimRoles.SCIM_MANAGED_ROLE)) {
@@ -139,6 +155,8 @@ class ScimUserEndpoint(
 
         scimContext.orgProvider.addManagedMember(scimContext.organization, user)
         updateUserIdpLinking(user)
+
+        logger.infof("SCIM user created. org=%s userId=%s", scimContext.organization.alias, user.id)
 
         val result =
             translateUser(user).let {
@@ -175,6 +193,7 @@ class ScimUserEndpoint(
 
         updateUserModel(user, updatedScimUser)
         updateUserIdpLinking(user)
+        logger.infof("SCIM user replaced. org=%s userId=%s", scimContext.organization.alias, user.id)
 
         val result =
             translateUser(user).let {
@@ -224,6 +243,7 @@ class ScimUserEndpoint(
 
         updateUserModel(user, scimUser)
         updateUserIdpLinking(user)
+        logger.infof("SCIM user patched. org=%s userId=%s", scimContext.organization.alias, user.id)
 
         val result =
             translateUser(user).let {
@@ -250,10 +270,16 @@ class ScimUserEndpoint(
         assertUserScimManaged(user)
 
         if (!scimContext.orgProvider.isManagedMember(scimContext.organization, user)) {
+            logger.warnf(
+                "SCIM delete rejected because user is not an organization managed member. org=%s userId=%s",
+                scimContext.organization.alias,
+                user.id,
+            )
             throw NotFoundException("User is not part of the organization")
         }
 
         scimContext.orgProvider.removeMember(scimContext.organization, user)
+        logger.infof("SCIM user removed from organization. org=%s userId=%s", scimContext.organization.alias, user.id)
         return Response.noContent().build()
     }
 
@@ -373,6 +399,13 @@ class ScimUserEndpoint(
                 }.map { it.alias }
                 .toList()
 
+        logger.debugf(
+            "Resolved federated identity links. org=%s userId=%s providerCount=%d",
+            scimContext.organization.alias,
+            user.id,
+            socialProviders.size,
+        )
+
         socialProviders.forEach { provider ->
             if (userProvider.getFederatedIdentity(scimContext.realm, user, provider) != null) return@forEach
             val federatedIdentity =
@@ -382,6 +415,12 @@ class ScimUserEndpoint(
                     user.username,
                 )
             userProvider.addFederatedIdentity(scimContext.realm, user, federatedIdentity)
+            logger.infof(
+                "Federated identity linked. org=%s userId=%s provider=%s",
+                scimContext.organization.alias,
+                user.id,
+                provider,
+            )
         }
 
         scimContext.session
@@ -390,6 +429,12 @@ class ScimUserEndpoint(
             .filter { !socialProviders.contains(it.identityProvider) }
             .forEach {
                 scimContext.session.users().removeFederatedIdentity(scimContext.realm, user, it.identityProvider)
+                logger.infof(
+                    "Federated identity unlinked. org=%s userId=%s provider=%s",
+                    scimContext.organization.alias,
+                    user.id,
+                    it.identityProvider,
+                )
             }
     }
 
@@ -399,12 +444,22 @@ class ScimUserEndpoint(
                 "SCIM managed role not found"
             }
         if (!user.hasRole(scimRole)) {
+            logger.warnf(
+                "SCIM managed role check failed. org=%s userId=%s",
+                scimContext.organization.alias,
+                user.id,
+            )
             throw ForbiddenException("User is not SCIM-Managed ${user.id}")
         }
     }
 
     private fun assertUserOrganizationManaged(user: UserModel) {
         if (!scimContext.orgProvider.isManagedMember(scimContext.organization, user)) {
+            logger.warnf(
+                "SCIM organization membership check failed. org=%s userId=%s",
+                scimContext.organization.alias,
+                user.id,
+            )
             throw ForbiddenException("User is not part of the organization")
         }
     }

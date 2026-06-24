@@ -119,7 +119,7 @@ class QlikRolesMapper :
         keycloakSession: KeycloakSession,
         clientSessionCtx: ClientSessionContext,
     ) {
-        logger.debugf("Adding Qlik roles claim for user=%s", userSession.user.username)
+        logger.debugf("Adding Qlik roles claim. userId=%s", userSession.user.id)
 
         val tenantId =
             getAttributeValue(

@@ -18,7 +18,7 @@ class BodyLoggingInterceptor : ReaderInterceptor {
     override fun aroundReadFrom(context: ReaderInterceptorContext): Any {
         val entityBytes = context.inputStream.readAllBytes()
 
-        logger.info(String(entityBytes))
+        logger.debug(String(entityBytes))
 
         context.inputStream = ByteArrayInputStream(entityBytes)
 

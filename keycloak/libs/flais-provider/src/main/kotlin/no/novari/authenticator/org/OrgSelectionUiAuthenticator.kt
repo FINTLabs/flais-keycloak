@@ -19,7 +19,12 @@ class OrgSelectionUiAuthenticator : Authenticator {
     override fun authenticate(context: AuthenticationFlowContext) {
         val clientOrgAccessProvider = context.session.getProvider(ClientOrgAccessProvider::class.java)
         val organizations = clientOrgAccessProvider.getAllowedOrgs(context)
-        logger.debugf("Found orgs: %s", organizations)
+        logger.debugf(
+            "Found allowed organizations. client=%s count=%d aliases=%s",
+            context.authenticationSession.client.clientId,
+            organizations.size,
+            organizations.map { it.alias },
+        )
 
         context.authenticationSession.getAuthNote(Details.ORG_ID)?.let {
             organizations.find { org -> org.id == it }?.let { org ->
@@ -46,7 +51,6 @@ class OrgSelectionUiAuthenticator : Authenticator {
         val formData = context.httpRequest.decodedFormParameters
 
         val selectedOrg = formData.getFirst("selected_org")
-        logger.infof("Selected Organization: %s", selectedOrg)
 
         val clientOrgAccessProvider = context.session.getProvider(ClientOrgAccessProvider::class.java)
         val organizations = clientOrgAccessProvider.getAllowedOrgs(context)
@@ -60,6 +64,11 @@ class OrgSelectionUiAuthenticator : Authenticator {
         }
 
         organizations.find { it.alias == selectedOrg }?.let { org ->
+            logger.infof(
+                "Organization selected. client=%s org=%s",
+                context.authenticationSession.client.clientId,
+                org.alias,
+            )
             context.authenticationSession.setAuthNote(Details.ORG_ID, org.id)
 
             val rememberMe = formData.getFirst(Details.REMEMBER_ME) ?: ""
@@ -70,6 +79,11 @@ class OrgSelectionUiAuthenticator : Authenticator {
             return
         }
 
+        logger.warnf(
+            "Invalid organization selection. client=%s selectedOrg=%s",
+            context.authenticationSession.client.clientId,
+            selectedOrg,
+        )
         context.failure(
             "Selected organization does not have permission to login to this application",
         )
