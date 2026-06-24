@@ -3,7 +3,7 @@ import logo from "../assets/images/novari_logo.png";
 
 import { I18n } from "../i18n.ts";
 import { KcContext } from "../KcContext.ts";
-import { getLogosUrl } from "../utils/logo-url.ts";
+import { getLogoUrl } from "../utils/logo-url.ts";
 import { LoginCard } from "../components/LoginCard.tsx";
 import { LoginHeader } from "../components/LoginHeader.tsx";
 import { OrgSelect } from "../components/OrgSelect.tsx";
@@ -78,7 +78,7 @@ const FlaisOrgSelectorComponent = ({
                 >
                   {org.logo && (
                     <img
-                      src={getLogosUrl(org.logo)}
+                      src={getLogoUrl(org.logo)}
                       alt={org.name}
                       aria-hidden="true"
                       className="h-10 w-10"

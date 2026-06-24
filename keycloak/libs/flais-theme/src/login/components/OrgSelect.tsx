@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from "react";
 import { LogoDropdownInput } from "./LogoDropdownInput.tsx";
-import { getLogosUrl } from "../utils/logo-url.ts";
+import { getLogoUrl } from "../utils/logo-url.ts";
 import { I18n } from "../i18n.ts";
 
 type Organization = {
@@ -29,7 +29,7 @@ const OrgSelectComponent = ({
         .map((org) => ({
           id: org.alias,
           label: org.name,
-          logosUrl: getLogosUrl(org.logo),
+          logosUrl: getLogoUrl(org.logo),
         })),
     [excludedAliases, organizations],
   );

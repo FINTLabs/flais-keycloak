@@ -1,4 +1,4 @@
-export const getLogosUrl = (logo?: string) => {
+export const getLogoUrl = (logo?: string) => {
   if (!logo) return undefined;
 
   if (URL.canParse(logo)) return logo;
