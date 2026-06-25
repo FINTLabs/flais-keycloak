@@ -13,6 +13,9 @@ const { useI18n, ofTypeI18n } = i18nBuilder
       chooseOrgSubtitle: "Velg hvilken organisasjon du ønsker å logge inn hos",
       continue: "Fortsett",
       otherSignInOptions: "Andre påloggingsalternativer",
+      noResult: "Ingen treff",
+      closeList: "Lukk liste",
+      openList: "Åpne liste",
     },
     en: {
       chooseIdp: "Choose identity provider",
@@ -21,6 +24,9 @@ const { useI18n, ofTypeI18n } = i18nBuilder
       chooseOrgSubtitle: "Choose the organization you want to log in with",
       continue: "Continue",
       otherSignInOptions: "Other sign-in options",
+      noResult: "No result",
+      closeList: "Close list",
+      openList: "Open list",
     },
   })
   .build();
