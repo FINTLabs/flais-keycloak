@@ -2,7 +2,7 @@ import React, {
   type ChangeEvent,
   type HTMLAttributes,
   type KeyboardEvent,
-  type MouseEvent,
+  type PointerEvent,
   useCallback,
   useEffect,
   useMemo,
@@ -181,16 +181,16 @@ const LogoDropdownInputComponent = ({
   }, [selected, isFiltering]);
 
   useEffect(() => {
-    const handlePointerDown = (event: globalThis.MouseEvent) => {
+    const handlePointerDown = (event: globalThis.PointerEvent) => {
       if (!containerRef.current?.contains(event.target as Node)) {
         closeList();
       }
     };
 
-    document.addEventListener("mousedown", handlePointerDown);
+    document.addEventListener("pointerdown", handlePointerDown);
 
-    return () => document.removeEventListener("mousedown", handlePointerDown);
-  }, [selected, closeList]);
+    return () => document.removeEventListener("pointerdown", handlePointerDown);
+  }, [closeList]);
 
   useEffect(() => {
     if (open && !wasOpenRef.current) {
@@ -227,7 +227,7 @@ const LogoDropdownInputComponent = ({
       <input type="hidden" name={name} value={value ?? ""} />
 
       <div
-        onMouseDown={(event: MouseEvent<HTMLDivElement>) => {
+        onPointerDown={(event: PointerEvent<HTMLDivElement>) => {
           event.preventDefault();
           openList();
           inputRef.current?.focus();
@@ -278,7 +278,7 @@ const LogoDropdownInputComponent = ({
           type="button"
           tabIndex={-1}
           aria-label={open ? i18n.msgStr("closeList") : i18n.msgStr("openList")}
-          onMouseDown={(event: MouseEvent<HTMLButtonElement>) => {
+          onPointerDown={(event: PointerEvent<HTMLButtonElement>) => {
             event.preventDefault();
             event.stopPropagation();
 
@@ -332,7 +332,7 @@ const LogoDropdownInputComponent = ({
                   aria-selected={isSelected}
                   data-option-index={index}
                   onMouseEnter={() => setActiveIndex(index)}
-                  onMouseDown={(event: MouseEvent<HTMLLIElement>) => {
+                  onPointerDown={(event: PointerEvent<HTMLLIElement>) => {
                     event.preventDefault();
                     selectOption(option);
                   }}
