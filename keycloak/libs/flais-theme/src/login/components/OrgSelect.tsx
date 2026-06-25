@@ -47,6 +47,7 @@ const OrgSelectComponent = ({
         options={options}
         onChange={setSelectedOrg}
         value={selectedOrg}
+        i18n={i18n}
       />
     </div>
   );

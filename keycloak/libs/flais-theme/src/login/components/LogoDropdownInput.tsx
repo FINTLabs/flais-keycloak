@@ -3,12 +3,14 @@ import React, {
   type HTMLAttributes,
   type KeyboardEvent,
   type MouseEvent,
+  useCallback,
   useEffect,
   useMemo,
   useRef,
   useState,
 } from "react";
-import { Chevron } from "./icons/Chevron";
+import { Chevron } from "./icons/Chevron.tsx";
+import { I18n } from "../i18n.ts";
 
 export interface LogoOption {
   id: string;
@@ -25,18 +27,20 @@ export interface LogoDropdownInputProps extends Omit<
   value: string | null;
   onChange: (id: string) => void;
   placeholder: string;
+  i18n: I18n;
 }
 
-export const LogoDropdownInput = React.memo(function LogoDropdownInput({
+const LogoDropdownInputComponent = ({
   id,
   name,
   options,
   value,
   onChange,
   placeholder,
+  i18n,
   className,
   ...rest
-}: LogoDropdownInputProps) {
+}: LogoDropdownInputProps) => {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [isFiltering, setIsFiltering] = useState(false);
@@ -73,17 +77,20 @@ export const LogoDropdownInput = React.memo(function LogoDropdownInput({
     setOpen(true);
   };
 
-  const closeList = (resetQuery = true) => {
-    setOpen(false);
-    setActiveIndex(-1);
-    setIsFiltering(false);
+  const closeList = useCallback(
+    (resetQuery = true) => {
+      setOpen(false);
+      setActiveIndex(-1);
+      setIsFiltering(false);
 
-    if (!resetQuery) return;
+      if (!resetQuery) return;
 
-    const selectedLabel = selected?.label ?? "";
-    setQuery(selectedLabel);
-    selectedQueryRef.current = selectedLabel;
-  };
+      const selectedLabel = selected?.label ?? "";
+      setQuery(selectedLabel);
+      selectedQueryRef.current = selectedLabel;
+    },
+    [selected],
+  );
 
   const selectOption = (option: LogoOption) => {
     onChange(option.id);
@@ -130,11 +137,13 @@ export const LogoDropdownInput = React.memo(function LogoDropdownInput({
           if (filteredOptions.length === 0) return -1;
 
           const direction = event.key === "ArrowDown" ? 1 : -1;
+
           return (
             (currentIndex + direction + filteredOptions.length) %
             filteredOptions.length
           );
         });
+
         break;
       }
 
@@ -179,14 +188,16 @@ export const LogoDropdownInput = React.memo(function LogoDropdownInput({
     };
 
     document.addEventListener("mousedown", handlePointerDown);
+
     return () => document.removeEventListener("mousedown", handlePointerDown);
-  }, [selected]);
+  }, [selected, closeList]);
 
   useEffect(() => {
     if (open && !wasOpenRef.current) {
       const selectedIndex = filteredOptions.findIndex(
         (option) => option.id === value,
       );
+
       setActiveIndex(
         selectedIndex >= 0
           ? selectedIndex
@@ -266,7 +277,7 @@ export const LogoDropdownInput = React.memo(function LogoDropdownInput({
         <button
           type="button"
           tabIndex={-1}
-          aria-label={open ? "Lukk liste" : "Åpne liste"}
+          aria-label={open ? i18n.msgStr("closeList") : i18n.msgStr("openList")}
           onMouseDown={(event: MouseEvent<HTMLButtonElement>) => {
             event.preventDefault();
             event.stopPropagation();
@@ -306,7 +317,7 @@ export const LogoDropdownInput = React.memo(function LogoDropdownInput({
         >
           {filteredOptions.length === 0 ? (
             <li className="px-3 py-2.5 text-base text-gray-500 sm:px-4 sm:py-3">
-              Ingen treff
+              {i18n.msgStr("noResult")}
             </li>
           ) : (
             filteredOptions.map((option, index) => {
@@ -328,10 +339,9 @@ export const LogoDropdownInput = React.memo(function LogoDropdownInput({
                   className={`
                     flex w-full cursor-pointer items-center px-3 py-2.5 text-left text-base
                     focus:outline-none sm:px-4 sm:py-3
-                    ${
-                      isSelected
-                        ? "bg-gray-100 font-semibold text-gray-900"
-                        : "text-gray-700 hover:bg-gray-50"
+                    ${isSelected
+                      ? "bg-gray-100 font-semibold text-gray-900"
+                      : "text-gray-700 hover:bg-gray-50"
                     }
                     ${isActive && !isSelected ? "bg-gray-50" : ""}
                   `}
@@ -347,7 +357,7 @@ export const LogoDropdownInput = React.memo(function LogoDropdownInput({
                     </span>
                   )}
 
-                  <span className="min-w-0 ml-2 flex-1 truncate">
+                  <span className="ml-2 min-w-0 flex-1 truncate">
                     {option.label}
                   </span>
                 </li>
@@ -358,4 +368,6 @@ export const LogoDropdownInput = React.memo(function LogoDropdownInput({
       )}
     </div>
   );
-});
+};
+
+export const LogoDropdownInput = React.memo(LogoDropdownInputComponent);
