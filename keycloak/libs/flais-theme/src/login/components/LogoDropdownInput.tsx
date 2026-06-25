@@ -339,9 +339,10 @@ const LogoDropdownInputComponent = ({
                   className={`
                     flex w-full cursor-pointer items-center px-3 py-2.5 text-left text-base
                     focus:outline-none sm:px-4 sm:py-3
-                    ${isSelected
-                      ? "bg-gray-100 font-semibold text-gray-900"
-                      : "text-gray-700 hover:bg-gray-50"
+                    ${
+                      isSelected
+                        ? "bg-gray-100 font-semibold text-gray-900"
+                        : "text-gray-700 hover:bg-gray-50"
                     }
                     ${isActive && !isSelected ? "bg-gray-50" : ""}
                   `}
