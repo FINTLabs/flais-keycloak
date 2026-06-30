@@ -61,16 +61,21 @@ const FlaisOrgSelectorComponent = ({
           />
 
           <SubmitButton text={i18n.msgStr("continue")} />
+        </form>
 
-          {otherSignInOptions.length > 0 && (
-            <section className="mt-2" aria-labelledby="other-sign-in-options">
-              <h2 id="other-sign-in-options" className="mb-3 text-lg font-bold">
-                {i18n.msgStr("otherSignInOptions")}
-              </h2>
+        {otherSignInOptions.length > 0 && (
+          <section className="mt-2" aria-labelledby="other-sign-in-options">
+            <h2 id="other-sign-in-options" className="mb-3 text-lg font-bold">
+              {i18n.msgStr("otherSignInOptions")}
+            </h2>
 
-              {otherSignInOptions.map((org) => (
+            {otherSignInOptions.map((org) => (
+              <form
+                key={org.alias}
+                method="POST"
+                action={url.registrationAction}
+              >
                 <button
-                  key={org.alias}
                   type="submit"
                   name="selected_org"
                   value={org.alias}
@@ -79,7 +84,7 @@ const FlaisOrgSelectorComponent = ({
                   {org.logo && (
                     <img
                       src={getLogoUrl(org.logo)}
-                      alt={org.name}
+                      alt=""
                       aria-hidden="true"
                       className="h-10 w-10"
                     />
@@ -87,10 +92,10 @@ const FlaisOrgSelectorComponent = ({
 
                   <span className="text-lg">{org.name}</span>
                 </button>
-              ))}
-            </section>
-          )}
-        </form>
+              </form>
+            ))}
+          </section>
+        )}
       </LoginCard>
     </PageWrapper>
   );
