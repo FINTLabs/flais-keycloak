@@ -36,8 +36,8 @@ This configuration is based on an OpenID Connect v1.0 for ID-Porten and serves a
 | Pass max_age                             | Off         |
 | Pass current locale                      | Off         |
 | Backchannel logout                       | Off         |
-| Send `id_token_hint` in logout requests  | On          |
-| Send `client_id` in logout requests      | Off         |
+| Send `id_token_hint` in logout requests  | Off         |
+| Send `client_id` in logout requests      | On          |
 | Disable user info                        | Off         |
 | Disable nonce                            | Off         |
 | Disable type claim check                 | Off         |
