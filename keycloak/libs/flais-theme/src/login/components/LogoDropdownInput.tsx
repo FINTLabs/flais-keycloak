@@ -1,12 +1,16 @@
 import React, {
+  type ChangeEvent,
   type HTMLAttributes,
   type KeyboardEvent,
+  type PointerEvent,
+  useCallback,
   useEffect,
   useMemo,
   useRef,
   useState,
 } from "react";
-import { Chevron, type ChevronDirection } from "./icons/Chevron";
+import { Chevron } from "./icons/Chevron.tsx";
+import { I18n } from "../i18n.ts";
 
 export interface LogoOption {
   id: string;
@@ -22,36 +26,9 @@ export interface LogoDropdownInputProps extends Omit<
   options: LogoOption[];
   value: string | null;
   onChange: (id: string) => void;
-  placeholder?: string;
+  placeholder: string;
+  i18n: I18n;
 }
-
-const KEY = {
-  Down: "ArrowDown",
-  Up: "ArrowUp",
-  Enter: "Enter",
-  Escape: "Escape",
-  Space: " ",
-  Tab: "Tab",
-} as const;
-
-const TRIGGER_OPEN_KEYS: readonly string[] = [
-  KEY.Down,
-  KEY.Up,
-  KEY.Enter,
-  KEY.Space,
-];
-
-const getNextIndex = (
-  currentIndex: number,
-  direction: 1 | -1,
-  count: number,
-) => {
-  if (count === 0) {
-    return -1;
-  }
-
-  return (currentIndex + direction + count) % count;
-};
 
 const LogoDropdownInputComponent = ({
   id,
@@ -59,80 +36,187 @@ const LogoDropdownInputComponent = ({
   options,
   value,
   onChange,
-  placeholder = "Velg tilhørighet",
+  placeholder,
+  i18n,
   className,
   ...rest
 }: LogoDropdownInputProps) => {
   const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState("");
+  const [isFiltering, setIsFiltering] = useState(false);
+  const [activeIndex, setActiveIndex] = useState(-1);
+
   const containerRef = useRef<HTMLDivElement>(null);
-  const optionRefs = useRef<(HTMLButtonElement | null)[]>([]);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const listboxRef = useRef<HTMLUListElement>(null);
+  const wasOpenRef = useRef(false);
+  const selectedQueryRef = useRef("");
 
   const controlId = id ?? name;
   const listboxId = `${controlId}-listbox`;
+
   const selected = useMemo(
     () => options.find((option) => option.id === value) ?? null,
     [options, value],
   );
-  const [chevronDirection, setChevronDirection] =
-    useState<ChevronDirection>("down");
+
+  const filteredOptions = useMemo(() => {
+    const search = query.trim().toLowerCase();
+
+    if (!isFiltering || !search) return options;
+
+    return options.filter((option) =>
+      option.label.trim().toLowerCase().includes(search),
+    );
+  }, [options, query, isFiltering]);
+
+  const activeOption = filteredOptions[activeIndex];
+
+  const openList = (filtering = false) => {
+    setIsFiltering(filtering);
+    setOpen(true);
+  };
+
+  const closeList = useCallback(
+    (resetQuery = true) => {
+      setOpen(false);
+      setActiveIndex(-1);
+      setIsFiltering(false);
+
+      if (!resetQuery) return;
+
+      const selectedLabel = selected?.label ?? "";
+      setQuery(selectedLabel);
+      selectedQueryRef.current = selectedLabel;
+    },
+    [selected],
+  );
+
+  const selectOption = (option: LogoOption) => {
+    onChange(option.id);
+    setQuery(option.label);
+    selectedQueryRef.current = option.label;
+    setIsFiltering(false);
+    closeList(false);
+  };
+
+  const handleInputChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const inputValue = event.target.value;
+    const selectedLabel = selectedQueryRef.current;
+    const shouldRemoveSelectedLabel =
+      selected &&
+      !isFiltering &&
+      selectedLabel &&
+      inputValue.startsWith(selectedLabel);
+
+    setIsFiltering(true);
+    setQuery(
+      shouldRemoveSelectedLabel
+        ? inputValue.slice(selectedLabel.length)
+        : inputValue,
+    );
+    setOpen(true);
+
+    if (selected) {
+      onChange("");
+    }
+  };
+
+  const handleInputKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
+    switch (event.key) {
+      case "ArrowDown":
+      case "ArrowUp": {
+        event.preventDefault();
+
+        if (!open) {
+          openList();
+          return;
+        }
+
+        setActiveIndex((currentIndex) => {
+          if (filteredOptions.length === 0) return -1;
+
+          const direction = event.key === "ArrowDown" ? 1 : -1;
+
+          return (
+            (currentIndex + direction + filteredOptions.length) %
+            filteredOptions.length
+          );
+        });
+
+        break;
+      }
+
+      case "Enter":
+        event.preventDefault();
+
+        if (!open) {
+          openList();
+          return;
+        }
+
+        if (activeOption) {
+          selectOption(activeOption);
+        }
+
+        break;
+
+      case "Escape":
+        event.preventDefault();
+        closeList();
+        break;
+
+      case "Tab":
+        closeList(false);
+        break;
+    }
+  };
 
   useEffect(() => {
-    const handlePointerDown = (event: MouseEvent) => {
+    if (isFiltering) return;
+
+    const selectedLabel = selected?.label ?? "";
+    setQuery(selectedLabel);
+    selectedQueryRef.current = selectedLabel;
+  }, [selected, isFiltering]);
+
+  useEffect(() => {
+    const handlePointerDown = (event: globalThis.PointerEvent) => {
       if (!containerRef.current?.contains(event.target as Node)) {
-        setOpen(false);
+        closeList();
       }
     };
 
-    document.addEventListener("mousedown", handlePointerDown);
-    return () => document.removeEventListener("mousedown", handlePointerDown);
-  }, []);
+    document.addEventListener("pointerdown", handlePointerDown);
+
+    return () => document.removeEventListener("pointerdown", handlePointerDown);
+  }, [closeList]);
 
   useEffect(() => {
-    if (open) {
-      const selectedIndex = options.findIndex((option) => option.id === value);
-      optionRefs.current[Math.max(selectedIndex, 0)]?.focus();
-    }
-  }, [open, options, value]);
+    if (open && !wasOpenRef.current) {
+      const selectedIndex = filteredOptions.findIndex(
+        (option) => option.id === value,
+      );
 
-  const selectOption = (optionId: string) => {
-    onChange(optionId);
-    setOpen(false);
-    setChevronDirection("down");
-  };
-
-  const focusOption = (direction: 1 | -1) => {
-    const currentIndex = optionRefs.current.findIndex(
-      (element) => element === document.activeElement,
-    );
-    const nextIndex = getNextIndex(currentIndex, direction, options.length);
-
-    if (nextIndex >= 0) {
-      optionRefs.current[nextIndex]?.focus();
-    }
-  };
-
-  const handleTriggerKeyDown = (event: KeyboardEvent<HTMLButtonElement>) => {
-    if (TRIGGER_OPEN_KEYS.includes(event.key)) {
-      event.preventDefault();
-      setOpen(true);
-    }
-  };
-
-  const handleListboxKeyDown = (event: KeyboardEvent<HTMLUListElement>) => {
-    if (event.key === KEY.Down) {
-      event.preventDefault();
-      focusOption(1);
+      setActiveIndex(
+        selectedIndex >= 0
+          ? selectedIndex
+          : filteredOptions.length > 0
+            ? 0
+            : -1,
+      );
     }
 
-    if (event.key === KEY.Up) {
-      event.preventDefault();
-      focusOption(-1);
-    }
+    wasOpenRef.current = open;
+  }, [open, filteredOptions, value]);
 
-    if (event.key === KEY.Escape || event.key === KEY.Tab) {
-      setOpen(false);
-    }
-  };
+  useEffect(() => {
+    if (!open || activeIndex < 0) return;
+
+    listboxRef.current
+      ?.querySelector<HTMLElement>(`[data-option-index="${activeIndex}"]`)
+      ?.scrollIntoView({ block: "nearest" });
+  }, [open, activeIndex]);
 
   return (
     <div
@@ -142,26 +226,20 @@ const LogoDropdownInputComponent = ({
     >
       <input type="hidden" name={name} value={value ?? ""} />
 
-      <button
-        id={controlId}
-        type="button"
-        role="combobox"
-        aria-controls={listboxId}
-        aria-expanded={open}
-        aria-haspopup="listbox"
-        onClick={() => {
-          setChevronDirection(chevronDirection == "up" ? "down" : "up");
-          setOpen((isOpen) => !isOpen);
+      <div
+        onPointerDown={(event: PointerEvent<HTMLDivElement>) => {
+          event.preventDefault();
+          openList();
+          inputRef.current?.focus();
         }}
-        onKeyDown={handleTriggerKeyDown}
         className="
-    flex min-h-12 w-full items-center gap-2 rounded-md text-base
-    border border-gray-300 bg-white px-3 py-2 text-left text-gray-700 sm:min-h-14 sm:px-4
-    hover:bg-gray-50
-    focus:z-10 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary
-  "
+          flex min-h-12 w-full cursor-text items-center gap-2 rounded-md border border-gray-300
+          bg-white px-3 py-2 text-left text-base text-gray-700 hover:bg-gray-50
+          focus-within:z-10 focus-within:border-primary focus-within:outline-none
+          focus-within:ring-1 focus-within:ring-primary sm:min-h-14 sm:px-4
+        "
       >
-        {selected?.logosUrl && (
+        {selected?.logosUrl && query === selected.label && !isFiltering && (
           <span className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full">
             <img
               src={selected.logosUrl}
@@ -172,61 +250,105 @@ const LogoDropdownInputComponent = ({
           </span>
         )}
 
-        <span
-          className={
-            selected
-              ? "min-w-0 flex-1 truncate"
-              : "min-w-0 flex-1 truncate text-gray-400"
+        <input
+          ref={inputRef}
+          id={controlId}
+          type="text"
+          role="combobox"
+          aria-controls={listboxId}
+          aria-expanded={open}
+          aria-haspopup="listbox"
+          aria-autocomplete="list"
+          aria-activedescendant={
+            open && activeOption ? `${listboxId}-${activeOption.id}` : undefined
           }
-        >
-          {selected?.label ?? placeholder}
-        </span>
-
-        <Chevron
-          direction={chevronDirection}
-          aria-hidden="true"
-          className="h-4 w-4 shrink-0 text-gray-500"
+          value={query}
+          placeholder={placeholder}
+          autoComplete="off"
+          onFocus={() => openList()}
+          onChange={handleInputChange}
+          onKeyDown={handleInputKeyDown}
+          className="
+            min-w-0 flex-1 bg-transparent text-gray-700 placeholder:text-gray-400
+            focus:outline-none
+          "
         />
-      </button>
+
+        <button
+          type="button"
+          tabIndex={-1}
+          aria-label={open ? i18n.msgStr("closeList") : i18n.msgStr("openList")}
+          onPointerDown={(event: PointerEvent<HTMLButtonElement>) => {
+            event.preventDefault();
+            event.stopPropagation();
+
+            setOpen((isOpen) => {
+              const nextOpen = !isOpen;
+
+              if (nextOpen) {
+                setIsFiltering(false);
+              }
+
+              return nextOpen;
+            });
+
+            inputRef.current?.focus();
+          }}
+          className="shrink-0"
+        >
+          <Chevron
+            direction={open ? "up" : "down"}
+            aria-hidden="true"
+            className="h-4 w-4 text-gray-500"
+          />
+        </button>
+      </div>
 
       {open && (
         <ul
+          ref={listboxRef}
           id={listboxId}
           role="listbox"
           aria-labelledby={controlId}
-          tabIndex={-1}
-          onKeyDown={handleListboxKeyDown}
           className="
-            absolute z-10 mt-1 max-h-64 w-full overflow-auto rounded-md bg-white shadow-lg sm:max-h-72
-            ring-1 ring-black ring-opacity-5 focus:outline-none
+            absolute z-10 mt-1 max-h-50 w-full overflow-auto rounded-md bg-white
+            shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:max-h-56
           "
         >
-          {options.map((option, index) => {
-            const isSelected = option.id === value;
+          {filteredOptions.length === 0 ? (
+            <li className="px-3 py-2.5 text-base text-gray-500 sm:px-4 sm:py-3">
+              {i18n.msgStr("noResult")}
+            </li>
+          ) : (
+            filteredOptions.map((option, index) => {
+              const isSelected = option.id === value;
+              const isActive = index === activeIndex;
 
-            return (
-              <li key={option.id} role="presentation">
-                <button
-                  ref={(element) => {
-                    optionRefs.current[index] = element;
-                  }}
+              return (
+                <li
+                  key={option.id}
                   id={`${listboxId}-${option.id}`}
-                  type="button"
                   role="option"
                   aria-selected={isSelected}
-                  onClick={() => selectOption(option.id)}
+                  data-option-index={index}
+                  onMouseEnter={() => setActiveIndex(index)}
+                  onPointerDown={(event: PointerEvent<HTMLLIElement>) => {
+                    event.preventDefault();
+                    selectOption(option);
+                  }}
                   className={`
-                    flex w-full items-center px-3 py-2.5 text-left text-base sm:px-4 sm:py-3
-                    focus:outline-none focus:bg-gray-200
+                    flex w-full cursor-pointer items-center px-3 py-2.5 text-left text-base
+                    focus:outline-none sm:px-4 sm:py-3
                     ${
                       isSelected
                         ? "bg-gray-100 font-semibold text-gray-900"
                         : "text-gray-700 hover:bg-gray-50"
                     }
+                    ${isActive && !isSelected ? "bg-gray-50" : ""}
                   `}
                 >
                   {option.logosUrl && (
-                    <span className="mr-3 flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full">
+                    <span className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full">
                       <img
                         src={option.logosUrl}
                         alt=""
@@ -235,11 +357,14 @@ const LogoDropdownInputComponent = ({
                       />
                     </span>
                   )}
-                  <span className="truncate">{option.label}</span>
-                </button>
-              </li>
-            );
-          })}
+
+                  <span className="ml-2 min-w-0 flex-1 truncate">
+                    {option.label}
+                  </span>
+                </li>
+              );
+            })
+          )}
         </ul>
       )}
     </div>

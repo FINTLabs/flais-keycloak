@@ -14,105 +14,108 @@ const kcContextExtension: KcContextExtension = {
     ...kcEnvDefaults,
   },
 };
+
+export const mockOrganizations = [
+  {
+    alias: "frid",
+    name: "FRID IKS",
+    logo: "https://flaispublicresources.blob.core.windows.net/keycloak/frid_iks.svg",
+  },
+  {
+    alias: "oslo-skolen",
+    name: "Oslo skolen",
+    logo: "https://flaispublicresources.blob.core.windows.net/keycloak/oslo_skolen.svg",
+  },
+  {
+    alias: "finnmark",
+    name: "Finnmark",
+    logo: "https://flaispublicresources.blob.core.windows.net/keycloak/finnmark.svg",
+  },
+  {
+    alias: "troms",
+    name: "Troms",
+    logo: "https://flaispublicresources.blob.core.windows.net/keycloak/troms.svg",
+  },
+  {
+    alias: "telemark",
+    name: "Telemark",
+    logo: "https://flaispublicresources.blob.core.windows.net/keycloak/telemark.svg",
+  },
+  {
+    alias: "vestfold",
+    name: "Vestfold",
+    logo: "https://flaispublicresources.blob.core.windows.net/keycloak/vestfold.svg",
+  },
+  {
+    alias: "ostfold",
+    name: "Østfold",
+    logo: "https://flaispublicresources.blob.core.windows.net/keycloak/ostfold.svg",
+  },
+  {
+    alias: "buskerud",
+    name: "Buskerud",
+    logo: "https://flaispublicresources.blob.core.windows.net/keycloak/buskerud.svg",
+  },
+  {
+    alias: "akershus",
+    name: "Akershus",
+    logo: "https://flaispublicresources.blob.core.windows.net/keycloak/akershus.svg",
+  },
+  {
+    alias: "innlandet",
+    name: "Innlandet",
+    logo: "https://flaispublicresources.blob.core.windows.net/keycloak/innlandet.svg",
+  },
+  {
+    alias: "nordland",
+    name: "Nordland",
+    logo: "https://flaispublicresources.blob.core.windows.net/keycloak/nordland.svg",
+  },
+  {
+    alias: "more-og-romsdal",
+    name: "Møre og Romsdal",
+    logo: "https://flaispublicresources.blob.core.windows.net/keycloak/more_og_romsdal.svg",
+  },
+  {
+    alias: "agder",
+    name: "Agder",
+    logo: "https://flaispublicresources.blob.core.windows.net/keycloak/agder.svg",
+  },
+  {
+    alias: "trondelag",
+    name: "Trøndelag",
+    logo: "https://flaispublicresources.blob.core.windows.net/keycloak/trondelag.svg",
+  },
+  {
+    alias: "vestland",
+    name: "Vestland",
+    logo: "https://flaispublicresources.blob.core.windows.net/keycloak/vestland.svg",
+  },
+  {
+    alias: "rogaland",
+    name: "Rogaland",
+    logo: "https://flaispublicresources.blob.core.windows.net/keycloak/rogaland.svg",
+  },
+  {
+    alias: "viken",
+    name: "Viken",
+    logo: "https://flaispublicresources.blob.core.windows.net/keycloak/frid_iks.svg",
+  },
+  {
+    alias: "novari",
+    name: "Novari IKS",
+    logo: "https://flaispublicresources.blob.core.windows.net/keycloak/novari_iks.svg",
+  },
+  {
+    alias: "id-porten",
+    name: "ID-Porten",
+    logo: "https://flaispublicresources.blob.core.windows.net/keycloak/id-porten.svg",
+  },
+];
+
 const kcContextExtensionPerPage: KcContextExtensionPerPage = {
   "flais-org-selector.ftl": {
-    organizations: [
-      {
-        alias: "frid",
-        name: "FRID IKS",
-        logo: "https://flaispublicresources.blob.core.windows.net/keycloak/frid_iks.svg",
-      },
-      {
-        alias: "oslo-skolen",
-        name: "Oslo skolen",
-        logo: "https://flaispublicresources.blob.core.windows.net/keycloak/oslo_skolen.svg",
-      },
-      {
-        alias: "finnmark",
-        name: "Finnmark",
-        logo: "https://flaispublicresources.blob.core.windows.net/keycloak/finnmark.svg",
-      },
-      {
-        alias: "troms",
-        name: "Troms",
-        logo: "https://flaispublicresources.blob.core.windows.net/keycloak/troms.svg",
-      },
-      {
-        alias: "telemark",
-        name: "Telemark",
-        logo: "https://flaispublicresources.blob.core.windows.net/keycloak/telemark.svg",
-      },
-      {
-        alias: "vestfold",
-        name: "Vestfold",
-        logo: "https://flaispublicresources.blob.core.windows.net/keycloak/vestfold.svg",
-      },
-      {
-        alias: "ostfold",
-        name: "Østfold",
-        logo: "https://flaispublicresources.blob.core.windows.net/keycloak/ostfold.svg",
-      },
-      {
-        alias: "buskerud",
-        name: "Buskerud",
-        logo: "https://flaispublicresources.blob.core.windows.net/keycloak/buskerud.svg",
-      },
-      {
-        alias: "akershus",
-        name: "Akershus",
-        logo: "https://flaispublicresources.blob.core.windows.net/keycloak/akershus.svg",
-      },
-      {
-        alias: "innlandet",
-        name: "Innlandet",
-        logo: "https://flaispublicresources.blob.core.windows.net/keycloak/innlandet.svg",
-      },
-      {
-        alias: "nordland",
-        name: "Nordland",
-        logo: "https://flaispublicresources.blob.core.windows.net/keycloak/nordland.svg",
-      },
-      {
-        alias: "more-og-romsdal",
-        name: "Møre og Romsdal",
-        logo: "https://flaispublicresources.blob.core.windows.net/keycloak/more_og_romsdal.svg",
-      },
-      {
-        alias: "agder",
-        name: "Agder",
-        logo: "https://flaispublicresources.blob.core.windows.net/keycloak/agder.svg",
-      },
-      {
-        alias: "trondelag",
-        name: "Trøndelag",
-        logo: "https://flaispublicresources.blob.core.windows.net/keycloak/trondelag.svg",
-      },
-      {
-        alias: "vestland",
-        name: "Vestland",
-        logo: "https://flaispublicresources.blob.core.windows.net/keycloak/vestland.svg",
-      },
-      {
-        alias: "rogaland",
-        name: "Rogaland",
-        logo: "https://flaispublicresources.blob.core.windows.net/keycloak/rogaland.svg",
-      },
-      {
-        alias: "viken",
-        name: "Viken",
-        logo: "https://flaispublicresources.blob.core.windows.net/keycloak/frid_iks.svg",
-      },
-      {
-        alias: "novari",
-        name: "Novari IKS",
-        logo: "https://flaispublicresources.blob.core.windows.net/keycloak/novari_iks.svg",
-      },
-      {
-        alias: "id-porten",
-        name: "ID-Porten",
-        logo: "https://flaispublicresources.blob.core.windows.net/keycloak/id-porten.svg",
-      },
-    ],
+    organizations: mockOrganizations,
     url: {
       registrationAction: "",
     },
