@@ -58,11 +58,8 @@ class FlaisLoginThemeTest {
         val page = session.page
 
         PwFlow.navigateToLogin(env, page, clientId = Clients.FLAIS_KEYCLOAK_DEMO)
-        PwFlow.submit(page)
 
-        assertThat(page).hasURL(
-            Pattern.compile(env.keycloakServiceUrl()),
-        )
+        assertThat(page.locator("button[type=\"submit\"]")).isDisabled()
     }
 
     private fun assertCallback(
