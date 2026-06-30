@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import logo from "../assets/images/novari_logo.png";
 
 import { I18n } from "../i18n.ts";
@@ -22,6 +22,7 @@ const FlaisOrgSelectorComponent = ({
   i18n,
 }: FlaisOrgSelectorProps) => {
   const { organizations, url } = kcContext;
+  const [selectedOrg, setSelectedOrg] = useState("");
 
   const sortByName = <T extends { name: string }>(items: T[]) =>
     [...items].sort((a, b) =>
@@ -58,9 +59,14 @@ const FlaisOrgSelectorComponent = ({
             i18n={i18n}
             organizations={sortedOrganizations}
             excludedAliases={EXCLUDED_ORG_ALIASES}
+            value={selectedOrg}
+            onChange={setSelectedOrg}
           />
 
-          <SubmitButton text={i18n.msgStr("continue")} />
+          <SubmitButton
+            text={i18n.msgStr("continue")}
+            disabled={selectedOrg == ""}
+          />
         </form>
 
         {otherSignInOptions.length > 0 && (
