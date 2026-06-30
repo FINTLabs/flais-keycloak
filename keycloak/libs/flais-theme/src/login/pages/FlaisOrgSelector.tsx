@@ -23,6 +23,7 @@ const FlaisOrgSelectorComponent = ({
 }: FlaisOrgSelectorProps) => {
   const { organizations, url } = kcContext;
   const [selectedOrg, setSelectedOrg] = useState("");
+  const [showOrgError, setShowOrgError] = useState(false);
 
   const sortByName = <T extends { name: string }>(items: T[]) =>
     [...items].sort((a, b) =>
@@ -42,6 +43,21 @@ const FlaisOrgSelectorComponent = ({
     [organizations],
   );
 
+  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    if (!selectedOrg) {
+      event.preventDefault();
+      setShowOrgError(true);
+    }
+  };
+
+  const handleOrgChange = (value: string) => {
+    setSelectedOrg(value);
+
+    if (value) {
+      setShowOrgError(false);
+    }
+  };
+
   return (
     <PageWrapper>
       <LoginCard logo={logo}>
@@ -54,18 +70,21 @@ const FlaisOrgSelectorComponent = ({
           className="space-y-5"
           method="POST"
           action={url.registrationAction}
+          onSubmit={handleSubmit}
         >
           <OrgSelect
             i18n={i18n}
             organizations={sortedOrganizations}
             excludedAliases={EXCLUDED_ORG_ALIASES}
             value={selectedOrg}
-            onChange={setSelectedOrg}
+            onChange={handleOrgChange}
+            hasError={showOrgError}
+            errorId={"org-not-selected-error"}
           />
 
           <SubmitButton
             text={i18n.msgStr("continue")}
-            disabled={selectedOrg == ""}
+            data-testid="continue-with-selected-org"
           />
         </form>
 

@@ -28,6 +28,8 @@ export interface LogoDropdownInputProps extends Omit<
   onChange: (id: string) => void;
   placeholder: string;
   i18n: I18n;
+  hasError: boolean
+  errorId: string
 }
 
 const LogoDropdownInputComponent = ({
@@ -38,6 +40,8 @@ const LogoDropdownInputComponent = ({
   onChange,
   placeholder,
   i18n,
+  hasError,
+  errorId,
   className,
   ...rest
 }: LogoDropdownInputProps) => {
@@ -232,12 +236,15 @@ const LogoDropdownInputComponent = ({
           openList();
           inputRef.current?.focus();
         }}
-        className="
-          flex min-h-12 w-full cursor-text items-center gap-2 rounded-md border border-gray-300
-          bg-white px-3 py-2 text-left text-base text-gray-700 hover:bg-gray-50
-          focus-within:z-10 focus-within:border-primary focus-within:outline-none
-          focus-within:ring-1 focus-within:ring-primary sm:min-h-14 sm:px-4
-        "
+        className={`
+  flex min-h-12 w-full cursor-text items-center gap-2 rounded-md border
+  bg-white px-3 py-2 text-left text-base text-gray-700 hover:bg-gray-50
+  focus-within:z-10 focus-within:outline-none sm:min-h-14 sm:px-4
+  ${hasError
+            ? "border-red-500 ring-1 ring-red-500 focus-within:border-red-500 focus-within:ring-red-500"
+            : "border-gray-300 focus-within:border-primary focus-within:ring-1 focus-within:ring-primary"
+          }
+`}
       >
         {selected?.logosUrl && query === selected.label && !isFiltering && (
           <span className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full">
@@ -255,6 +262,8 @@ const LogoDropdownInputComponent = ({
           id={controlId}
           type="text"
           role="combobox"
+          aria-describedby={errorId}
+          aria-invalid={hasError}
           aria-controls={listboxId}
           aria-expanded={open}
           aria-haspopup="listbox"
@@ -304,70 +313,77 @@ const LogoDropdownInputComponent = ({
         </button>
       </div>
 
-      {open && (
-        <ul
-          ref={listboxRef}
-          id={listboxId}
-          role="listbox"
-          aria-labelledby={controlId}
-          className="
+      {hasError && (
+        <p id={errorId} className="mt-1 text-sm text-red-600">
+          {i18n.msgStr("chooseOrgRequired")}
+        </p>
+      )}
+
+      {
+        open && (
+          <ul
+            ref={listboxRef}
+            id={listboxId}
+            role="listbox"
+            aria-labelledby={controlId}
+            className="
             absolute z-10 mt-1 max-h-50 w-full overflow-auto rounded-md bg-white
             shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:max-h-56
           "
-        >
-          {filteredOptions.length === 0 ? (
-            <li className="px-3 py-2.5 text-base text-gray-500 sm:px-4 sm:py-3">
-              {i18n.msgStr("noResult")}
-            </li>
-          ) : (
-            filteredOptions.map((option, index) => {
-              const isSelected = option.id === value;
-              const isActive = index === activeIndex;
+          >
+            {filteredOptions.length === 0 ? (
+              <li className="px-3 py-2.5 text-base text-gray-500 sm:px-4 sm:py-3">
+                {i18n.msgStr("noResult")}
+              </li>
+            ) : (
+              filteredOptions.map((option, index) => {
+                const isSelected = option.id === value;
+                const isActive = index === activeIndex;
 
-              return (
-                <li
-                  key={option.id}
-                  id={`${listboxId}-${option.id}`}
-                  role="option"
-                  aria-selected={isSelected}
-                  data-option-index={index}
-                  onMouseEnter={() => setActiveIndex(index)}
-                  onPointerDown={(event: PointerEvent<HTMLLIElement>) => {
-                    event.preventDefault();
-                    selectOption(option);
-                  }}
-                  className={`
+                return (
+                  <li
+                    key={option.id}
+                    id={`${listboxId}-${option.id}`}
+                    role="option"
+                    aria-selected={isSelected}
+                    data-option-index={index}
+                    onMouseEnter={() => setActiveIndex(index)}
+                    onPointerDown={(event: PointerEvent<HTMLLIElement>) => {
+                      event.preventDefault();
+                      selectOption(option);
+                    }}
+                    className={`
                     flex w-full cursor-pointer items-center px-3 py-2.5 text-left text-base
                     focus:outline-none sm:px-4 sm:py-3
-                    ${
-                      isSelected
+                    ${isSelected
                         ? "bg-gray-100 font-semibold text-gray-900"
                         : "text-gray-700 hover:bg-gray-50"
-                    }
+                      }
                     ${isActive && !isSelected ? "bg-gray-50" : ""}
                   `}
-                >
-                  {option.logosUrl && (
-                    <span className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full">
-                      <img
-                        src={option.logosUrl}
-                        alt=""
-                        aria-hidden="true"
-                        className="max-h-full max-w-full object-contain"
-                      />
-                    </span>
-                  )}
+                  >
+                    {option.logosUrl && (
+                      <span className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full">
+                        <img
+                          src={option.logosUrl}
+                          alt=""
+                          aria-hidden="true"
+                          className="max-h-full max-w-full object-contain"
+                        />
+                      </span>
+                    )}
 
-                  <span className="ml-2 min-w-0 flex-1 truncate">
-                    {option.label}
-                  </span>
-                </li>
-              );
-            })
-          )}
-        </ul>
-      )}
-    </div>
+                    <span className="ml-2 min-w-0 flex-1 truncate">
+                      {option.label}
+                    </span>
+                  </li>
+                );
+              })
+            )}
+          </ul>
+        )
+      }
+    </div >
   );
 };
 

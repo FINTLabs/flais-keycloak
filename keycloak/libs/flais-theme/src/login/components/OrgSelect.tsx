@@ -15,6 +15,8 @@ export interface OrgSelectProps {
   excludedAliases?: string[];
   value: string;
   onChange: (value: string) => void;
+  hasError: boolean;
+  errorId: string
 }
 
 const OrgSelectComponent = ({
@@ -23,6 +25,8 @@ const OrgSelectComponent = ({
   excludedAliases = [],
   value,
   onChange,
+  hasError,
+  errorId
 }: OrgSelectProps) => {
   const options = useMemo(
     () =>
@@ -50,6 +54,8 @@ const OrgSelectComponent = ({
         onChange={onChange}
         value={value}
         i18n={i18n}
+        hasError={hasError}
+        errorId={errorId}
       />
     </div>
   );
