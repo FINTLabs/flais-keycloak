@@ -51,7 +51,7 @@ class FlaisLoginThemeTest {
     }
 
     @TestTemplate
-    fun `login cannot proceed without selecting organization`(
+    fun `login cannot proceed without selecting organization and shows validation error`(
         env: KcEnvironment,
         session: PwEnvironment.Session,
     ) {
@@ -59,7 +59,12 @@ class FlaisLoginThemeTest {
 
         PwFlow.navigateToLogin(env, page, clientId = Clients.FLAIS_KEYCLOAK_DEMO)
 
-        assertThat(page.locator("button[type=\"submit\"]")).isDisabled()
+        val continueButton = page.getByTestId("continue-with-selected-org")
+
+        continueButton.click()
+
+        assertThat(page.locator("#org-not-selected-error"))
+            .hasText("Please select an affiliation to continue")
     }
 
     private fun assertCallback(
