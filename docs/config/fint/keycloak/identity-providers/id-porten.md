@@ -30,23 +30,23 @@ This configuration is based on an OpenID Connect v1.0 for ID-Porten and serves a
 
 ## OpenID Connect – Advanced
 
-| Setting                                  | Value       |
-| ---------------------------------------- | ----------- |
-| Pass login_hint                          | Off         |
-| Pass max_age                             | Off         |
-| Pass current locale                      | Off         |
-| Backchannel logout                       | Off         |
-| Send `id_token_hint` in logout requests  | Off         |
-| Send `client_id` in logout requests      | On          |
-| Disable user info                        | Off         |
-| Disable nonce                            | Off         |
-| Disable type claim check                 | Off         |
-| Scopes                                   | `profile`   |
-| Prompt                                   | Unspecified |
-| Accept `prompt=none` forward from client | Off         |
-| Requires short state parameter           | Off         |
-| Allowed clock skew                       | `0`         |
-| Forwarded query parameters               | None        |
+| Setting                                  | Value     |
+| ---------------------------------------- | --------- |
+| Pass login_hint                          | Off       |
+| Pass max_age                             | Off       |
+| Pass current locale                      | Off       |
+| Backchannel logout                       | Off       |
+| Send `id_token_hint` in logout requests  | Off       |
+| Send `client_id` in logout requests      | On        |
+| Disable user info                        | Off       |
+| Disable nonce                            | Off       |
+| Disable type claim check                 | Off       |
+| Scopes                                   | `profile` |
+| Prompt                                   | Login     |
+| Accept `prompt=none` forward from client | Off       |
+| Requires short state parameter           | Off       |
+| Allowed clock skew                       | `0`       |
+| Forwarded query parameters               | None      |
 
 ## Advanced settings
 
