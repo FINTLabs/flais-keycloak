@@ -54,7 +54,7 @@ export const MissingLogos: Story = {
   render: () => (
     <KcPageStory
       kcContext={{
-        organizations: mockOrganizations.slice(0, 3).map(organization => ({
+        organizations: mockOrganizations.slice(0, 3).map((organization) => ({
           ...organization,
           logo: undefined,
         })),
@@ -91,7 +91,7 @@ export const LongOrganizationNames: Story = {
           },
           {
             ...mockOrganizations.find(
-              organization => organization.alias === "more-og-romsdal",
+              (organization) => organization.alias === "more-og-romsdal",
             )!,
             name: "Møre og Romsdal county with extra long name to truncate",
           },
@@ -106,7 +106,7 @@ export const WithoutIdPorten: Story = {
     <KcPageStory
       kcContext={{
         organizations: mockOrganizations.filter(
-          organization => organization.alias !== "id-porten",
+          (organization) => organization.alias !== "id-porten",
         ),
       }}
     />
