@@ -5,7 +5,10 @@ export interface SubmitButtonProps {
   disabled?: boolean;
 }
 
-const SubmitButtonComponent = ({ text, disabled = false }: SubmitButtonProps) => {
+const SubmitButtonComponent = ({
+  text,
+  disabled = false,
+}: SubmitButtonProps) => {
   return (
     <button
       type="submit"
