@@ -29,23 +29,23 @@ Some settings may differ depending on the vendor or specific integration.
 
 ## OpenID Connect – Advanced
 
-| Setting                                  | Value       |
-| ---------------------------------------- | ----------- |
-| Pass login_hint                          | Off         |
-| Pass max_age                             | Off         |
-| Pass current locale                      | Off         |
-| Backchannel logout                       | Off         |
-| Send `id_token_hint` in logout requests  | On          |
-| Send `client_id` in logout requests      | Off         |
-| Disable user info                        | Off         |
-| Disable nonce                            | Off         |
-| Disable type claim check                 | Off         |
-| Scopes                                   | `profile`   |
-| Prompt                                   | Unspecified |
-| Accept `prompt=none` forward from client | Off         |
-| Requires short state parameter           | Off         |
-| Allowed clock skew                       | `300`       |
-| Forwarded query parameters               | None        |
+| Setting                                  | Value     |
+| ---------------------------------------- | --------- |
+| Pass login_hint                          | Off       |
+| Pass max_age                             | Off       |
+| Pass current locale                      | Off       |
+| Backchannel logout                       | Off       |
+| Send `id_token_hint` in logout requests  | On        |
+| Send `client_id` in logout requests      | Off       |
+| Disable user info                        | Off       |
+| Disable nonce                            | Off       |
+| Disable type claim check                 | Off       |
+| Scopes                                   | `profile` |
+| Prompt                                   | Login     |
+| Accept `prompt=none` forward from client | Off       |
+| Requires short state parameter           | Off       |
+| Allowed clock skew                       | `300`     |
+| Forwarded query parameters               | None      |
 
 > [!NOTE]
 > **Allowed clock skew** is set to `300` seconds.
