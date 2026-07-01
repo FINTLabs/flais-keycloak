@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo } from "react";
 import { LogoDropdownInput } from "./LogoDropdownInput.tsx";
 import { getLogoUrl } from "../utils/logo-url.ts";
 import { I18n } from "../i18n.ts";
@@ -13,15 +13,21 @@ export interface OrgSelectProps {
   i18n: I18n;
   organizations: Organization[];
   excludedAliases?: string[];
+  value: string;
+  onChange: (value: string) => void;
+  hasError: boolean;
+  errorId: string;
 }
 
 const OrgSelectComponent = ({
   i18n,
   organizations,
   excludedAliases = [],
+  value,
+  onChange,
+  hasError,
+  errorId,
 }: OrgSelectProps) => {
-  const [selectedOrg, setSelectedOrg] = useState<string>("");
-
   const options = useMemo(
     () =>
       organizations
@@ -45,9 +51,11 @@ const OrgSelectComponent = ({
         placeholder={i18n.msgStr("chooseOrg")}
         name="selected_org"
         options={options}
-        onChange={setSelectedOrg}
-        value={selectedOrg}
+        onChange={onChange}
+        value={value}
         i18n={i18n}
+        hasError={hasError}
+        errorId={errorId}
       />
     </div>
   );

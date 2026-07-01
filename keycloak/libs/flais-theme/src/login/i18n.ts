@@ -16,6 +16,7 @@ const { useI18n, ofTypeI18n } = i18nBuilder
       noResult: "Ingen treff",
       closeList: "Lukk liste",
       openList: "Åpne liste",
+      chooseOrgRequired: "Velg en tilhørighet for å fortsette",
     },
     en: {
       chooseIdp: "Choose identity provider",
@@ -27,6 +28,7 @@ const { useI18n, ofTypeI18n } = i18nBuilder
       noResult: "No result",
       closeList: "Close list",
       openList: "Open list",
+      chooseOrgRequired: "Please select an affiliation to continue",
     },
   })
   .build();

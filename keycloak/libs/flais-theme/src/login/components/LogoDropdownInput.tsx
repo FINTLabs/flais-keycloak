@@ -28,6 +28,8 @@ export interface LogoDropdownInputProps extends Omit<
   onChange: (id: string) => void;
   placeholder: string;
   i18n: I18n;
+  hasError: boolean;
+  errorId: string;
 }
 
 const LogoDropdownInputComponent = ({
@@ -38,6 +40,8 @@ const LogoDropdownInputComponent = ({
   onChange,
   placeholder,
   i18n,
+  hasError,
+  errorId,
   className,
   ...rest
 }: LogoDropdownInputProps) => {
@@ -232,12 +236,16 @@ const LogoDropdownInputComponent = ({
           openList();
           inputRef.current?.focus();
         }}
-        className="
-          flex min-h-12 w-full cursor-text items-center gap-2 rounded-md border border-gray-300
-          bg-white px-3 py-2 text-left text-base text-gray-700 hover:bg-gray-50
-          focus-within:z-10 focus-within:border-primary focus-within:outline-none
-          focus-within:ring-1 focus-within:ring-primary sm:min-h-14 sm:px-4
-        "
+        className={`
+  flex min-h-12 w-full cursor-text items-center gap-2 rounded-md border
+  bg-white px-3 py-2 text-left text-base text-gray-700 hover:bg-gray-50
+  focus-within:z-10 focus-within:outline-none sm:min-h-14 sm:px-4
+  ${
+    hasError
+      ? "border-red-500 ring-1 ring-red-500 focus-within:border-red-500 focus-within:ring-red-500"
+      : "border-gray-300 focus-within:border-primary focus-within:ring-1 focus-within:ring-primary"
+  }
+`}
       >
         {selected?.logosUrl && query === selected.label && !isFiltering && (
           <span className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full">
@@ -255,6 +263,8 @@ const LogoDropdownInputComponent = ({
           id={controlId}
           type="text"
           role="combobox"
+          aria-describedby={errorId}
+          aria-invalid={hasError}
           aria-controls={listboxId}
           aria-expanded={open}
           aria-haspopup="listbox"
@@ -303,6 +313,12 @@ const LogoDropdownInputComponent = ({
           />
         </button>
       </div>
+
+      {hasError && (
+        <p id={errorId} className="mt-1 text-sm text-red-600">
+          {i18n.msgStr("chooseOrgRequired")}
+        </p>
+      )}
 
       {open && (
         <ul
