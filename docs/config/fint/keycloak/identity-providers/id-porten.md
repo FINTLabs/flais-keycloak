@@ -26,7 +26,10 @@ This configuration is based on an OpenID Connect v1.0 for ID-Porten and serves a
 | Client authentication                 | Client secret sent in request body |
 | Client assertion signature algorithm  | Not specified                      |
 
+> [!NOTE]
 > Use well-known endpoint to fill in required URLs: https://idporten.no/.well-known/openid-configuration
+>
+> Add the following query params to the `authorize` url: `?acr_values=idporten-loa-substantial`
 
 ## OpenID Connect – Advanced
 
