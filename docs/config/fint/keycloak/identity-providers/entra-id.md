@@ -44,8 +44,17 @@ Some settings may differ depending on the vendor or specific integration.
 | Prompt                                   | Unspecified |
 | Accept `prompt=none` forward from client | Off         |
 | Requires short state parameter           | Off         |
-| Allowed clock skew                       | `0`         |
+| Allowed clock skew                       | `300`       |
 | Forwarded query parameters               | None        |
+
+> [!NOTE]
+> **Allowed clock skew** is set to `300` seconds.
+>
+> This matches Microsoft’s default token validation clock skew.
+>
+> References:
+> - [ID-porten: Validering av `logout_token`](https://docs.digdir.no/docs/idporten/oidc/oidc_func_backchannel_logout.html#validering-av-logout_token)
+> - [Microsoft: `TokenValidationParameters.DefaultClockSkew`](https://learn.microsoft.com/en-us/dotnet/api/microsoft.identitymodel.tokens.tokenvalidationparameters.defaultclockskew)
 
 ## Advanced settings
 
@@ -64,9 +73,11 @@ Some settings may differ depending on the vendor or specific integration.
 | Sync mode                 | Force                       |
 | Case-sensitive username   | Off                         |
 
-> **Note:** The **Post login flow** must be set to `flais-post-login-flow` on every IDP.
-> This is what runs `ClientOrgAccessAuthenticator` after every broker callback and
-> prevents broker URL tampering attacks. See [flais-post-login-flow](../../../auth-flows/flais-post-login-flow.md).
+> [!NOTE]
+> Set **Post login flow** to `flais-post-login-flow` for every IDP.
+>
+> This runs `ClientOrgAccessAuthenticator` after each broker callback and helps prevent broker URL tampering attacks.
+> See [flais-post-login-flow](../../../auth-flows/flais-post-login-flow.md).
 
 # Mappers
 
@@ -79,8 +90,8 @@ Some settings may differ depending on the vendor or specific integration.
 
 ## Attribute mapping
 
-| Name                             | Mapper type        | Claim        | Target attribute    | Sync mode |
-| -------------------------------- | ------------------ | ------------ | ------------------- | --------- |
-| `map_roles_to_roles`             | Attribute importer | `roles`      | `roles`             | Inherit   |
-| `map_upn_to_user_principal_name` | Attribute importer | `upn`        | `userPrincipalName` | Inherit   |
-| `map_oid_to_external_id`         | Attribute importer | `oid`        | `externalId`        | Inherit   |
+| Name                             | Mapper type        | Claim   | Target attribute    | Sync mode |
+| -------------------------------- | ------------------ | ------- | ------------------- | --------- |
+| `map_roles_to_roles`             | Attribute importer | `roles` | `roles`             | Inherit   |
+| `map_upn_to_user_principal_name` | Attribute importer | `upn`   | `userPrincipalName` | Inherit   |
+| `map_oid_to_external_id`         | Attribute importer | `oid`   | `externalId`        | Inherit   |
