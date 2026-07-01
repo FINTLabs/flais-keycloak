@@ -2,10 +2,10 @@ package no.novari.test.system.utils
 
 import com.microsoft.playwright.Locator
 import com.microsoft.playwright.Page
+import com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat
 import com.microsoft.playwright.options.AriaRole
 import no.novari.test.common.environment.kc.KcEnvironment
 import no.novari.test.common.utils.KcUrl
-import com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat
 
 /**
  * Utility functions to simplify Playwright flows in system tests.
