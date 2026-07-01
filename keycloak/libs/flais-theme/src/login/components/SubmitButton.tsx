@@ -1,14 +1,10 @@
 import React from "react";
 
-export interface SubmitButtonProps
-  extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+export interface SubmitButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   text: string;
 }
 
-const SubmitButtonComponent = ({
-  text,
-  ...buttonProps
-}: SubmitButtonProps) => {
+const SubmitButtonComponent = ({ text, ...buttonProps }: SubmitButtonProps) => {
   return (
     <button
       type="submit"

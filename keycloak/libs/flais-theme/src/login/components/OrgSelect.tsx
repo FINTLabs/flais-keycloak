@@ -16,7 +16,7 @@ export interface OrgSelectProps {
   value: string;
   onChange: (value: string) => void;
   hasError: boolean;
-  errorId: string
+  errorId: string;
 }
 
 const OrgSelectComponent = ({
@@ -26,7 +26,7 @@ const OrgSelectComponent = ({
   value,
   onChange,
   hasError,
-  errorId
+  errorId,
 }: OrgSelectProps) => {
   const options = useMemo(
     () =>
