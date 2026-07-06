@@ -29,6 +29,10 @@ if ($ValidityDays -lt 1) {
     throw "Client secret validity must be at least 1 day."
 }
 
+if ($ValidityDays -gt 720) {
+    throw "Client secret validity cannot exceed 720 days."
+}
+
 $endDateTime = [DateTimeOffset]::UtcNow.AddDays($ValidityDays).ToString("yyyy-MM-ddTHH:mm:ssZ")
 
 $body = @{
