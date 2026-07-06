@@ -16,6 +16,8 @@ $CreateClaimsMappingPolicyScript = "$PSScriptRoot/modules/Configure-ClaimsMappin
 $ConfigureAppScript = "$PSScriptRoot/modules/Configure-Application.ps1"
 $ConfigureScimScript = "$PSScriptRoot/modules/Configure-ScimProvisioning.ps1"
 $ConfigureAppRolesScript = "$PSScriptRoot/modules/Configure-AppRoles.ps1"
+$ConfigureOwnerScript = "$PSScriptRoot/modules/Configure-Owner.ps1"
+$CreateClientSecretScript = "$PSScriptRoot/modules/Create-ClientSecret.ps1"
 
 $script:LastEnterpriseApplicationResult = $null
 
@@ -121,6 +123,46 @@ function Invoke-ConfigureApplicationRoles {
 
     & $ConfigureAppRolesScript `
         -ApplicationObjectId $ExistingApplicationResult.ApplicationObjectId
+}
+
+
+function Invoke-ConfigureOwner {
+    param(
+        [Parameter(Mandatory = $false)]
+        [object]$ExistingApplicationResult
+    )
+    Assert-NovariEnterpriseApplicationResult -ApplicationResult $ExistingApplicationResult
+
+    & $ConfigureOwnerScript `
+        -ApplicationObjectId $ExistingApplicationResult.ApplicationObjectId `
+        -ServicePrincipalObjectId $ExistingApplicationResult.ServicePrincipalObjectId
+}
+
+
+function Invoke-CreateClientSecret {
+    param(
+        [Parameter(Mandatory = $false)]
+        [object]$ExistingApplicationResult
+    )
+    Assert-NovariEnterpriseApplicationResult -ApplicationResult $ExistingApplicationResult
+
+    $displayName = Read-DefaultedValue `
+        -Prompt "Client secret display name" `
+        -DefaultValue "Keycloak client secret"
+
+    $validityDaysRaw = Read-DefaultedValue `
+        -Prompt "Client secret validity in days" `
+        -DefaultValue "180"
+
+    $validityDays = 0
+    if (-not [int]::TryParse($validityDaysRaw, [ref]$validityDays)) {
+        throw "Client secret validity must be a whole number of days."
+    }
+
+    & $CreateClientSecretScript `
+        -ApplicationObjectId $ExistingApplicationResult.ApplicationObjectId `
+        -DisplayName $displayName `
+        -ValidityDays $validityDays
 }
 
 function Invoke-ConfigureScimProvisioning {

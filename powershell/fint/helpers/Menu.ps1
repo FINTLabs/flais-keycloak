@@ -13,8 +13,10 @@ function Show-Menu {
     Write-Host "3. Configure Enterprise Application + App Registration settings"
     Write-Host "4. Configure SCIM Provisioning"
     Write-Host "5. Configure Application Roles"
-    Write-Host "6. Show Active Graph Context"
-    Write-Host "7. Show Current Enterprise Application"
+    Write-Host "6. Configure Application Owner"
+    Write-Host "7. Create Client Secret"
+    Write-Host "8. Show Active Graph Context"
+    Write-Host "9. Show Current Enterprise Application"
     Write-Host "0. Exit"
     Write-Host ""
 }
@@ -58,10 +60,20 @@ function Invoke-MenuChoice {
         }
 
         "6" {
-            Show-GraphContext
+            Invoke-ConfigureOwner `
+                -ExistingApplicationResult $script:LastEnterpriseApplicationResult
         }
 
         "7" {
+            Invoke-CreateClientSecret `
+                -ExistingApplicationResult $script:LastEnterpriseApplicationResult
+        }
+
+        "8" {
+            Show-GraphContext
+        }
+
+        "9" {
             Write-EnterpriseApplicationResult -ApplicationResult $script:LastEnterpriseApplicationResult
         }
 
@@ -71,10 +83,10 @@ function Invoke-MenuChoice {
 
         default {
             if ($script:LastEnterpriseApplicationResult) {
-                Write-Host "Invalid option. Please choose 0, 2, 3, 4, 5, 6, or 7." -ForegroundColor Yellow
+                Write-Host "Invalid option. Please choose 0, 2, 3, 4, 5, 6, 7, 8, or 9." -ForegroundColor Yellow
             }
             else {
-                Write-Host "Invalid option. Please choose 0, 1, 2, 3, 4, 5, 6, or 7." -ForegroundColor Yellow
+                Write-Host "Invalid option. Please choose 0, 1, 2, 3, 4, 5, 6, 7, 8, or 9." -ForegroundColor Yellow
             }
         }
     }
