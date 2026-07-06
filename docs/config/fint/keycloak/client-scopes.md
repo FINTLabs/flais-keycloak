@@ -74,6 +74,26 @@ Configuration of the **Client Scopes**.
 
 ---
 
+## 	external-id
+
+| Setting                             | Value                                                                                            |
+| ----------------------------------- | ------------------------------------------------------------------------------------------------ |
+| Name                                | `external-id`                                                                                    |
+| Description                         | Adds the federated user's external object identifier to tokens for application identity mapping. |
+| Type                                | Default                                                                                          |
+| Protocol                            | OpenID Connect                                                                                   |
+| Display on consent screen           | Off                                                                                              |
+| Include in token scope              | On                                                                                               |
+| Include in OpenID Provider Metadata | On                                                                                               |
+
+### Mappers
+
+| Name               | Mapper type    | Source attribute | Claim              | Tokens                                                |
+| ------------------ | -------------- | ---------------- | ------------------ | ----------------------------------------------------- |
+| `objectidentifier` | User Attribute | `externalId`     | `objectidentifier` | ID token, Access token, Userinfo, Token introspection |
+
+---
+
 ## profile
 
 | Setting                             | Value                         |
