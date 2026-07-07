@@ -2,6 +2,7 @@ package no.novari.test.system.utils
 
 import com.microsoft.playwright.Locator
 import com.microsoft.playwright.Page
+import com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat
 import com.microsoft.playwright.options.AriaRole
 import no.novari.test.common.environment.kc.KcEnvironment
 import no.novari.test.common.utils.KcUrl
@@ -41,6 +42,8 @@ object PwFlow {
     }
 
     fun submit(page: Page) {
-        page.locator("button[type=\"submit\"]").click()
+        val submitButton = page.locator("button[type=\"submit\"]")
+        assertThat(submitButton).isEnabled()
+        submitButton.click()
     }
 }
