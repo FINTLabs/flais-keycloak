@@ -228,6 +228,12 @@ const LogoDropdownInputComponent = ({
       className={`relative w-full text-left ${className ?? ""}`}
       {...rest}
     >
+      {hasError && (
+        <p id={errorId} className="mt-1 text-sm text-red-600">
+          {i18n.msgStr("chooseOrgRequired")}
+        </p>
+      )}
+
       <input type="hidden" name={name} value={value ?? ""} />
 
       <div
@@ -313,12 +319,6 @@ const LogoDropdownInputComponent = ({
           />
         </button>
       </div>
-
-      {hasError && (
-        <p id={errorId} className="mt-1 text-sm text-red-600">
-          {i18n.msgStr("chooseOrgRequired")}
-        </p>
-      )}
 
       {open && (
         <ul

@@ -47,6 +47,7 @@ const FlaisOrgSelectorComponent = ({
     if (!selectedOrg) {
       event.preventDefault();
       setShowOrgError(true);
+      document.getElementById("selected_org")?.focus();
     }
   };
 
