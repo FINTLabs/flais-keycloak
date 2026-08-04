@@ -15,6 +15,7 @@ on:
             - keycloak/gradle/**
             - keycloak/Dockerfile
             - keycloak/docker-compose.*.yaml
+            - keycloak/docker-compose.yaml
 
 concurrency:
     group: app-test-${{ github.ref }}
