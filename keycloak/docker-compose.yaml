@@ -26,9 +26,7 @@ services:
         depends_on:
             keycloak-pg:
                 condition: service_healthy
-            authentik:
-                condition: service_healthy
-            authentik-worker:
+            authentik-ready:
                 condition: service_healthy
         networks:
             - keycloak
@@ -63,7 +61,7 @@ services:
             - keycloak
 
     authentik:
-        image: ghcr.io/goauthentik/server:2026.5.3
+        image: ghcr.io/goauthentik/server:2026.5.6
         command: server
         environment:
             AUTHENTIK_SECRET_KEY: "authentik"
@@ -71,26 +69,12 @@ services:
             AUTHENTIK_POSTGRESQL__USER: postgres
             AUTHENTIK_POSTGRESQL__PASSWORD: devpass
             AUTHENTIK_POSTGRESQL__NAME: authentik
-        healthcheck:
-            test: >
-                /bin/sh -c '
-                set -e;
-                curl -fsS http://127.0.0.1:9000/-/health/ready/ >/dev/null;
-                curl -fsS http://127.0.0.1:9000/application/o/entra-telemark-app/.well-known/openid-configuration >/dev/null;
-                curl -fsS http://127.0.0.1:9000/application/o/entra-telemark-alt-app/.well-known/openid-configuration >/dev/null;
-                curl -fsS http://127.0.0.1:9000/application/o/entra-rogaland-app/.well-known/openid-configuration >/dev/null;
-                curl -fsS http://127.0.0.1:9000/application/o/idporten-app/.well-known/openid-configuration >/dev/null;
-                '
-            interval: 10s
-            timeout: 5s
-            retries: 30
-            start_period: 10s
         depends_on: [ authentik-pg ]
         networks:
             - keycloak
 
     authentik-worker:
-        image: ghcr.io/goauthentik/server:2026.5.3
+        image: ghcr.io/goauthentik/server:2026.5.6
         command: worker
         environment:
             AUTHENTIK_SECRET_KEY: "authentik"
@@ -104,6 +88,32 @@ services:
         volumes: [ "./config/authentik/:/blueprints/custom/:ro" ]
         networks:
             - keycloak
+
+    authentik-ready:
+      image: curlimages/curl:8.21.0
+      entrypoint: ["/bin/sh"]
+      command: ["-c", "while true; do sleep 3600; done"]
+      healthcheck:
+          test: >
+              /bin/sh -c '
+              set -e;
+              curl -fsS http://authentik:9000/-/health/ready/ >/dev/null;
+              curl -fsS http://authentik:9000/application/o/entra-telemark-app/.well-known/openid-configuration >/dev/null;
+              curl -fsS http://authentik:9000/application/o/entra-telemark-alt-app/.well-known/openid-configuration >/dev/null;
+              curl -fsS http://authentik:9000/application/o/entra-rogaland-app/.well-known/openid-configuration >/dev/null;
+              curl -fsS http://authentik:9000/application/o/idporten-app/.well-known/openid-configuration >/dev/null;
+              '
+          interval: 10s
+          timeout: 5s
+          retries: 30
+          start_period: 10s
+      depends_on:
+        authentik:
+          condition: service_healthy
+        authentik-worker:
+          condition: service_healthy
+      networks:
+        - keycloak
 
 networks:
     keycloak:
