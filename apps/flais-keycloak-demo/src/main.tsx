@@ -6,24 +6,24 @@ import Keycloak from "keycloak-js";
 
 // Initialize Keycloak
 const keycloak = new Keycloak({
-    url: import.meta.env.VITE_KEYCLOAK_URL ?? "http://localhost:8890",
-    realm: import.meta.env.VITE_REALM ?? "external",
-    clientId: import.meta.env.VITE_CLIENT_ID ?? "flais-keycloak-demo",
+  url: import.meta.env.VITE_KEYCLOAK_URL ?? "http://localhost:8890",
+  realm: import.meta.env.VITE_REALM ?? "external",
+  clientId: import.meta.env.VITE_CLIENT_ID ?? "flais-keycloak-demo",
 });
 
 keycloak
-    .init({
-        onLoad: "check-sso",
-        scope: "organization:*",
-    })
-    .then((authenticated) => {
-        if (authenticated) {
-            createRoot(document.getElementById("root")!).render(
-                <StrictMode>
-                    <App keycloak={keycloak} />
-                </StrictMode>,
-            );
-        } else {
-            keycloak.login();
-        }
-    });
+  .init({
+    onLoad: "check-sso",
+    scope: "organization:*",
+  })
+  .then((authenticated) => {
+    if (authenticated) {
+      createRoot(document.getElementById("root")!).render(
+        <StrictMode>
+          <App keycloak={keycloak} />
+        </StrictMode>,
+      );
+    } else {
+      keycloak.login();
+    }
+  });
