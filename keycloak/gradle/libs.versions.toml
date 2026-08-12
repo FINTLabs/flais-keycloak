@@ -22,7 +22,7 @@ kotlinx-serialization-json = "1.11.0"
 slf4j = "2.0.18"
 okhttp = "5.4.0"
 
-kover = "0.9.8"
+kover = "0.9.9"
 playwright = "1.62.0"
 
 scim-server-sdk = "5.0.0"
@@ -69,6 +69,6 @@ kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 shadow = { id = "com.gradleup.shadow", version.ref = "shadow" }
 ktlint = { id = "org.jlleitschuh.gradle.ktlint", version.ref = "ktlint" }
-gradle-versions = { id = "com.github.ben-manes.versions", version.ref = "gradle-versions" }
+gradle-versions = { id = "io.github.ben-manes.versions", version.ref = "gradle-versions" }
 docker-compose = { id = "com.avast.gradle.docker-compose", version.ref = "docker-compose" }
 kover = { id = "org.jetbrains.kotlinx.kover", version.ref = "kover" }

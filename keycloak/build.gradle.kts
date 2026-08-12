@@ -75,7 +75,7 @@ java {
     }
 }
 
-val koverCli by configurations.creating {
+val koverCli = configurations.create("koverCli") {
     isCanBeConsumed = false
     isCanBeResolved = true
 }
@@ -168,7 +168,7 @@ testing {
             useJUnitJupiter()
 
             dependencies {
-                implementation(project())
+                implementation(project(":"))
             }
 
             if (name != "test") {
@@ -186,7 +186,7 @@ testing {
             }
         }
 
-        val integrationTest by registering(JvmTestSuite::class) {
+        register<JvmTestSuite>("integrationTest") {
             commonTestSources()
             addSuiteSources("integration")
 
@@ -200,7 +200,7 @@ testing {
             }
         }
 
-        val systemTest by registering(JvmTestSuite::class) {
+        register<JvmTestSuite>("systemTest") {
             commonTestSources()
             addSuiteSources("system")
 
