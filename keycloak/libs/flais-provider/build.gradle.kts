@@ -14,9 +14,6 @@ group = "no.novari"
 
 dependencies {
     implementation(platform(libs.keycloak.spi.bom))
-    implementation(platform(libs.netty.bom)) {
-        because("Override Keycloak Services transitive Netty version to avoid CVEs in the bundled version")
-    }
     implementation(platform(libs.protobuf.bom)) {
         because("Override Keycloak Services Protobuf version to avoid CVEs in the bundled version")
     }
