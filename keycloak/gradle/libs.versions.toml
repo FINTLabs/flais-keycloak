@@ -13,7 +13,7 @@ netty = "4.1.135.Final"
 protobuf = "3.25.9"
 plexus = "4.0.3"
 log4j = "2.26.0"
-logback = "1.5.34"
+logback = "1.6.1"
 open-telemetry = "1.63.0"
 
 junit = "6.1.0"
