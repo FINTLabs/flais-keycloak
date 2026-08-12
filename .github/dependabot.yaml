@@ -38,6 +38,7 @@ updates:
         schedule:
             interval: "weekly"
             day: "sunday"
+        open-pull-requests-limit: 15
 
     -   package-ecosystem: "github-actions"
         directory: "/"
