@@ -82,6 +82,9 @@ val koverCli =
     }
 
 dependencies {
+    testImplementation(platform(libs.netty.bom)) {
+        because("Override Keycloak transitive Netty version to avoid CVEs in the bundled version")
+    }
     testImplementation(platform(libs.protobuf.bom)) {
         because("Override Keycloak Services Protobuf version to avoid CVEs in the bundled version")
     }
