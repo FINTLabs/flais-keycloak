@@ -75,12 +75,16 @@ java {
     }
 }
 
-val koverCli = configurations.create("koverCli") {
-    isCanBeConsumed = false
-    isCanBeResolved = true
-}
+val koverCli =
+    configurations.create("koverCli") {
+        isCanBeConsumed = false
+        isCanBeResolved = true
+    }
 
 dependencies {
+    testImplementation(platform(libs.netty.bom)) {
+        because("Override Keycloak transitive Netty version to avoid CVEs in the bundled version")
+    }
     testImplementation(platform(libs.keycloak.spi.bom))
     testImplementation(platform(libs.resteasy.bom))
     testImplementation(platform(libs.okhttp.bom))
