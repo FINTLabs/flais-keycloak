@@ -22,14 +22,14 @@
     "tailwindcss": "4.3.3"
   },
   "devDependencies": {
-    "@storybook/react": "10.5.7",
-    "@storybook/react-vite": "10.5.7",
+    "@storybook/react": "10.5.8",
+    "@storybook/react-vite": "10.5.8",
     "@types/react": "19.2.18",
     "@types/react-dom": "19.2.4",
     "@vitejs/plugin-react": "6.0.5",
-    "oxfmt": "0.62.0",
-    "oxlint": "1.77.0",
-    "storybook": "10.5.7",
+    "oxfmt": "0.63.0",
+    "oxlint": "1.78.0",
+    "storybook": "10.5.8",
     "typescript": "7.0.2",
     "vite": "8.2.1"
   },
