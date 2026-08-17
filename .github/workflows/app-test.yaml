@@ -143,7 +143,12 @@ jobs:
               uses: gradle/actions/setup-gradle@v6.3.0
 
             - name: Run Integration Tests
-              run: ./gradlew integrationTest --stacktrace --configuration-cache
+              run: |
+                ./gradlew integrationTest \
+                  --stacktrace \
+                  --info \
+                  --console=plain \
+                  --no-configuration-cache
 
             - name: Generate Code Coverage Report
               run: ./gradlew koverIntegrationXmlReport --stacktrace
