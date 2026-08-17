@@ -1,3 +1,4 @@
+import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -160,6 +161,20 @@ tasks.withType<Test>().configureEach {
 
     environment("KEYCLOAK_VERSION", libs.versions.keycloak.get())
     environment("PLAYWRIGHT_VERSION", libs.versions.playwright.get())
+
+    testLogging {
+        events(
+            "failed",
+            "skipped",
+            "standardOut",
+            "standardError",
+        )
+        exceptionFormat = TestExceptionFormat.FULL
+        showExceptions = true
+        showCauses = true
+        showStackTraces = true
+        showStandardStreams = true
+    }
 }
 
 @Suppress("UnstableApiUsage", "unused")
