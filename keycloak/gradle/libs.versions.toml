@@ -20,7 +20,7 @@ junit = "6.1.3"
 testcontainers = "2.0.5"
 kotlinx-serialization-json = "1.11.0"
 slf4j = "2.0.18"
-okhttp = "5.4.0"
+okhttp = "5.5.0"
 
 kover = "0.9.9"
 playwright = "1.62.0"
