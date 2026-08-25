@@ -53,8 +53,6 @@ const LogoDropdownInputComponent = ({
   const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const listboxRef = useRef<HTMLUListElement>(null);
-  const wasOpenRef = useRef(false);
-  const selectedQueryRef = useRef("");
 
   const controlId = id ?? name;
   const listboxId = `${controlId}-listbox`;
@@ -75,8 +73,20 @@ const LogoDropdownInputComponent = ({
   }, [options, query, isFiltering]);
 
   const activeOption = filteredOptions[activeIndex];
+  const inputValue = isFiltering ? query : (selected?.label ?? "");
 
   const openList = (filtering = false) => {
+    const selectedIndex = filteredOptions.findIndex(
+      (option) => option.id === value,
+    );
+
+    setActiveIndex(
+      selectedIndex >= 0
+        ? selectedIndex
+        : filteredOptions.length > 0
+          ? 0
+          : -1,
+    );
     setIsFiltering(filtering);
     setOpen(true);
   };
@@ -89,35 +99,32 @@ const LogoDropdownInputComponent = ({
 
       if (!resetQuery) return;
 
-      const selectedLabel = selected?.label ?? "";
-      setQuery(selectedLabel);
-      selectedQueryRef.current = selectedLabel;
+      setQuery("");
     },
-    [selected],
+    [],
   );
 
   const selectOption = (option: LogoOption) => {
     onChange(option.id);
-    setQuery(option.label);
-    selectedQueryRef.current = option.label;
+    setQuery("");
     setIsFiltering(false);
     closeList(false);
   };
 
   const handleInputChange = (event: ChangeEvent<HTMLInputElement>) => {
-    const inputValue = event.target.value;
-    const selectedLabel = selectedQueryRef.current;
+    const nextInputValue = event.target.value;
+    const selectedLabel = selected?.label ?? "";
     const shouldRemoveSelectedLabel =
       selected &&
       !isFiltering &&
       selectedLabel &&
-      inputValue.startsWith(selectedLabel);
+      nextInputValue.startsWith(selectedLabel);
 
     setIsFiltering(true);
     setQuery(
       shouldRemoveSelectedLabel
-        ? inputValue.slice(selectedLabel.length)
-        : inputValue,
+        ? nextInputValue.slice(selectedLabel.length)
+        : nextInputValue,
     );
     setOpen(true);
 
@@ -177,14 +184,6 @@ const LogoDropdownInputComponent = ({
   };
 
   useEffect(() => {
-    if (isFiltering) return;
-
-    const selectedLabel = selected?.label ?? "";
-    setQuery(selectedLabel);
-    selectedQueryRef.current = selectedLabel;
-  }, [selected, isFiltering]);
-
-  useEffect(() => {
     const handlePointerDown = (event: globalThis.PointerEvent) => {
       if (!containerRef.current?.contains(event.target as Node)) {
         closeList();
@@ -195,24 +194,6 @@ const LogoDropdownInputComponent = ({
 
     return () => document.removeEventListener("pointerdown", handlePointerDown);
   }, [closeList]);
-
-  useEffect(() => {
-    if (open && !wasOpenRef.current) {
-      const selectedIndex = filteredOptions.findIndex(
-        (option) => option.id === value,
-      );
-
-      setActiveIndex(
-        selectedIndex >= 0
-          ? selectedIndex
-          : filteredOptions.length > 0
-            ? 0
-            : -1,
-      );
-    }
-
-    wasOpenRef.current = open;
-  }, [open, filteredOptions, value]);
 
   useEffect(() => {
     if (!open || activeIndex < 0) return;
@@ -246,14 +227,13 @@ const LogoDropdownInputComponent = ({
   flex min-h-12 w-full cursor-text items-center gap-2 rounded-md border
   bg-white px-3 py-2 text-left text-base text-gray-700 hover:bg-gray-50
   focus-within:z-10 focus-within:outline-none sm:min-h-14 sm:px-4
-  ${
-    hasError
-      ? "border-red-500 ring-1 ring-red-500 focus-within:border-red-500 focus-within:ring-red-500"
-      : "border-gray-300 focus-within:border-primary focus-within:ring-1 focus-within:ring-primary"
-  }
+  ${hasError
+            ? "border-red-500 ring-1 ring-red-500 focus-within:border-red-500 focus-within:ring-red-500"
+            : "border-gray-300 focus-within:border-primary focus-within:ring-1 focus-within:ring-primary"
+          }
 `}
       >
-        {selected?.logosUrl && query === selected.label && !isFiltering && (
+        {selected?.logosUrl && !isFiltering && (
           <span className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full">
             <img
               src={selected.logosUrl}
@@ -278,7 +258,7 @@ const LogoDropdownInputComponent = ({
           aria-activedescendant={
             open && activeOption ? `${listboxId}-${activeOption.id}` : undefined
           }
-          value={query}
+          value={inputValue}
           placeholder={placeholder}
           autoComplete="off"
           onFocus={() => openList()}
@@ -355,10 +335,9 @@ const LogoDropdownInputComponent = ({
                   className={`
                     flex w-full cursor-pointer items-center px-3 py-2.5 text-left text-base
                     focus:outline-none sm:px-4 sm:py-3
-                    ${
-                      isSelected
-                        ? "bg-gray-100 font-semibold text-gray-900"
-                        : "text-gray-700 hover:bg-gray-50"
+                    ${isSelected
+                      ? "bg-gray-100 font-semibold text-gray-900"
+                      : "text-gray-700 hover:bg-gray-50"
                     }
                     ${isActive && !isSelected ? "bg-gray-50" : ""}
                   `}
