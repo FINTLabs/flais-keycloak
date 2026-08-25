@@ -90,7 +90,7 @@ Tilgang tildeles ved å koble en Entra ID-gruppe (eller bruker direkte) til en a
 1. Logg inn i [Microsoft Entra administrasjonssenter](https://entra.microsoft.com/).
 2. Gå til **Identity** → **Applications** → **Enterprise applications**.
 
-   ![Enterprise applications](./images/image1.png)
+   ![Enterprise applications](/docs/external/no/fint/federation/images/image1.png)
 
 3. Søk etter og åpne **federeringsapplikasjonen**. Bruk visningsnavnet som ble valgt under førstegangsoppsettet.
 4. Klikk **Users and groups**.
