@@ -81,28 +81,21 @@ const LogoDropdownInputComponent = ({
     );
 
     setActiveIndex(
-      selectedIndex >= 0
-        ? selectedIndex
-        : filteredOptions.length > 0
-          ? 0
-          : -1,
+      selectedIndex >= 0 ? selectedIndex : filteredOptions.length > 0 ? 0 : -1,
     );
     setIsFiltering(filtering);
     setOpen(true);
   };
 
-  const closeList = useCallback(
-    (resetQuery = true) => {
-      setOpen(false);
-      setActiveIndex(-1);
-      setIsFiltering(false);
+  const closeList = useCallback((resetQuery = true) => {
+    setOpen(false);
+    setActiveIndex(-1);
+    setIsFiltering(false);
 
-      if (!resetQuery) return;
+    if (!resetQuery) return;
 
-      setQuery("");
-    },
-    [],
-  );
+    setQuery("");
+  }, []);
 
   const selectOption = (option: LogoOption) => {
     onChange(option.id);
@@ -227,10 +220,11 @@ const LogoDropdownInputComponent = ({
   flex min-h-12 w-full cursor-text items-center gap-2 rounded-md border
   bg-white px-3 py-2 text-left text-base text-gray-700 hover:bg-gray-50
   focus-within:z-10 focus-within:outline-none sm:min-h-14 sm:px-4
-  ${hasError
-            ? "border-red-500 ring-1 ring-red-500 focus-within:border-red-500 focus-within:ring-red-500"
-            : "border-gray-300 focus-within:border-primary focus-within:ring-1 focus-within:ring-primary"
-          }
+  ${
+    hasError
+      ? "border-red-500 ring-1 ring-red-500 focus-within:border-red-500 focus-within:ring-red-500"
+      : "border-gray-300 focus-within:border-primary focus-within:ring-1 focus-within:ring-primary"
+  }
 `}
       >
         {selected?.logosUrl && !isFiltering && (
@@ -335,9 +329,10 @@ const LogoDropdownInputComponent = ({
                   className={`
                     flex w-full cursor-pointer items-center px-3 py-2.5 text-left text-base
                     focus:outline-none sm:px-4 sm:py-3
-                    ${isSelected
-                      ? "bg-gray-100 font-semibold text-gray-900"
-                      : "text-gray-700 hover:bg-gray-50"
+                    ${
+                      isSelected
+                        ? "bg-gray-100 font-semibold text-gray-900"
+                        : "text-gray-700 hover:bg-gray-50"
                     }
                     ${isActive && !isSelected ? "bg-gray-50" : ""}
                   `}
