@@ -8,7 +8,7 @@ I denne veiledningen brukes betegnelsen **federeringsapplikasjonen** om Enterpri
 
 På Keycloak-siden er federeringen konfigurert i realmet med det tekniske navnet `fint`. Navnet kan forekomme i adresser, konfigurasjon, logger og feilmeldinger. Når denne veiledningen omtaler realmet `fint`, menes dette avgrensede området i Keycloak.
 
-Det tekniske førstegangsoppsettet utføres ved hjelp av oppsettverktøyet fra Novari. Se [`dokumentasjon`](https://github.com/FINTLabs/flais-keycloak/blob/FLA-1868/powershell/fint/README.md) for mer informasjon.
+Det tekniske førstegangsoppsettet utføres ved hjelp av oppsettverktøyet sammen med Novari. Se [`dokumentasjon`](https://github.com/FINTLabs/flais-keycloak/blob/FLA-1868/powershell/fint/README.md) for mer informasjon.
 
 ## Arkitektur
 
@@ -22,7 +22,7 @@ I Entra ID består integrasjonen av to separate, men tilknyttede objekter:
 Integrasjonen har to separate dataflyter:
 
 - **Innlogging med OIDC:** Applikasjonen sender brukeren til Keycloak. Keycloak bruker Entra ID som Identity Provider og videresender brukeren dit for autentisering. Etter autentisering returnerer Entra ID brukeren til Keycloak. Keycloak behandler identiteten og fullfører innloggingen mot applikasjonen.
-- **Provisjonering med SCIM:** Entra-provisjoneringen som er konfigurert på Enterprise Application, oppretter og oppdaterer brukere i Keycloak. Avhengig av endringen kan brukere også deaktiveres eller slettes. Nødvendige brukerattributter og tildelte applikasjonsroller overføres i samme flyt.
+- **Provisjonering med SCIM:** Entra-provisjoneringen som er konfigurert på Enterprise Application, oppretter og oppdaterer brukere i Keycloak. Avhengig av endringen kan brukere også deaktiveres eller slettes. Nødvendige brukerattributter, blant annet ansattnummer eller studentnummer, overføres gjennom SCIM. Tildelte applikasjonsroller overføres både gjennom SCIM og ved innlogging.
 
 ```mermaid
 flowchart LR
@@ -48,7 +48,9 @@ flowchart LR
 ```
 
 > [!NOTE]
-> Innlogging og provisjonering er uavhengige prosesser. En vellykket innlogging betyr derfor ikke nødvendigvis at en SCIM-endring er ferdig behandlet.
+> Innlogging og SCIM-provisjonering er uavhengige prosesser. En bruker kan derfor logge inn før den første SCIM-provisjoneringen er fullført.
+>
+> Hvis brukeren ikke allerede finnes, oppretter Keycloak et brukerobjekt ved innlogging. Roller mappes fra OIDC-tokenet og gjøres tilgjengelige som en del av innloggingen. SCIM kompletterer senere det samme brukerobjektet med brukerattributter, blant annet ansattnummer eller studentnummer. Denne todelingen skyldes begrensninger i Microsofts implementasjon av SCIM-basert brukerprovisjonering.
 
 ## Brukerattributter
 
@@ -56,32 +58,48 @@ For at en bruker skal få riktig identitet i Keycloak, må nødvendige attributt
 
 Hvilke extension-attributter som benyttes, bestemmes under førstegangsoppsettet. Fylkeskommunen drifter valget og sørger for at de samme attributtene benyttes i hele flyten. Dette kan endres på et senere tidspunkt om nødvendig.
 
-Ved innlogging sendes relevante claims i OIDC-tokenet. Ved provisjonering overføres brukerdata gjennom SCIM. SCIM-data behandles som autoritative. Endringer skal derfor gjøres på brukeren i Entra ID, ikke direkte i Keycloak. Verdier som endres manuelt i Keycloak, kan bli overskrevet ved neste provisjonering eller innlogging.
+Ved innlogging sendes brukerens identitet og tildelte roller som claims i OIDC-tokenet. Attributter som ansattnummer og studentnummer overføres ikke ved innlogging, men provisjoneres gjennom SCIM.
+
+Microsoft Entra ID er autoritativ kilde for disse brukerattributtene. Endringer skal derfor gjøres på brukeren i Entra ID, ikke direkte i Keycloak. Verdier som endres manuelt i Keycloak, kan bli overskrevet ved neste SCIM-provisjonering eller innlogging.
 
 ## Applikasjonsroller
 
 Applikasjonsrollene defineres i App Registration. Tilgang tildeles ved å koble brukere eller grupper til rollene gjennom Enterprise Application.
 
-Rollene opprettes som en del av det tekniske oppsettet og følger [rollekatalogen](https://role-catalog.vigoiks.no/).
+Applikasjonsrollene opprettes som en del av det tekniske førstegangsoppsettet og skal følge [rollekatalogen](https://role-catalog.vigoiks.no/).
 
-Rollens verdi må ikke endres manuelt. Roller skal konfigureres ved hjelp av PowerShell-skriptet. Se [`dokumentasjon`](https://github.com/FINTLabs/flais-keycloak/blob/FLA-1868/powershell/fint/README.md) for mer informasjon.
+>[!IMPORTANT]
+> Roller og rolleverdier skal ikke opprettes, endres eller slettes manuelt i Microsoft Entra ID. Slike endringer skal utføres ved hjelp av verktøyet fra Novari. Se [`dokumentasjon`](https://github.com/FINTLabs/flais-keycloak/blob/FLA-1868/powershell/fint/README.md) for mer informasjon.
+
+Applikasjonsrollene overføres til Keycloak gjennom SCIM, men mappes også ved innlogging. Dette gjør at en endret rolletildeling kan tre i kraft ved brukerens neste innlogging uten å måtte vente på neste SCIM-syklus.
+
+Denne mekanismen er viktig ved fjerning av tilganger, siden SCIM-provisjonering kan ta opptil 40 minutter. Endringen påvirker ikke nødvendigvis en allerede aktiv sesjon eller et token som allerede er utstedt.
 
 ```mermaid
 flowchart LR
     gruppe[Entra-gruppe]
     rolle[App-rolle]
     tildeling[Rolletildeling]
+    token[OIDC-token]
     scim[SCIM]
     bruker[Keycloak-bruker]
 
     gruppe --> tildeling
     rolle --> tildeling
+    tildeling --> token
     tildeling --> scim
-    scim --> bruker
+    token -->|Ved innlogging| bruker
+    scim -->|Ved provisjonering| bruker
 ```
 
 > [!NOTE]
 > Gruppene brukes til å styre hvilke brukere og roller som skal provisjoneres. Selve gruppeobjektene opprettes ikke i Keycloak.
+
+## Ansvarsdeling
+
+Fylkeskommunen har ansvar for autentisering av egne brukere i Microsoft Entra ID og for autorisasjonsgrunnlaget som overføres til Keycloak. Dette omfatter blant annet livssyklusen til brukerkontoene, sikkerhetskrav ved innlogging, nødvendige brukerattributter, gruppe­medlemskap og tildeling av applikasjonsroller.
+
+Keycloak bruker informasjonen fra Entra ID til å etablere brukerens identitet og videreformidle tildelte tilganger til tjenestene. Novari har ansvar for drift og teknisk konfigurasjon av den sentrale løsningen, mens fylkeskommunen har ansvar for at identitets- og tilgangsdataene som leveres fra Entra ID, er korrekte.
 
 ## Rolletildeling
 
@@ -131,7 +149,7 @@ Gruppen vises nå i oversikten **Users and groups** med den tilknyttede rollen.
 
 En gruppe kan tildeles flere applikasjonsroller ved å opprette én tildeling per rolle. En bruker som er medlem av flere tildelte grupper, kan derfor motta flere roller.
 
-Medlemmene av gruppen blir provisjonert til Keycloak med den valgte rollen. Det kan ta noe tid før endringen er behandlet.
+Medlemmene av gruppen får den valgte rollen overført til Keycloak. Rollen mappes ved innlogging og overføres i tillegg gjennom SCIM-provisjoneringen.
 
 ```mermaid
 sequenceDiagram
@@ -140,7 +158,7 @@ sequenceDiagram
     participant Keycloak
 
     Administrator->>Entra: Tildeler gruppe og rolle
-    Entra->>Keycloak: Provisjonerer brukere og roller
+    Entra->>Keycloak: Provisjonerer brukere
     Keycloak-->>Entra: Returnerer resultat
     Entra-->>Administrator: Viser Provisioning logs
 ```
@@ -154,7 +172,11 @@ Tilgang kan fjernes ved å:
 - fjerne gruppen fra federeringsapplikasjonen
 - fjerne en rolle som er tildelt direkte til brukeren
 
-Endringen behandles ved neste provisjoneringssyklus. Brukeren kan bli deaktivert i Keycloak i stedet for å bli slettet umiddelbart.
+Endrede rolletildelinger blir fanget opp ved brukerens neste innlogging og overføres også ved neste provisjoneringssyklus. Dermed er ikke oppdatering av brukerens roller avhengig av at SCIM-syklusen fullføres først.
+
+Hvis brukeren ikke lenger skal kunne logge inn, må tilgangen til federeringsapplikasjonen eller selve brukerkontoen håndteres i Entra ID. Eksisterende sesjoner eller allerede utstedte token kan fortsatt være gyldige frem til de utløper eller blir tilbakekalt.
+
+Ved SCIM-provisjonering kan brukerobjektet i Keycloak bli deaktivert i stedet for å bli slettet umiddelbart.
 
 ## Provisjoneringskontroll
 
@@ -175,7 +197,7 @@ Hvis brukeren ikke får logget inn:
 - Bekreft at brukeren er tildelt federeringsapplikasjonen, enten direkte eller gjennom en gruppe.
 - Gruppen eller brukeren må være koblet til en applikasjonsrolle.
 - Se etter feil i innloggingsloggen i Entra ID.
-- Verifiser at nødvendige attributter er riktig satt på brukeren.
+- Verifiser at nødvendige attributter er tilgjengelige og riktig konfigurert.
 
 ### Provisjonering
 
@@ -193,4 +215,4 @@ Hvis brukeren mangler en rolle:
 - Verifiser at riktig rolle er tildelt brukeren eller brukerens gruppe.
 - Ved gruppetildeling må brukeren være medlem av den aktuelle gruppen.
 - Gruppen må være tildelt federeringsapplikasjonen.
-- Se brukerens siste hendelse i **Provisioning logs** for å bekrefte at rollen ble provisjonert.
+- Logg ut og inn igjen, slik at brukeren får et nytt OIDC-token med oppdaterte rolletildelinger.
