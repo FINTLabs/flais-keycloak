@@ -17,6 +17,11 @@ export interface FlaisOrgSelectorProps {
 
 const EXCLUDED_ORG_ALIASES = ["id-porten"];
 
+const sortByName = <T extends { name: string }>(items: T[]) =>
+  [...items].sort((a, b) =>
+    a.name.localeCompare(b.name, "nb", { sensitivity: "base" }),
+  );
+
 const FlaisOrgSelectorComponent = ({
   kcContext,
   i18n,
@@ -24,11 +29,6 @@ const FlaisOrgSelectorComponent = ({
   const { organizations, url } = kcContext;
   const [selectedOrg, setSelectedOrg] = useState("");
   const [showOrgError, setShowOrgError] = useState(false);
-
-  const sortByName = <T extends { name: string }>(items: T[]) =>
-    [...items].sort((a, b) =>
-      a.name.localeCompare(b.name, "nb", { sensitivity: "base" }),
-    );
 
   const sortedOrganizations = useMemo(
     () => sortByName(organizations),

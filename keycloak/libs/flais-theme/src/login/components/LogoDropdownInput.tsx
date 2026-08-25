@@ -53,8 +53,6 @@ const LogoDropdownInputComponent = ({
   const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const listboxRef = useRef<HTMLUListElement>(null);
-  const wasOpenRef = useRef(false);
-  const selectedQueryRef = useRef("");
 
   const controlId = id ?? name;
   const listboxId = `${controlId}-listbox`;
@@ -75,49 +73,51 @@ const LogoDropdownInputComponent = ({
   }, [options, query, isFiltering]);
 
   const activeOption = filteredOptions[activeIndex];
+  const inputValue = isFiltering ? query : (selected?.label ?? "");
 
   const openList = (filtering = false) => {
+    const selectedIndex = filteredOptions.findIndex(
+      (option) => option.id === value,
+    );
+
+    setActiveIndex(
+      selectedIndex >= 0 ? selectedIndex : filteredOptions.length > 0 ? 0 : -1,
+    );
     setIsFiltering(filtering);
     setOpen(true);
   };
 
-  const closeList = useCallback(
-    (resetQuery = true) => {
-      setOpen(false);
-      setActiveIndex(-1);
-      setIsFiltering(false);
+  const closeList = useCallback((resetQuery = true) => {
+    setOpen(false);
+    setActiveIndex(-1);
+    setIsFiltering(false);
 
-      if (!resetQuery) return;
+    if (!resetQuery) return;
 
-      const selectedLabel = selected?.label ?? "";
-      setQuery(selectedLabel);
-      selectedQueryRef.current = selectedLabel;
-    },
-    [selected],
-  );
+    setQuery("");
+  }, []);
 
   const selectOption = (option: LogoOption) => {
     onChange(option.id);
-    setQuery(option.label);
-    selectedQueryRef.current = option.label;
+    setQuery("");
     setIsFiltering(false);
     closeList(false);
   };
 
   const handleInputChange = (event: ChangeEvent<HTMLInputElement>) => {
-    const inputValue = event.target.value;
-    const selectedLabel = selectedQueryRef.current;
+    const nextInputValue = event.target.value;
+    const selectedLabel = selected?.label ?? "";
     const shouldRemoveSelectedLabel =
       selected &&
       !isFiltering &&
       selectedLabel &&
-      inputValue.startsWith(selectedLabel);
+      nextInputValue.startsWith(selectedLabel);
 
     setIsFiltering(true);
     setQuery(
       shouldRemoveSelectedLabel
-        ? inputValue.slice(selectedLabel.length)
-        : inputValue,
+        ? nextInputValue.slice(selectedLabel.length)
+        : nextInputValue,
     );
     setOpen(true);
 
@@ -177,14 +177,6 @@ const LogoDropdownInputComponent = ({
   };
 
   useEffect(() => {
-    if (isFiltering) return;
-
-    const selectedLabel = selected?.label ?? "";
-    setQuery(selectedLabel);
-    selectedQueryRef.current = selectedLabel;
-  }, [selected, isFiltering]);
-
-  useEffect(() => {
     const handlePointerDown = (event: globalThis.PointerEvent) => {
       if (!containerRef.current?.contains(event.target as Node)) {
         closeList();
@@ -195,24 +187,6 @@ const LogoDropdownInputComponent = ({
 
     return () => document.removeEventListener("pointerdown", handlePointerDown);
   }, [closeList]);
-
-  useEffect(() => {
-    if (open && !wasOpenRef.current) {
-      const selectedIndex = filteredOptions.findIndex(
-        (option) => option.id === value,
-      );
-
-      setActiveIndex(
-        selectedIndex >= 0
-          ? selectedIndex
-          : filteredOptions.length > 0
-            ? 0
-            : -1,
-      );
-    }
-
-    wasOpenRef.current = open;
-  }, [open, filteredOptions, value]);
 
   useEffect(() => {
     if (!open || activeIndex < 0) return;
@@ -253,7 +227,7 @@ const LogoDropdownInputComponent = ({
   }
 `}
       >
-        {selected?.logosUrl && query === selected.label && !isFiltering && (
+        {selected?.logosUrl && !isFiltering && (
           <span className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full">
             <img
               src={selected.logosUrl}
@@ -278,7 +252,7 @@ const LogoDropdownInputComponent = ({
           aria-activedescendant={
             open && activeOption ? `${listboxId}-${activeOption.id}` : undefined
           }
-          value={query}
+          value={inputValue}
           placeholder={placeholder}
           autoComplete="off"
           onFocus={() => openList()}
