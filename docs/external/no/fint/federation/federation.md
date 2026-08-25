@@ -8,7 +8,7 @@ I denne veiledningen brukes betegnelsen **federeringsapplikasjonen** om Enterpri
 
 På Keycloak-siden er federeringen konfigurert i realmet med det tekniske navnet `fint`. Navnet kan forekomme i adresser, konfigurasjon, logger og feilmeldinger. Når denne veiledningen omtaler realmet `fint`, menes dette avgrensede området i Keycloak.
 
-Det tekniske førstegangsoppsettet utføres ved hjelp av oppsettverktøyet fra Novari. Se [`dokumentasjon`](../../../../../powershell/fint/README.md) for mer informasjon.
+Det tekniske førstegangsoppsettet utføres ved hjelp av oppsettverktøyet fra Novari. Se [`dokumentasjon`](https://github.com/FINTLabs/flais-keycloak/blob/FLA-1868/powershell/fint/README.md) for mer informasjon.
 
 ## Arkitektur
 
@@ -64,7 +64,7 @@ Applikasjonsrollene defineres i App Registration. Tilgang tildeles ved å koble 
 
 Rollene opprettes som en del av det tekniske oppsettet og følger [rollekatalogen](https://role-catalog.vigoiks.no/).
 
-Rollens verdi må ikke endres manuelt. Roller skal konfigureres ved hjelp av PowerShell-skriptet. Se [`dokumentasjon`](../../../../../powershell/fint/README.md) for mer informasjon.
+Rollens verdi må ikke endres manuelt. Roller skal konfigureres ved hjelp av PowerShell-skriptet. Se [`dokumentasjon`](https://github.com/FINTLabs/flais-keycloak/blob/FLA-1868/powershell/fint/README.md) for mer informasjon.
 
 ```mermaid
 flowchart LR
