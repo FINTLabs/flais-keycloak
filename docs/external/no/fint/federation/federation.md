@@ -89,38 +89,45 @@ Tilgang tildeles ved å koble en Entra ID-gruppe (eller bruker direkte) til en a
 
 1. Logg inn i [Microsoft Entra administrasjonssenter](https://entra.microsoft.com/).
 2. Gå til **Identity** → **Applications** → **Enterprise applications**.
+
+   ![Enterprise applications](./images/image1.png)
+
 3. Søk etter og åpne **federeringsapplikasjonen**. Bruk visningsnavnet som ble valgt under førstegangsoppsettet.
-
-   ![Enterprise applications med federeringsapplikasjonen valgt.](BILDE-KOMMER-SENERE)
-
 4. Klikk **Users and groups**.
 
-   ![Menyvalget Users and groups i federeringsapplikasjonen.](BILDE-KOMMER-SENERE)
+   ![Users and groups i federeringsapplikasjonen.](./images/image2.png)
 
 5. Klikk **Add user/group**.
 
-   ![Knappen Add user/group.](BILDE-KOMMER-SENERE)
+   ![Knappen Add user/group.](./images/image3.png)
 
 6. Klikk **None selected** under **Users and groups**.
+
+   ![Knappen None selected under Users and groups.](./images/image4.png)
+
 7. Søk etter og velg gruppen som skal få tilgang.
 8. Klikk **Select**.
 
-   ![Valg av Entra ID-gruppe som skal få tilgang.](BILDE-KOMMER-SENERE)
+    ![Valg av gruppe.](./images/image5.png)
 
 9. Klikk **None selected** under **Select a role**.
+
+    ![Bekreftelse av valgt gruppe og rolle før tildeling.](./images/image6.png)
+
 10. Velg rollen gruppen skal ha.
 11. Klikk **Select**.
 
-    ![Valg av applikasjonsrolle for gruppen.](BILDE-KOMMER-SENERE)
+    ![Bekreftelse av valgt gruppe og rolle før tildeling.](./images/image7.png)
 
 12. Kontroller at riktig gruppe og rolle er valgt.
 13. Klikk **Assign**.
 
-    ![Bekreftelse av valgt gruppe og rolle før tildeling.](BILDE-KOMMER-SENERE)
+    ![Bekreftelse av valgt gruppe og rolle før tildeling.](./images/image8.png)
+
 
 Gruppen vises nå i oversikten **Users and groups** med den tilknyttede rollen.
 
-![Oversikt over tildelte grupper og roller.](BILDE-KOMMER-SENERE)
+![Oversikt over tildelte grupper og roller.](./images/image9.png)
 
 En gruppe kan tildeles flere applikasjonsroller ved å opprette én tildeling per rolle. En bruker som er medlem av flere tildelte grupper, kan derfor motta flere roller.
 
@@ -158,8 +165,6 @@ Bruk **Provisioning logs** for å kontrollere at brukere, attributter og roller 
 3. Åpne **Provisioning logs**.
 4. Søk etter den aktuelle brukeren.
 5. Kontroller at den siste handlingen er fullført uten feil.
-
-![Provisioning logs med en vellykket oppdatering av en bruker.](BILDE-KOMMER-SENERE)
 
 ## Feilsøking
 
