@@ -13,7 +13,7 @@ configured under **Authentication → Flows** in the Keycloak Admin UI.
     - First-login flow for external identity providers
     - Handles user creation, linking, and organization onboarding
 
-- [flais-post-login-flow](flais-post-login.md)
+- [flais-post-login-flow](flais-post-login-flow.md)
     - Post-broker-login flow that runs after every external IDP authentication
     - Enforces that the IDP used belongs to an organisation allowed for the client
 
