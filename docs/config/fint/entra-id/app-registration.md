@@ -8,7 +8,7 @@ Configuration for **Microsoft Entra App Registration**.
 
 Use a **single-tenant** application. Create one App Registration and its corresponding Enterprise Application (service principal) in each Microsoft Entra tenant.
 
-We chose single-tenant because a [multi-tenant application has no built-in allowlist](https://learn.microsoft.com/en-us/entra/identity-platform/howto-convert-app-to-be-multi-tenant). Any Microsoft Entra tenant can create a local service principal for it, typically through user or admin consent or by using the client ID directly, and restricting that would require the application itself to validate the token's `tid` claim. Single-tenant avoids that trust boundary entirely — [each tenant only ever sees its own registration](https://learn.microsoft.com/en-us/entra/identity-platform/single-and-multi-tenant-apps).
+We chose single-tenant because a [multi-tenant application has no built-in allowlist in GA](https://learn.microsoft.com/en-us/entra/identity-platform/howto-convert-app-to-be-multi-tenant). An [allowlist capability is available in preview](https://learn.microsoft.com/en-us/graph/api/resources/allowedtenantsaudience?view=graph-rest-beta). Any Microsoft Entra tenant can create a local service principal for it, typically through user or admin consent or by using the client ID directly, and restricting that would require the application itself to validate the token's `tid` claim. Single-tenant avoids that trust boundary entirely — [each tenant only ever sees its own registration](https://learn.microsoft.com/en-us/entra/identity-platform/single-and-multi-tenant-apps).
 
 
 # Authentication
