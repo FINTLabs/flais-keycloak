@@ -10,7 +10,7 @@ Med **tjeneste** menes løsningen brukeren faktisk benytter, for eksempel en por
 
 På Keycloak-siden er federeringen konfigurert i realmet med det tekniske navnet `fint`. Navnet kan forekomme i adresser, konfigurasjon, logger og feilmeldinger. Når denne veiledningen omtaler realmet `fint`, menes dette avgrensede området i Keycloak.
 
-Det tekniske førstegangsoppsettet utføres ved hjelp av oppsettverktøyet sammen med Novari. Se [`dokumentasjon`](https://github.com/FINTLabs/flais-keycloak/blob/FLA-1868/powershell/fint/README.md) for mer informasjon.
+Det tekniske førstegangsoppsettet utføres ved hjelp av oppsettverktøyet sammen med Novari. Se [`dokumentasjon`](https://github.com/FINTLabs/flais-keycloak/blob/main/powershell/fint/README.md) for mer informasjon.
 
 ## Arkitektur
 
@@ -71,7 +71,7 @@ Applikasjonsrollene defineres i App Registration. Tilgang tildeles ved å koble 
 Applikasjonsrollene opprettes som en del av det tekniske førstegangsoppsettet og skal følge [rollekatalogen](https://role-catalog.vigoiks.no/).
 
 >[!IMPORTANT]
-> Roller og rolleverdier skal ikke opprettes, endres eller slettes manuelt i Microsoft Entra ID. Slike endringer skal utføres ved hjelp av verktøyet fra Novari. Se [`dokumentasjon`](https://github.com/FINTLabs/flais-keycloak/blob/FLA-1868/powershell/fint/README.md) for mer informasjon.
+> Roller og rolleverdier skal ikke opprettes, endres eller slettes manuelt i Microsoft Entra ID. Slike endringer skal utføres ved hjelp av verktøyet fra Novari. Se [`dokumentasjon`](https://github.com/FINTLabs/flais-keycloak/blob/main/powershell/fint/README.md) for mer informasjon.
 
 Applikasjonsrollene overføres til Keycloak gjennom SCIM, men overføres også ved innlogging. Dette gjør at en endret rolletildeling kan tre i kraft ved brukerens neste innlogging uten å måtte vente på neste SCIM-syklus.
 
