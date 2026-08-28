@@ -105,7 +105,7 @@ Keycloak bruker informasjonen fra Entra ID til å etablere brukerens identitet o
 
 Tilgang tildeles ved å koble en Entra ID-gruppe (eller bruker direkte) til en applikasjonsrolle i federeringsapplikasjonen.
 
-1. Logg inn i [Microsoft Entra administrasjonssenter](https://entra.microsoft.com/).
+1. Logg inn i [Microsoft Azure Portal](https://portal.azure.com/) eller [Microsoft Entra administrasjonssenter](https://entra.microsoft.com/).
 2. Gå til **Identity** → **Applications** → **Enterprise applications**.
 
    ![Enterprise applications](./images/image1.png)
