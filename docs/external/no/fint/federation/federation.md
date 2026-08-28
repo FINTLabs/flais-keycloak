@@ -52,7 +52,7 @@ flowchart LR
 > [!NOTE]
 > Innlogging og SCIM-provisjonering er uavhengige prosesser. En bruker kan derfor logge inn før den første SCIM-provisjoneringen er fullført.
 >
-> Hvis brukeren ikke allerede finnes, oppretter Keycloak et brukerobjekt ved innlogging. Roller mappes fra OIDC-tokenet og gjøres tilgjengelige som en del av innloggingen. SCIM kompletterer senere det samme brukerobjektet med brukerattributter, blant annet ansattnummer eller studentnummer. Denne todelingen skyldes begrensninger i Microsofts implementasjon av SCIM-basert brukerprovisjonering.
+> Hvis brukeren ikke allerede finnes, oppretter Keycloak et brukerobjekt ved innlogging. Roller overføres fra OIDC-tokenet og gjøres tilgjengelige som en del av innloggingen. SCIM kompletterer senere det samme brukerobjektet med brukerattributter, blant annet ansattnummer eller studentnummer. Denne todelingen skyldes begrensninger i Microsofts implementasjon av SCIM-basert brukerprovisjonering.
 
 ## Brukerattributter
 
@@ -73,7 +73,7 @@ Applikasjonsrollene opprettes som en del av det tekniske førstegangsoppsettet o
 >[!IMPORTANT]
 > Roller og rolleverdier skal ikke opprettes, endres eller slettes manuelt i Microsoft Entra ID. Slike endringer skal utføres ved hjelp av verktøyet fra Novari. Se [`dokumentasjon`](https://github.com/FINTLabs/flais-keycloak/blob/FLA-1868/powershell/fint/README.md) for mer informasjon.
 
-Applikasjonsrollene overføres til Keycloak gjennom SCIM, men mappes også ved innlogging. Dette gjør at en endret rolletildeling kan tre i kraft ved brukerens neste innlogging uten å måtte vente på neste SCIM-syklus.
+Applikasjonsrollene overføres til Keycloak gjennom SCIM, men overføres også ved innlogging. Dette gjør at en endret rolletildeling kan tre i kraft ved brukerens neste innlogging uten å måtte vente på neste SCIM-syklus.
 
 Denne mekanismen er viktig ved fjerning av tilganger, siden SCIM-provisjonering kan ta opptil 40 minutter. Endringen påvirker ikke nødvendigvis en allerede aktiv sesjon eller et token som allerede er utstedt.
 
@@ -151,7 +151,7 @@ Gruppen vises nå i oversikten **Users and groups** med den tilknyttede rollen.
 
 En gruppe kan tildeles flere applikasjonsroller ved å opprette én tildeling per rolle. En bruker som er medlem av flere tildelte grupper, kan derfor motta flere roller.
 
-Medlemmene av gruppen får den valgte rollen overført til Keycloak. Rollen mappes ved innlogging og overføres i tillegg gjennom SCIM-provisjoneringen.
+Medlemmene av gruppen får den valgte rollen overført til Keycloak. Rollen overførest ved innlogging og i tillegg gjennom SCIM-provisjoneringen.
 
 ```mermaid
 sequenceDiagram
