@@ -5,7 +5,6 @@ kc-admin = "26.0.12"
 shadow = "9.6.1"
 ktlint = "14.2.0"
 gradle-versions = "0.61.0"
-docker-compose = "0.17.21"
 awaitility = "4.3.0"
 mockk = "1.14.11"
 resteasy = "6.2.14.Final"
@@ -70,5 +69,4 @@ kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", versi
 shadow = { id = "com.gradleup.shadow", version.ref = "shadow" }
 ktlint = { id = "org.jlleitschuh.gradle.ktlint", version.ref = "ktlint" }
 gradle-versions = { id = "io.github.ben-manes.versions", version.ref = "gradle-versions" }
-docker-compose = { id = "com.avast.gradle.docker-compose", version.ref = "docker-compose" }
 kover = { id = "org.jetbrains.kotlinx.kover", version.ref = "kover" }

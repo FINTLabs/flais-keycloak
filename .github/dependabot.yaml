@@ -1,59 +1,43 @@
 version: 2
+
 updates:
-    -   package-ecosystem: "npm"
-        directory: "/keycloak/libs/flais-theme/"
-        schedule:
-            interval: "weekly"
-            day: "sunday"
-        groups:
-            all-npm:
-                patterns:
-                    - "*"
-                update-types: [ "minor", "patch" ]
+  - package-ecosystem: "npm"
+    directories:
+      - "/keycloak/libs/flais-theme/"
+      - "/keycloak/tools/flais-scim-auth/"
+      - "/apps/flais-keycloak-demo/"
+    schedule:
+      interval: "weekly"
+      day: "sunday"
+    groups:
+      npm-minor-and-patch:
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"
 
-    -   package-ecosystem: "npm"
-        directory: "/keycloak/tools/flais-scim-auth/"
-        schedule:
-            interval: "weekly"
-            day: "sunday"
-        groups:
-            all-npm:
-                patterns:
-                    - "*"
-                update-types: [ "minor", "patch" ]
+  - package-ecosystem: "gradle"
+    directory: "/keycloak/"
+    schedule:
+      interval: "weekly"
+      day: "sunday"
+    open-pull-requests-limit: 15
 
-    -   package-ecosystem: "npm"
-        directory: "/apps/flais-keycloak-demo/"
-        schedule:
-            interval: "weekly"
-            day: "sunday"
-        groups:
-            all-npm:
-                patterns:
-                    - "*"
-                update-types: [ "minor", "patch" ]
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "sunday"
 
-    -   package-ecosystem: "gradle"
-        directory: "/keycloak/"
-        schedule:
-            interval: "weekly"
-            day: "sunday"
-        open-pull-requests-limit: 15
+  - package-ecosystem: "docker"
+    directory: "/keycloak/"
+    schedule:
+      interval: "weekly"
+      day: "sunday"
 
-    -   package-ecosystem: "github-actions"
-        directory: "/"
-        schedule:
-            interval: "weekly"
-            day: "sunday"
-
-    -   package-ecosystem: "docker"
-        directory: "/keycloak/"
-        schedule:
-            interval: "weekly"
-            day: "sunday"
-
-    -   package-ecosystem: "docker-compose"
-        directory: "/keycloak/"
-        schedule:
-            interval: "weekly"
-            day: "sunday"
+  - package-ecosystem: "docker-compose"
+    directory: "/keycloak/"
+    schedule:
+      interval: "weekly"
+      day: "sunday"

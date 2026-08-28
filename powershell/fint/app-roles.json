@@ -208,6 +208,15 @@
             ]
         },
         {
+          "id": "80b8581a-08e2-4920-8dc2-fcb89f1ece46",
+          "displayName": "Qlik Sense FK OT Fylkesadministrator",
+          "value": "https://role-catalog.vigoiks.no/vigo/qlik/qliksense/fk-ot-nasjonale-tall",
+          "description": "Medlem for tilgang til aggregerte tall for ungdom i OT nasjonalt og pr fylkeskommune. Tallene er tilsvarende den offentlige statistikken til Udir (ingen personidentifiserende dimensjoner). Rollen er tiltenkt medlemmer i det nasjonale nettverket for OT og VIGO OT systemansvarlige",
+          "allowedMemberTypes": [
+            "User"
+          ]
+        },
+        {
             "id": "7b27d8da-1df2-42ee-afd6-f0fa12becaa4",
             "displayName": "Qlik Sense FK Skjermet",
             "value": "https://role-catalog.vigoiks.no/<organization>/qlik/qliksense/fk-skjermet",
