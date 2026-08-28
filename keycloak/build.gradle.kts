@@ -6,7 +6,6 @@ import java.util.Date
 plugins {
     base
     alias(libs.plugins.kotlin.jvm)
-    alias(libs.plugins.docker.compose)
     alias(libs.plugins.gradle.versions)
     alias(libs.plugins.ktlint)
     alias(libs.plugins.kotlin.serialization)
@@ -135,10 +134,6 @@ kover {
             }
         }
     }
-}
-
-dockerCompose {
-    environment.put("KEYCLOAK_VERSION", libs.versions.keycloak.get())
 }
 
 @Suppress("UnstableApiUsage")
@@ -273,65 +268,50 @@ tasks.register<Exec>("koverIntegrationXmlReport") {
     }
 }
 
-tasks.register("runDev") {
-    group = "docker"
-    description = "Run local dev with compose"
+val composeFiles =
+    listOf(
+        "-f",
+        "docker-compose.yaml",
+        "-f",
+        "docker-compose.dev.yaml",
+    )
 
-    doLast {
-        dockerCompose.dockerExecutor.execute(
-            "compose",
-            "-f",
-            "docker-compose.yaml",
-            "-f",
-            "docker-compose.dev.yaml",
-            "up",
-            "-d",
-            "--build",
-            "keycloak",
-        )
-        println("Built & started Keycloak dev environment")
-    }
+fun Exec.configureCompose(vararg args: String) {
+    group = "docker"
+    workingDir(projectDir)
+    environment("KEYCLOAK_VERSION", libs.versions.keycloak.get())
+    commandLine(
+        "docker",
+        "compose",
+        *composeFiles.toTypedArray(),
+        *args,
+    )
 }
 
-tasks.register("restartDev") {
-    group = "docker"
-    description = "Rebuild the keycloak image and recreate the container"
-
-    doLast {
-        dockerCompose.dockerExecutor.execute("compose", "build", "--pull", "keycloak")
-        dockerCompose.dockerExecutor.execute(
-            "compose",
-            "-f",
-            "docker-compose.yaml",
-            "-f",
-            "docker-compose.dev.yaml",
-            "up",
-            "-d",
-            "--force-recreate",
-            "keycloak",
-        )
-        println("Rebuilt & restarted Keycloak")
-    }
+tasks.register<Exec>("runDev") {
+    description = "Build and start the Keycloak development environment"
+    configureCompose("up", "-d", "--build", "keycloak")
 }
 
-tasks.register("stopDev") {
-    group = "docker"
-    description = "Stop local dev"
-
-    doLast {
-        dockerCompose.dockerExecutor.execute("compose", "stop")
-        println("Stopped Keycloak dev environment")
-    }
+tasks.register<Exec>("restartDev") {
+    description = "Rebuild and recreate the Keycloak container"
+    configureCompose(
+        "up",
+        "-d",
+        "--build",
+        "--force-recreate",
+        "keycloak",
+    )
 }
 
-tasks.register("cleanupDev") {
-    group = "docker"
-    description = "Remove local dev docker"
+tasks.register<Exec>("stopDev") {
+    description = "Stop the development environment"
+    configureCompose("stop")
+}
 
-    doLast {
-        dockerCompose.dockerExecutor.execute("compose", "rm", "-s", "-f")
-        println("Cleaned up Keycloak dev environment")
-    }
+tasks.register<Exec>("cleanupDev") {
+    description = "Remove development containers"
+    configureCompose("rm", "-s", "-f")
 }
 
 tasks.register<Exec>("buildImage") {
