@@ -6,13 +6,15 @@ Denne veiledningen beskriver hvordan federeringsløsningen mellom Microsoft Entr
 
 I denne veiledningen brukes betegnelsen **federeringsapplikasjonen** om Enterprise Application i Microsoft Entra ID som er koblet til Keycloak-løsningen. Applikasjonens faktiske visningsnavn i Entra ID kan variere avhengig av fylkeskommunens navnekonvensjoner.
 
+Med **tjeneste** menes løsningen brukeren faktisk benytter, for eksempel en portal. Begrepet omfatter ikke de tekniske komponentene som ligger bak innloggingen, som Keycloak, federeringsapplikasjonen eller annen infrastruktur.
+
 På Keycloak-siden er federeringen konfigurert i realmet med det tekniske navnet `fint`. Navnet kan forekomme i adresser, konfigurasjon, logger og feilmeldinger. Når denne veiledningen omtaler realmet `fint`, menes dette avgrensede området i Keycloak.
 
 Det tekniske førstegangsoppsettet utføres ved hjelp av oppsettverktøyet sammen med Novari. Se [`dokumentasjon`](https://github.com/FINTLabs/flais-keycloak/blob/FLA-1868/powershell/fint/README.md) for mer informasjon.
 
 ## Arkitektur
 
-Applikasjonene kobles til Keycloak og bruker Keycloak som felles inngangspunkt for innlogging. Keycloak styrer innloggingsflyten og videresender brukeren til riktig identitetsleverandør. For fylkeskommunens brukere er Microsoft Entra ID konfigurert som en ekstern Identity Provider i Keycloak.
+Tjenesten kobles til Keycloak og bruker Keycloak som felles inngangspunkt for innlogging. Keycloak styrer innloggingsflyten og videresender brukeren til riktig identitetsleverandør. For fylkeskommunens brukere er Microsoft Entra ID konfigurert som en ekstern Identity Provider i Keycloak.
 
 I Entra ID består integrasjonen av to separate, men tilknyttede objekter:
 
@@ -21,7 +23,7 @@ I Entra ID består integrasjonen av to separate, men tilknyttede objekter:
 
 Integrasjonen har to separate dataflyter:
 
-- **Innlogging med OIDC:** Applikasjonen sender brukeren til Keycloak. Keycloak bruker Entra ID som Identity Provider og videresender brukeren dit for autentisering. Etter autentisering returnerer Entra ID brukeren til Keycloak. Keycloak behandler identiteten og fullfører innloggingen mot applikasjonen.
+- **Innlogging med OIDC:** Tjenesten sender brukeren til Keycloak. Keycloak bruker Entra ID som Identity Provider og videresender brukeren dit for autentisering. Etter autentisering returnerer Entra ID brukeren til Keycloak. Keycloak behandler identiteten og fullfører innloggingen mot tjenesten.
 - **Provisjonering med SCIM:** Entra-provisjoneringen som er konfigurert på Enterprise Application, oppretter og oppdaterer brukere i Keycloak. Avhengig av endringen kan brukere også deaktiveres eller slettes. Nødvendige brukerattributter, blant annet ansattnummer eller studentnummer, overføres gjennom SCIM. Tildelte applikasjonsroller overføres både gjennom SCIM og ved innlogging.
 
 ```mermaid
