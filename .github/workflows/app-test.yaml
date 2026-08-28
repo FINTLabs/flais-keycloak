@@ -1,212 +1,224 @@
 name: App Test
 
 on:
-    workflow_dispatch:
-    pull_request:
-        branches:
-            - main
-        paths:
-            - keycloak/libs/**/src/**
-            - keycloak/**/package.json
-            - keycloak/**/package-lock.json
-            - keycloak/src/**
-            - keycloak/**/build.gradle.kts
-            - keycloak/**/settings.gradle.kts
-            - keycloak/gradle/**
-            - keycloak/Dockerfile
-            - keycloak/docker-compose.*.yaml
-            - keycloak/docker-compose.yaml
+  workflow_dispatch:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - keycloak/libs/**/src/**
+      - keycloak/**/package.json
+      - keycloak/**/package-lock.json
+      - keycloak/src/**
+      - keycloak/**/build.gradle.kts
+      - keycloak/**/settings.gradle.kts
+      - keycloak/gradle/**
+      - keycloak/Dockerfile
+      - keycloak/docker-compose.*.yaml
+      - keycloak/docker-compose.yaml
 
 concurrency:
-    group: app-test-${{ github.ref }}
-    cancel-in-progress: true
+  group: app-test-${{ github.ref }}
+  cancel-in-progress: true
 
 permissions:
-    contents: read
-    actions: read
-    checks: write
+  contents: read
+  actions: read
+  checks: write
 
 jobs:
-    playwright-version:
-        name: Read Playwright version
-        uses: ./.github/workflows/.extract-version.yaml
+  playwright-version:
+    name: Read Playwright version
+    uses: ./.github/workflows/.extract-version.yaml
+    with:
+      libs_versions_path: ./keycloak/gradle/libs.versions.toml
+      lib_name: "playwright"
+    secrets: inherit
+
+  check-theme-formatting:
+    name: Check frontend code formatting
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: keycloak/libs/flais-theme
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Setup Node
+        uses: actions/setup-node@v7
         with:
-            libs_versions_path: ./keycloak/gradle/libs.versions.toml
-            lib_name: "playwright"
-        secrets: inherit
+          node-version: 26
+          cache: npm
+          cache-dependency-path: keycloak/libs/flais-theme/package-lock.json
 
-    check-theme-formatting:
-        name: Check frontend code formatting
-        runs-on: ubuntu-latest
-        defaults:
-            run:
-                working-directory: keycloak/libs/flais-theme
-        steps:
-            - name: Checkout code
-              uses: actions/checkout@v7
+      - name: Install dependencies
+        run: npm ci
 
-            - name: Setup Node
-              uses: actions/setup-node@v7
-              with:
-                  node-version: 26
-                  cache: npm
-                  cache-dependency-path: keycloak/libs/flais-theme/package-lock.json
+      - name: Run oxfmt Check
+        run: npm run format:check
 
-            - name: Install dependencies
-              run: npm ci
+  check-formatting:
+    name: Check code formatting
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
 
-            - name: Run oxfmt Check
-              run: npm run format:check
+      - name: Setup Java
+        uses: actions/setup-java@v5.7.0
+        with:
+          distribution: temurin
+          java-version: 21
 
-    check-formatting:
-        name: Check code formatting
-        runs-on: ubuntu-latest
-        steps:
-            - name: Checkout code
-              uses: actions/checkout@v7
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v6.3.0
 
-            - name: Setup Java
-              uses: actions/setup-java@v5.7.0
-              with:
-                  distribution: temurin
-                  java-version: 21
+      - name: Run ktlint Check
+        working-directory: keycloak
+        run: ./gradlew ktlintCheck --stacktrace --configuration-cache
 
-            - name: Setup Gradle
-              uses: gradle/actions/setup-gradle@v6.3.0
+  unit-tests:
+    name: Run Unit Tests
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: keycloak
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
 
-            - name: Run ktlint Check
-              working-directory: keycloak
-              run: ./gradlew ktlintCheck --stacktrace --configuration-cache
+      - name: Setup Java
+        uses: actions/setup-java@v5.7.0
+        with:
+          distribution: temurin
+          java-version: 21
 
-    unit-tests:
-        name: Run Unit Tests
-        runs-on: ubuntu-latest
-        defaults:
-            run:
-                working-directory: keycloak
-        steps:
-            - name: Checkout code
-              uses: actions/checkout@v7
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v6.3.0
 
-            - name: Setup Java
-              uses: actions/setup-java@v5.7.0
-              with:
-                  distribution: temurin
-                  java-version: 21
+      - name: Run Unit Tests
+        run: ./gradlew test --stacktrace --configuration-cache
 
-            - name: Setup Gradle
-              uses: gradle/actions/setup-gradle@v6.3.0
+      - name: Generate Code Coverage Report
+        run: ./gradlew koverXmlReport --stacktrace
 
-            - name: Run Unit Tests
-              run: ./gradlew test --stacktrace --configuration-cache
+      - name: Code Coverage Report
+        id: jacoco
+        uses: madrapps/jacoco-report@v1.8.0
+        with:
+          paths: |
+            keycloak/libs/**/build/reports/kover/*.xml
+          token: ${{ secrets.GITHUB_TOKEN }}
+          title: Code Coverage Report
+          comment-type: "summary"
+          min-coverage-overall: 40
+          min-coverage-changed-files: 60
 
-            - name: Generate Code Coverage Report
-              run: ./gradlew koverXmlReport --stacktrace
+      - name: Unit Test Reports
+        uses: dorny/test-reporter@v3.0.0
+        if: always()
+        with:
+          name: Unit Test Reports
+          path: "keycloak/libs/**/build/test-results/test/*.xml"
+          reporter: java-junit
 
-            - name: Code Coverage Report
-              id: jacoco
-              uses: madrapps/jacoco-report@v1.8.0
-              with:
-                  paths: |
-                      keycloak/libs/**/build/reports/kover/*.xml
-                  token: ${{ secrets.GITHUB_TOKEN }}
-                  title: Code Coverage Report
-                  comment-type: "summary"
-                  min-coverage-overall: 40
-                  min-coverage-changed-files: 60
+  integration-tests:
+    name: Run Integration Tests
+    runs-on: >-
+      ${{
+        github.event_name == 'pull_request' &&
+        github.event.pull_request.user.login == 'dependabot[bot]' &&
+        'ubuntu-latest' ||
+        'ubuntu-latest-8-cores'
+      }}
+    defaults:
+      run:
+        working-directory: keycloak
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
 
-            - name: Unit Test Reports
-              uses: dorny/test-reporter@v3.0.0
-              if: always()
-              with:
-                  name: Unit Test Reports
-                  path: "keycloak/libs/**/build/test-results/test/*.xml"
-                  reporter: java-junit
+      - name: Setup Java
+        uses: actions/setup-java@v5.7.0
+        with:
+          distribution: temurin
+          java-version: 21
 
-    integration-tests:
-        name: Run Integration Tests
-        runs-on: ubuntu-latest-8-cores
-        defaults:
-            run:
-                working-directory: keycloak
-        steps:
-            - name: Checkout code
-              uses: actions/checkout@v7
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v6.3.0
 
-            - name: Setup Java
-              uses: actions/setup-java@v5.7.0
-              with:
-                  distribution: temurin
-                  java-version: 21
+      - name: Run Integration Tests
+        run: ./gradlew integrationTest --stacktrace --configuration-cache
 
-            - name: Setup Gradle
-              uses: gradle/actions/setup-gradle@v6.3.0
+      - name: Generate Code Coverage Report
+        run: ./gradlew koverIntegrationXmlReport --stacktrace
 
-            - name: Run Integration Tests
-              run: ./gradlew integrationTest --stacktrace --configuration-cache
+      - name: Code Coverage Report
+        id: jacoco
+        uses: madrapps/jacoco-report@v1.8.0
+        with:
+          paths: |
+            keycloak/build/reports/kover/*.xml
+          token: ${{ secrets.GITHUB_TOKEN }}
+          title: Code Coverage Report
+          comment-type: "summary"
+          min-coverage-overall: 40
+          min-coverage-changed-files: 60
 
-            - name: Generate Code Coverage Report
-              run: ./gradlew koverIntegrationXmlReport --stacktrace
+      - name: Integration Test Reports
+        uses: dorny/test-reporter@v3.0.0
+        if: always()
+        with:
+          name: Integration Test Reports
+          path: "keycloak/build/test-results/integrationTest/*.xml"
+          reporter: java-junit
 
-            - name: Code Coverage Report
-              id: jacoco
-              uses: madrapps/jacoco-report@v1.8.0
-              with:
-                  paths: |
-                      keycloak/build/reports/kover/*.xml
-                  token: ${{ secrets.GITHUB_TOKEN }}
-                  title: Code Coverage Report
-                  comment-type: "summary"
-                  min-coverage-overall: 40
-                  min-coverage-changed-files: 60
+  system-tests:
+    name: Run System Tests
+    runs-on: >-
+      ${{
+        github.event_name == 'pull_request' &&
+        github.event.pull_request.user.login == 'dependabot[bot]' &&
+        'ubuntu-latest' ||
+        'ubuntu-latest-8-cores'
+      }}
+    needs:
+      - playwright-version
+    defaults:
+      run:
+        working-directory: keycloak
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
 
-            - name: Integration Test Reports
-              uses: dorny/test-reporter@v3.0.0
-              if: always()
-              with:
-                  name: Integration Test Reports
-                  path: "keycloak/build/test-results/integrationTest/*.xml"
-                  reporter: java-junit
+      - name: Setup Java
+        uses: actions/setup-java@v5.7.0
+        with:
+          distribution: temurin
+          java-version: 21
 
-    system-tests:
-        name: Run System Tests
-        runs-on: ubuntu-latest-8-cores
-        needs:
-            - playwright-version
-        defaults:
-            run:
-                working-directory: keycloak
-        steps:
-            - name: Checkout code
-              uses: actions/checkout@v7
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v6.3.0
 
-            - name: Setup Java
-              uses: actions/setup-java@v5.7.0
-              with:
-                  distribution: temurin
-                  java-version: 21
+      - name: Install Playwright OS deps
+        run: npx -y playwright@${{ needs.playwright-version.outputs.version }} install-deps
 
-            - name: Setup Gradle
-              uses: gradle/actions/setup-gradle@v6.3.0
+      - name: Run System Tests
+        run: ./gradlew systemTest --stacktrace --configuration-cache
 
-            - name: Install Playwright OS deps
-              run: npx -y playwright@${{ needs.playwright-version.outputs.version }} install-deps
+      - name: System Test Reports
+        uses: dorny/test-reporter@v3.0.0
+        if: always()
+        with:
+          name: System Test Reports
+          path: "keycloak/build/test-results/systemTest/*.xml"
+          reporter: java-junit
 
-            - name: Run System Tests
-              run: ./gradlew systemTest --stacktrace --configuration-cache
-
-            - name: System Test Reports
-              uses: dorny/test-reporter@v3.0.0
-              if: always()
-              with:
-                  name: System Test Reports
-                  path: "keycloak/build/test-results/systemTest/*.xml"
-                  reporter: java-junit
-
-            - name: Upload Playwright artifacts
-              uses: actions/upload-artifact@v7
-              if: always()
-              with:
-                  name: playwright-artifacts
-                  path: "keycloak/artifacts/playwright/**"
-                  if-no-files-found: ignore
+      - name: Upload Playwright artifacts
+        uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: playwright-artifacts
+          path: "keycloak/artifacts/playwright/**"
+          if-no-files-found: ignore
