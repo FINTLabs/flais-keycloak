@@ -286,6 +286,68 @@ class ScimUserEndpointTest {
     }
 
     @Test
+    fun `createUser links only idp matching non Telemark userPrincipalName domain`() {
+        val response =
+            createUserWithLinking(
+                userPrincipalName = "alice.basic@rogaland.no",
+                idps =
+                    listOf(
+                        identityProvider("telemark-idp", "telemark.no"),
+                        identityProvider("rogaland-idp", "rogaland.no"),
+                        identityProvider("novari-idp", "novari.no"),
+                    ),
+            )
+
+        assertEquals(Response.Status.CREATED.statusCode, response.status)
+
+        verify(exactly = 1) {
+            userProvider.addFederatedIdentity(
+                realm,
+                user,
+                match { it.identityProvider == "rogaland-idp" && it.userId == extId },
+            )
+        }
+        verify(exactly = 0) {
+            userProvider.addFederatedIdentity(
+                realm,
+                user,
+                match { it.identityProvider == "telemark-idp" || it.identityProvider == "novari-idp" },
+            )
+        }
+    }
+
+    @Test
+    fun `createUser links idp using Microsoft external userPrincipalName domain`() {
+        val response =
+            createUserWithLinking(
+                userPrincipalName = "john.doe_example.com#EXT#@tenant.onmicrosoft.com",
+                idps =
+                    listOf(
+                        identityProvider("source-domain-idp", "example.com"),
+                        identityProvider("tenant-idp", "*.onmicrosoft.com"),
+                    ),
+                email = "john.doe@example.com",
+            )
+
+        assertEquals(Response.Status.CREATED.statusCode, response.status)
+
+        verify(exactly = 1) {
+            userProvider.addFederatedIdentity(
+                realm,
+                user,
+                match { it.identityProvider == "tenant-idp" && it.userId == extId },
+            )
+        }
+        verify(exactly = 0) {
+            userProvider.addFederatedIdentity(
+                realm,
+                user,
+                match { it.identityProvider == "source-domain-idp" },
+            )
+        }
+    }
+
+    @Test
     fun `createUser links any domain idp for valid userPrincipalName domain`() {
         val response =
             createUserWithLinking(

@@ -37,10 +37,25 @@ class UserPrincipalNameDomainMatcherTest {
     }
 
     @Test
+    fun `matches exact configured domains outside Telemark fixtures`() {
+        assertTrue(UserPrincipalNameDomainMatcher.from("alice.basic@rogaland.no")!!.matches("rogaland.no"))
+        assertTrue(UserPrincipalNameDomainMatcher.from("alice.basic@novari.no")!!.matches("novari.no"))
+    }
+
+    @Test
     fun `matches wildcard configured domain for base and nested domains`() {
         assertTrue(UserPrincipalNameDomainMatcher.from("alice.basic@test.com")!!.matches("*.test.com"))
         assertTrue(UserPrincipalNameDomainMatcher.from("alice.basic@whatever.test.com")!!.matches("*.test.com"))
         assertTrue(UserPrincipalNameDomainMatcher.from("alice.basic@a.b.test.com")!!.matches("*.test.com"))
+    }
+
+    @Test
+    fun `matches domains when userPrincipalName local part contains Microsoft external user markers`() {
+        val externalTenantUser = UserPrincipalNameDomainMatcher.from("john.doe_example.com#EXT#@tenant.onmicrosoft.com")!!
+
+        assertTrue(externalTenantUser.matches("tenant.onmicrosoft.com"))
+        assertTrue(externalTenantUser.matches("*.onmicrosoft.com"))
+        assertTrue(UserPrincipalNameDomainMatcher.from("external_user#EXT#@a.b.test.com")!!.matches("*.test.com"))
     }
 
     @Test
