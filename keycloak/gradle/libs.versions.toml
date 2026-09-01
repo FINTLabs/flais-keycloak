@@ -27,6 +27,7 @@ playwright = "1.62.0"
 
 scim-server-sdk = "5.0.0"
 nimbusds-jwt = "10.9.1"
+guava = "33.5.0-jre"
 
 [libraries]
 keycloak-spi-bom = { module = "org.keycloak.bom:keycloak-spi-bom", version.ref = "keycloak" }
@@ -49,6 +50,7 @@ keycloak-admin-client = { module = "org.keycloak:keycloak-admin-client", version
 
 scim-server-sdk = { module = "com.unboundid.product.scim2:scim2-sdk-server", version.ref = "scim-server-sdk" }
 nimbusds-jwt = { module = "com.nimbusds:nimbus-jose-jwt", version.ref = "nimbusds-jwt" }
+guava = { module = "com.google.guava:guava", version.ref = "guava" }
 mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
 awaitility-kotlin = { module = "org.awaitility:awaitility-kotlin", version.ref = "awaitility" }
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinx-serialization-json" }

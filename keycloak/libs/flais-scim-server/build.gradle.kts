@@ -35,6 +35,7 @@ dependencies {
     compileOnly(libs.keycloak.services)
     compileOnly(libs.keycloak.server.spi)
     compileOnly(libs.keycloak.server.spi.priv)
+    compileOnly(libs.guava)
 
     testImplementation(platform(libs.junit.bom))
     testImplementation(libs.junit.jupiter)
