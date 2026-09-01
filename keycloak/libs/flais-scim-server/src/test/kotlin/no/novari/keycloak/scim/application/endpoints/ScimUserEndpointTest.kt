@@ -115,6 +115,11 @@ class ScimUserEndpointTest {
                 userName = "alice.basic@telemark.no"
                 active = true
                 externalId = extId
+                setExtension(
+                    FintUserExtension().apply {
+                        this.userPrincipalName = userPrincipalName
+                    },
+                )
             }
 
         templateUser(user)
