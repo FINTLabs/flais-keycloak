@@ -13,7 +13,7 @@ protobuf = "3.25.9"
 plexus = "4.0.3"
 log4j = "2.26.1"
 logback = "1.6.3"
-open-telemetry = "1.63.0"
+open-telemetry = "1.65.0"
 jackson = "2.21.5"
 
 junit = "6.1.3"
