@@ -36,6 +36,7 @@ import no.novari.keycloak.scim.utils.EntraScimTransformer
 import no.novari.keycloak.scim.utils.ResourcePath
 import no.novari.keycloak.scim.utils.ResourceTypeDefinitionUtil.createResourceTypeDefinition
 import no.novari.keycloak.scim.utils.ScimRoles
+import no.novari.keycloak.scim.utils.UserPrincipalNameDomainMatcher
 import org.jboss.logging.Logger
 import org.keycloak.models.FederatedIdentityModel
 import org.keycloak.models.UserModel
@@ -382,10 +383,8 @@ class ScimUserEndpoint(
     }
 
     private fun updateUserIdpLinking(user: UserModel) {
-        val emailDomain =
-            user.email
-                ?.substringAfter('@', missingDelimiterValue = "")
-                ?.takeIf { it.isNotEmpty() }
+        val userPrincipalNameMatcher =
+            UserPrincipalNameDomainMatcher.from(user.getFirstAttribute("userPrincipalName"))
                 ?: return
         val externalId = user.getExternalId() ?: return
 
@@ -395,7 +394,7 @@ class ScimUserEndpoint(
             scimContext.orgProvider
                 .getIdentityProviders(scimContext.organization)
                 .filter { idp ->
-                    idp.config["kc.org.domain"]?.equals(emailDomain, ignoreCase = true) ?: false
+                    userPrincipalNameMatcher.matches(idp.config["kc.org.domain"])
                 }.map { it.alias }
                 .toList()
 

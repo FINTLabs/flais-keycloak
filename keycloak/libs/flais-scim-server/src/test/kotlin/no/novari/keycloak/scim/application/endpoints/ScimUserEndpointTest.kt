@@ -35,6 +35,7 @@ import org.keycloak.models.UserModel
 import org.keycloak.models.UserProvider
 import org.keycloak.organization.OrganizationProvider
 import java.net.URI
+import java.util.stream.Stream
 
 @ExtendWith(MockKExtension::class)
 class ScimUserEndpointTest {
@@ -92,6 +93,47 @@ class ScimUserEndpointTest {
             ).stream()
         }
         every { user.getFirstAttribute("externalId") } returns extId
+        every { user.getFirstAttribute("userPrincipalName") } returns "alice.basic@telemark.no"
+    }
+
+    private fun identityProvider(
+        alias: String,
+        domain: String,
+    ): IdentityProviderModel =
+        mockk {
+            every { this@mockk.alias } returns alias
+            every { config } returns mapOf("kc.org.domain" to domain)
+        }
+
+    private fun createUserWithLinking(
+        userPrincipalName: String?,
+        idps: List<IdentityProviderModel>,
+        email: String? = "alice.basic@telemark.no",
+    ): Response {
+        val scimUser =
+            UserResource().apply {
+                userName = "alice.basic@telemark.no"
+                active = true
+                externalId = extId
+                setExtension(
+                    FintUserExtension().apply {
+                        this.userPrincipalName = userPrincipalName
+                    },
+                )
+            }
+
+        templateUser(user)
+        every { user.email } returns email
+        every { user.getFirstAttribute("userPrincipalName") } returns userPrincipalName
+        every { userProvider.getUserById(realm, scimUser.userName) } returns null
+        every { userProvider.addUser(realm, scimUser.userName) } returns user
+        every { realm.getRole(ScimRoles.SCIM_MANAGED_ROLE) } returns scimRole
+        every { orgProvider.addManagedMember(scimContext.organization, user) } returns true
+        every { orgProvider.getIdentityProviders(scimContext.organization) } answers { idps.stream() }
+        every { userProvider.getFederatedIdentitiesStream(realm, user) } returns Stream.empty()
+        every { userProvider.getFederatedIdentity(realm, user, any()) } returns null
+
+        return endpoint.createUser(usersUriInfo, scimUser)
     }
 
     @Test
@@ -192,7 +234,7 @@ class ScimUserEndpointTest {
     }
 
     @Test
-    fun `createUser does not crash when user email is null and skips idp linking`() {
+    fun `createUser does not crash when userPrincipalName is null and skips idp linking`() {
         val scimUser =
             UserResource().apply {
                 userName = "alice.basic@telemark.no"
@@ -201,7 +243,7 @@ class ScimUserEndpointTest {
             }
 
         templateUser(user)
-        every { user.email } returns null
+        every { user.getFirstAttribute("userPrincipalName") } returns null
 
         every { userProvider.getUserById(realm, scimUser.userName) } returns null
         every { userProvider.addUser(realm, scimUser.userName) } returns user
@@ -215,6 +257,181 @@ class ScimUserEndpointTest {
         verify(exactly = 0) { orgProvider.getIdentityProviders(any()) }
         verify(exactly = 0) { userProvider.getFederatedIdentity(any(), any(), any()) }
         verify(exactly = 0) { userProvider.addFederatedIdentity(any(), any(), any()) }
+    }
+
+    @Test
+    fun `createUser links idp using userPrincipalName domain instead of email domain`() {
+        val response =
+            createUserWithLinking(
+                userPrincipalName = "alice.basic@telemark.no",
+                idps =
+                    listOf(
+                        identityProvider("email-domain-idp", "wrong.no"),
+                        identityProvider("upn-domain-idp", "TELEMARK.NO"),
+                    ),
+                email = "alice.basic@wrong.no",
+            )
+
+        assertEquals(Response.Status.CREATED.statusCode, response.status)
+
+        verify(exactly = 1) {
+            userProvider.addFederatedIdentity(
+                realm,
+                user,
+                match { it.identityProvider == "upn-domain-idp" && it.userId == extId },
+            )
+        }
+        verify(exactly = 0) {
+            userProvider.addFederatedIdentity(
+                realm,
+                user,
+                match { it.identityProvider == "email-domain-idp" },
+            )
+        }
+    }
+
+    @Test
+    fun `createUser links only idp matching non Telemark userPrincipalName domain`() {
+        val response =
+            createUserWithLinking(
+                userPrincipalName = "alice.basic@rogaland.no",
+                idps =
+                    listOf(
+                        identityProvider("telemark-idp", "telemark.no"),
+                        identityProvider("rogaland-idp", "rogaland.no"),
+                        identityProvider("novari-idp", "novari.no"),
+                    ),
+            )
+
+        assertEquals(Response.Status.CREATED.statusCode, response.status)
+
+        verify(exactly = 1) {
+            userProvider.addFederatedIdentity(
+                realm,
+                user,
+                match { it.identityProvider == "rogaland-idp" && it.userId == extId },
+            )
+        }
+        verify(exactly = 0) {
+            userProvider.addFederatedIdentity(
+                realm,
+                user,
+                match { it.identityProvider == "telemark-idp" || it.identityProvider == "novari-idp" },
+            )
+        }
+    }
+
+    @Test
+    fun `createUser links idp using Microsoft external userPrincipalName domain`() {
+        val response =
+            createUserWithLinking(
+                userPrincipalName = "john.doe_example.com#EXT#@tenant.onmicrosoft.com",
+                idps =
+                    listOf(
+                        identityProvider("source-domain-idp", "example.com"),
+                        identityProvider("tenant-idp", "*.onmicrosoft.com"),
+                    ),
+                email = "john.doe@example.com",
+            )
+
+        assertEquals(Response.Status.CREATED.statusCode, response.status)
+
+        verify(exactly = 1) {
+            userProvider.addFederatedIdentity(
+                realm,
+                user,
+                match { it.identityProvider == "tenant-idp" && it.userId == extId },
+            )
+        }
+        verify(exactly = 0) {
+            userProvider.addFederatedIdentity(
+                realm,
+                user,
+                match { it.identityProvider == "source-domain-idp" },
+            )
+        }
+    }
+
+    @Test
+    fun `createUser links any domain idp for valid userPrincipalName domain`() {
+        val response =
+            createUserWithLinking(
+                userPrincipalName = "alice.basic@whatever.no",
+                idps = listOf(identityProvider("any-idp", " aNy ")),
+            )
+
+        assertEquals(Response.Status.CREATED.statusCode, response.status)
+
+        verify(exactly = 1) {
+            userProvider.addFederatedIdentity(
+                realm,
+                user,
+                match { it.identityProvider == "any-idp" && it.userId == extId },
+            )
+        }
+    }
+
+    @Test
+    fun `createUser links wildcard idp for base and nested userPrincipalName domains`() {
+        listOf(
+            "alice.basic@test.com",
+            "alice.basic@whatever.test.com",
+            "alice.basic@a.b.test.com",
+        ).forEach { userPrincipalName ->
+            createUserWithLinking(
+                userPrincipalName = userPrincipalName,
+                idps = listOf(identityProvider("wildcard-idp-$userPrincipalName", "*.TEST.COM")),
+            )
+        }
+
+        verify(exactly = 3) {
+            userProvider.addFederatedIdentity(
+                realm,
+                user,
+                match { it.identityProvider.startsWith("wildcard-idp-") },
+            )
+        }
+    }
+
+    @Test
+    fun `createUser does not link non matching exact or wildcard idp domains`() {
+        val response =
+            createUserWithLinking(
+                userPrincipalName = "alice.basic@other.com",
+                idps =
+                    listOf(
+                        identityProvider("exact-idp", "test.com"),
+                        identityProvider("wildcard-idp", "*.test.com"),
+                    ),
+            )
+
+        assertEquals(Response.Status.CREATED.statusCode, response.status)
+
+        verify(exactly = 0) {
+            userProvider.addFederatedIdentity(realm, user, any())
+        }
+    }
+
+    @Test
+    fun `createUser ignores malformed userPrincipalName and idp domain configs without crashing`() {
+        val invalidUpnResponse =
+            createUserWithLinking(
+                userPrincipalName = "alice.basic@invalid domain",
+                idps = listOf(identityProvider("any-idp", "ANY")),
+            )
+
+        val invalidConfigResponse =
+            createUserWithLinking(
+                userPrincipalName = "alice.basic@test.com",
+                idps = listOf(identityProvider("invalid-domain-idp", "invalid domain")),
+            )
+
+        assertEquals(Response.Status.CREATED.statusCode, invalidUpnResponse.status)
+        assertEquals(Response.Status.CREATED.statusCode, invalidConfigResponse.status)
+
+        verify(exactly = 0) {
+            userProvider.addFederatedIdentity(realm, user, any())
+        }
     }
 
     @Test
