@@ -24,6 +24,9 @@ dependencies {
     implementation(platform(libs.open.telemetry.bom)) {
         because("Override Keycloak Services Open Telemetry version to avoid CVEs in the bundled version")
     }
+    implementation(platform(libs.jackson.bom)) {
+        because("Override Scim Server SDK Jackson version to avoid CVEs in the bundled version")
+    }
 
     implementation(libs.scim.server.sdk)
     implementation(libs.nimbusds.jwt)
