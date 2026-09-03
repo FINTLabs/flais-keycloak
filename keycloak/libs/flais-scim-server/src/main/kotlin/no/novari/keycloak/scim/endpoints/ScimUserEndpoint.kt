@@ -2,7 +2,10 @@ package no.novari.keycloak.scim.endpoints
 
 import com.fasterxml.jackson.databind.node.ObjectNode
 import com.unboundid.scim2.common.annotations.Attribute
+import com.unboundid.scim2.common.exceptions.BadRequestException
+import com.unboundid.scim2.common.messages.ListResponse
 import com.unboundid.scim2.common.messages.PatchRequest
+import com.unboundid.scim2.common.messages.SortOrder
 import com.unboundid.scim2.common.types.Email
 import com.unboundid.scim2.common.types.EnterpriseUserExtension
 import com.unboundid.scim2.common.types.Role
@@ -31,6 +34,11 @@ import jakarta.ws.rs.core.UriInfo
 import no.novari.keycloak.scim.context.ScimContext
 import no.novari.keycloak.scim.resources.SearchHandler
 import no.novari.keycloak.scim.resources.UserResource
+import no.novari.keycloak.scim.store.ScimCursor
+import no.novari.keycloak.scim.store.ScimPage
+import no.novari.keycloak.scim.store.ScimUserSearchCriteria
+import no.novari.keycloak.scim.store.ScimUserSearchResult
+import no.novari.keycloak.scim.store.UnsupportedScimFilterException
 import no.novari.keycloak.scim.types.FintUserExtension
 import no.novari.keycloak.scim.utils.EntraScimTransformer
 import no.novari.keycloak.scim.utils.ResourcePath
@@ -39,6 +47,7 @@ import no.novari.keycloak.scim.utils.ScimRoles
 import no.novari.keycloak.scim.utils.UserPrincipalNameDomainMatcher
 import org.jboss.logging.Logger
 import org.keycloak.models.FederatedIdentityModel
+import org.keycloak.models.RoleModel
 import org.keycloak.models.UserModel
 import org.keycloak.util.JsonSerialization
 import kotlin.streams.asSequence
@@ -72,6 +81,116 @@ class ScimUserEndpoint(
             requireNotNull(scimContext.realm.getRole(ScimRoles.SCIM_MANAGED_ROLE)) {
                 "SCIM managed role not found"
             }
+
+        val searchResult =
+            try {
+                nativeSearch(searchHandler, scimRole)
+            } catch (e: UnsupportedScimFilterException) {
+                logger.debugf(
+                    "SCIM user search cannot be pushed to the database, evaluating in memory. org=%s reason=%s",
+                    scimContext.organization.alias,
+                    e.message,
+                )
+                inMemorySearch(searchHandler, scimRole)
+            }
+
+        logger.debugf(
+            "SCIM user search completed. org=%s totalResults=%d returned=%d",
+            scimContext.organization.alias,
+            searchResult.totalResults,
+            searchResult.resources.size,
+        )
+        return Response.ok(searchResult).build()
+    }
+
+    /**
+     * Database-backed search. Produces an exact `totalResults` and fetches only the requested page,
+     * instead of materializing every organization member.
+     *
+     * @throws UnsupportedScimFilterException when the filter or sort cannot be expressed in SQL.
+     */
+    private fun nativeSearch(
+        searchHandler: SearchHandler<UserResource>,
+        scimRole: RoleModel,
+    ): ListResponse<UserResource> {
+        val groupId = scimContext.orgProvider.getOrganizationGroup(scimContext.organization).id
+        val queryHash = ScimCursor.queryHash(searchHandler.filter, groupId)
+        val page = resolvePage(searchHandler, queryHash)
+        val criteria =
+            ScimUserSearchCriteria(
+                organizationGroupId = groupId,
+                scimRoleId = scimRole.id,
+                page = page,
+                filter = searchHandler.filter,
+                sortBy = searchHandler.sortBy,
+                sortAscending = searchHandler.sortOrder != SortOrder.DESCENDING,
+            )
+
+        return when (val result = scimContext.userSearch.search(criteria)) {
+            is ScimUserSearchResult.Page -> {
+                val nextCursor =
+                    if (page is ScimPage.Keyset && result.hasMore && result.users.isNotEmpty()) {
+                        ScimCursor(queryHash, result.users.last().id).encode()
+                    } else {
+                        null
+                    }
+
+                searchHandler.createPagedSearchResult(
+                    result.users.asSequence().map { translateUser(it) },
+                    result.totalResults,
+                    nextCursor,
+                    cursorPagination = page is ScimPage.Keyset,
+                )
+            }
+
+            is ScimUserSearchResult.Unsupported -> {
+                if (page is ScimPage.Keyset) {
+                    throw BadRequestException.invalidValue(
+                        "cursor pagination cannot be used for this query: ${result.reason}",
+                    )
+                }
+                throw UnsupportedScimFilterException(result.reason)
+            }
+        }
+    }
+
+    private fun resolvePage(
+        searchHandler: SearchHandler<UserResource>,
+        queryHash: String,
+    ): ScimPage {
+        if (!searchHandler.cursorRequested) {
+            return ScimPage.Index(
+                firstResult = (searchHandler.startIndex ?: 1).coerceAtLeast(1) - 1,
+                maxResults = searchHandler.count,
+            )
+        }
+
+        if (searchHandler.startIndex != null) {
+            throw BadRequestException.invalidValue("cursor cannot be combined with startIndex")
+        }
+        if (searchHandler.sortBy != null) {
+            throw BadRequestException.invalidValue("cursor cannot be combined with sortBy")
+        }
+
+        val after =
+            searchHandler.cursor
+                ?.takeIf { it.isNotBlank() }
+                ?.let { cursor ->
+                    ScimCursor.decode(cursor, queryHash)?.lastId
+                        ?: throw BadRequestException.invalidValue("cursor is malformed or does not match this query")
+                }
+
+        return ScimPage.Keyset(after, searchHandler.count)
+    }
+
+    /**
+     * Reference implementation for anything the database cannot express. Correct but loads every
+     * organization member, so it should stay off the common paths.
+     */
+    private fun inMemorySearch(
+        searchHandler: SearchHandler<UserResource>,
+        scimRole: RoleModel,
+    ): ListResponse<UserResource> {
         val userResources =
             scimContext.orgProvider
                 .getMembersStream(
@@ -83,9 +202,7 @@ class ScimUserEndpoint(
                 ).filter { it.hasRole(scimRole) }
                 .map { translateUser(it) }
                 .asSequence()
-        val searchResult = searchHandler.createSearchResult(userResources)
-        logger.debugf("SCIM user search completed. org=%s", scimContext.organization.alias)
-        return Response.ok(searchResult).build()
+        return searchHandler.createSearchResult(userResources)
     }
 
     @GET
