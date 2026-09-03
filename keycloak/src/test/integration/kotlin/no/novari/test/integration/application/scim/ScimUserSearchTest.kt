@@ -74,7 +74,7 @@ class ScimUserSearchTest {
                 active = false,
                 emails = listOf(ScimUser.Email(bob, primary = true)),
                 roles = listOf(ScimUser.Role("read", "read", "WindowsAzureActiveDirectoryRole", false)),
-                fintUserExtension = ScimUser.FintUserExtension("Bob", "Search", "E2", null, bob),
+                fintUserExtension = ScimUser.FintUserExtension("Bob", "Search", "", null, bob),
             ),
             ScimUser(
                 schemas = listOf(CORE_SCHEMA),
@@ -239,6 +239,7 @@ class ScimUserSearchTest {
             // that has no email. Getting this wrong in SQL silently drops rows.
             "not (emails.value eq \"alice.search@telemark.no\")       | 2",
             "not (emails.value co \"search\")                         | 1",
+            "emails.value ne \"alice.search@telemark.no\"             | 2",
             // Negation over a multivalued attribute means "has no such value".
             "not (roles.value eq \"read\")                            | 1",
             // Inequality over a multivalued attribute means "has some other value".
@@ -351,6 +352,18 @@ class ScimUserSearchTest {
         val firstDescending =
             listUsers(env, kcConfig, sortBy = "userName", sortOrder = "descending", startIndex = 1, count = 1)
         assertEquals(listOf(carol), firstDescending.userNames())
+    }
+
+    @Test
+    fun `sorting nullable attributes follows the SCIM comparator`(
+        env: KcEnvironment,
+        kcConfig: KcConfig,
+    ) {
+        val ascending = listUsers(env, kcConfig, sortBy = "emails.value", sortOrder = "ascending")
+        assertEquals(listOf(alice, bob, carol), ascending.userNames())
+
+        val descending = listUsers(env, kcConfig, sortBy = "emails.value", sortOrder = "descending")
+        assertEquals(listOf(carol, bob, alice), descending.userNames())
     }
 
     @Test

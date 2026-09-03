@@ -103,6 +103,7 @@ class ScimFilterSemanticsTest {
             // SQL translation would return UNKNOWN here and silently drop her.
             "not (emails.value eq \"alice.search@telemark.no\")       | 3",
             "not (emails.value co \"search\")                         | 1",
+            "emails.value ne \"alice.search@telemark.no\"             | 3",
             // Only Carol has no `read` role.
             "not (roles.value eq \"read\")                            | 2",
             // Only Alice holds a role other than `read`; Carol holds none at all.

@@ -45,10 +45,9 @@ internal class UnsupportedScimFilterException(
  * ### Null handling
  *
  * SQL uses three-valued logic: `NOT (email = 'x')` is UNKNOWN when `email` is NULL, which drops the
- * row. The SCIM evaluator instead treats a missing attribute as a failed comparison, so `not(...)`
- * over it yields *true*. Every leaf predicate here is therefore guarded with `IS NOT NULL`, because
- * `FALSE AND UNKNOWN` is `FALSE` rather than UNKNOWN. That keeps every predicate strictly two-valued
- * and lets [visit] for [NotFilter] be a plain boolean negation.
+ * row. The SCIM evaluator instead treats equality-style predicates over missing attributes as
+ * ordinary booleans: `eq` is false, `ne` is true, and `not(...)` then negates that boolean. Every
+ * nullable leaf predicate here must therefore return TRUE or FALSE explicitly rather than UNKNOWN.
  *
  * ### User attributes
  *
@@ -136,11 +135,7 @@ internal class ScimFilterCompiler(
                 attributePresent(field.name)
 
             is UserField.Column ->
-                if (field.kind == UserField.Kind.BOOLEAN) {
-                    nullSafe(field.property) { builder.conjunction() }
-                } else {
-                    nullSafe(field.property) { column -> builder.notEqual(column, "") }
-                }
+                presentColumn(field)
         }
 
     /**
@@ -190,15 +185,28 @@ internal class ScimFilterCompiler(
             val wanted = value.booleanValue()
             return when (op) {
                 Op.EQ -> nullSafe(field.property) { column -> builder.equal(column, wanted) }
-                Op.NE -> nullSafe(field.property) { column -> builder.notEqual(column, wanted) }
+                Op.NE -> nullableColumn(field.property) { column -> builder.notEqual(column, wanted) }
                 else -> unsupported("operator $op is not defined for a boolean attribute")
             }
         }
 
         val needle = text(value)
-        return nullSafe(field.property) { column ->
+        val predicate = { column: Expression<Any> ->
             stringPredicate(column.`as`(String::class.java), field.kind, op, needle)
         }
+        return if (op == Op.NE) {
+            nullableColumn(field.property, predicate)
+        } else {
+            nullSafe(field.property, predicate)
+        }
+    }
+
+    private fun presentColumn(field: UserField.Column): Predicate {
+        if (field.kind == UserField.Kind.BOOLEAN) {
+            return nullSafe(field.property) { builder.conjunction() }
+        }
+
+        return nullSafe(field.property) { column -> builder.notEqual(column, "") }
     }
 
     private fun stringPredicate(
@@ -257,7 +265,7 @@ internal class ScimFilterCompiler(
             builder.equal(attribute.get<Any>("user"), user),
             builder.equal(attribute.get<String>("name"), name),
             builder.or(
-                builder.and(builder.isNotNull(stored), builder.notEqual(stored, "")),
+                builder.isNotNull(stored),
                 builder.isNotNull(longStored),
             ),
         )
@@ -275,6 +283,18 @@ internal class ScimFilterCompiler(
     ): Predicate {
         val column = user.get<Any>(property)
         return builder.and(builder.isNotNull(column), predicate(column))
+    }
+
+    /**
+     * Guards nullable `ne` comparisons so missing values compare as not equal, matching the SDK
+     * evaluator's treatment of absent attributes.
+     */
+    private fun nullableColumn(
+        property: String,
+        predicate: (Expression<Any>) -> Predicate,
+    ): Predicate {
+        val column = user.get<Any>(property)
+        return builder.or(builder.isNull(column), predicate(column))
     }
 
     private fun constant(value: Boolean): Predicate = if (value) builder.conjunction() else builder.disjunction()

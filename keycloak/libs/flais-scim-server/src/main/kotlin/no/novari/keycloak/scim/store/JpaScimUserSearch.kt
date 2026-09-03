@@ -2,6 +2,7 @@ package no.novari.keycloak.scim.store
 
 import jakarta.persistence.criteria.CriteriaBuilder
 import jakarta.persistence.criteria.CriteriaQuery
+import jakarta.persistence.criteria.Expression
 import jakarta.persistence.criteria.Join
 import jakarta.persistence.criteria.Order
 import jakarta.persistence.criteria.Predicate
@@ -159,13 +160,29 @@ internal class JpaScimUserSearch(
             } else {
                 column
             }
+        val nullRank = nullSortRank(builder, column, sort.ascending)
 
         // Id is appended as a tiebreaker so paging stays stable when the sort key repeats.
         return listOf(
+            builder.asc(nullRank),
             if (sort.ascending) builder.asc(expression) else builder.desc(expression),
             builder.asc(id),
         )
     }
+
+    /**
+     * Match the SCIM SDK comparator: nulls sort last ascending and first descending.
+     */
+    private fun nullSortRank(
+        builder: CriteriaBuilder,
+        column: Expression<*>,
+        ascending: Boolean,
+    ): Expression<Int> =
+        if (ascending) {
+            builder.selectCase<Int>().`when`(builder.isNull(column), 1).otherwise(0)
+        } else {
+            builder.selectCase<Int>().`when`(builder.isNull(column), 0).otherwise(1)
+        }
 
     private fun restrictions(
         builder: CriteriaBuilder,
