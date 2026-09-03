@@ -3,6 +3,8 @@ package no.novari.keycloak.scim.context
 import jakarta.ws.rs.NotFoundException
 import no.novari.keycloak.scim.config.OrganizationScimConfig
 import no.novari.keycloak.scim.config.ScimConfig
+import no.novari.keycloak.scim.store.JpaScimUserSearch
+import no.novari.keycloak.scim.store.ScimUserSearch
 import org.jboss.logging.Logger
 import org.keycloak.models.KeycloakSession
 import org.keycloak.models.OrganizationModel
@@ -15,6 +17,7 @@ class ScimContext internal constructor(
     val realm: RealmModel,
     val orgProvider: OrganizationProvider,
     val organization: OrganizationModel,
+    internal val userSearch: ScimUserSearch,
 )
 
 private val logger: Logger = Logger.getLogger(ScimContext::class.java)
@@ -51,5 +54,6 @@ fun createScimContext(
         kcContext.realm,
         orgProvider,
         organization,
+        JpaScimUserSearch(session, kcContext.realm),
     )
 }

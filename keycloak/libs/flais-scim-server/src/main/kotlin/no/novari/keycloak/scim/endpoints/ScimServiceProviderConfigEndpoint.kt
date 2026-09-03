@@ -6,6 +6,7 @@ import com.unboundid.scim2.common.types.BulkConfig
 import com.unboundid.scim2.common.types.ChangePasswordConfig
 import com.unboundid.scim2.common.types.ETagConfig
 import com.unboundid.scim2.common.types.FilterConfig
+import com.unboundid.scim2.common.types.PaginationConfig
 import com.unboundid.scim2.common.types.PatchConfig
 import com.unboundid.scim2.common.types.ServiceProviderConfigResource
 import com.unboundid.scim2.common.types.SortConfig
@@ -48,6 +49,7 @@ class ScimServiceProviderConfigEndpoint {
             ChangePasswordConfig(false),
             SortConfig(true),
             ETagConfig(true),
+            PaginationConfig(true, true, "index", null, null, null),
             listOf(
                 AuthenticationScheme(
                     "OAuth Bearer Token",

@@ -45,6 +45,7 @@ keycloak-core = { module = "org.keycloak:keycloak-core", version.ref = "keycloak
 keycloak-services = { module = "org.keycloak:keycloak-services", version.ref = "keycloak" }
 keycloak-server-spi = { module = "org.keycloak:keycloak-server-spi", version.ref = "keycloak" }
 keycloak-server-spi-priv = { module = "org.keycloak:keycloak-server-spi-private", version.ref = "keycloak" }
+keycloak-model-jpa = { module = "org.keycloak:keycloak-model-jpa", version.ref = "keycloak" }
 
 keycloak-admin-client = { module = "org.keycloak:keycloak-admin-client", version.ref = "kc-admin" }
 

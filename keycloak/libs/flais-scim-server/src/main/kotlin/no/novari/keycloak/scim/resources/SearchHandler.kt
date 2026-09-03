@@ -26,11 +26,23 @@ class SearchHandler<T : ScimResource> {
     @Nullable
     val count: Int?
 
+    val cursorRequested: Boolean
+
+    @Nullable
+    val cursor: String?
+
     @NotNull
     val filterEvaluator: SchemaAwareFilterEvaluator
 
     @Nullable
     val resourceComparator: ResourceComparator<ScimResource>?
+
+    /** The parsed `sortBy` path, exposed so callers can try to push sorting into the database. */
+    @Nullable
+    val sortBy: Path?
+
+    @NotNull
+    val sortOrder: SortOrder
 
     @NotNull
     val responsePreparer: ResourcePreparer<ScimResource>
@@ -62,6 +74,9 @@ class SearchHandler<T : ScimResource> {
                 ?.toIntOrNull()
                 ?.coerceAtLeast(0)
 
+        cursorRequested = qp.containsKey(ApiConstants.QUERY_PARAMETER_PAGE_CURSOR)
+        cursor = qp.getFirst(ApiConstants.QUERY_PARAMETER_PAGE_CURSOR)
+
         val sortByString = qp.getFirst(ApiConstants.QUERY_PARAMETER_SORT_BY)
         val sortOrderString = qp.getFirst(ApiConstants.QUERY_PARAMETER_SORT_ORDER)
 
@@ -78,6 +93,9 @@ class SearchHandler<T : ScimResource> {
             sortOrderString
                 ?.let(SortOrder::fromName)
                 ?: SortOrder.ASCENDING
+
+        this.sortBy = sortBy
+        this.sortOrder = sortOrder
 
         resourceComparator =
             sortBy?.let {
@@ -132,5 +150,47 @@ class SearchHandler<T : ScimResource> {
         responsePreparer.setResourceTypeAndLocation(resource)
         val currentFilter = filter ?: return true
         return currentFilter.visit(filterEvaluator, resource.objectNode)
+    }
+
+    /**
+     * Builds a [ListResponse] from resources that have **already** been filtered, sorted and paged
+     * by the caller — typically by a database query.
+     *
+     * Unlike [createSearchResult] this applies no filter, no sort and no sub-listing; it only runs
+     * the response preparer over each resource. [totalResults] is the size of the full matching set,
+     * not of [resources].
+     *
+     * Only use this when [filter] and [resourceComparator] could not have changed the result,
+     * otherwise the reported [totalResults] will not agree with the returned page.
+     */
+    fun createPagedSearchResult(
+        resources: Sequence<T>,
+        totalResults: Int,
+        nextCursor: String? = null,
+        cursorPagination: Boolean = false,
+    ): ListResponse<T> {
+        val preparedResources =
+            resources
+                .map { it.asGenericScimResource() }
+                .onEach { responsePreparer.setResourceTypeAndLocation(it) }
+                .toList()
+
+        if (cursorPagination) {
+            @Suppress("UNCHECKED_CAST")
+            return ListResponse(
+                totalResults,
+                nextCursor,
+                preparedResources.size,
+                preparedResources as List<T>,
+            )
+        }
+
+        @Suppress("UNCHECKED_CAST")
+        return ListResponse(
+            totalResults,
+            preparedResources as List<T>,
+            (startIndex ?: 1).coerceAtLeast(1),
+            preparedResources.size,
+        )
     }
 }
