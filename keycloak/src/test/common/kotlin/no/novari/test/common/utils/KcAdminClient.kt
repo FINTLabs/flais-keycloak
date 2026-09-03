@@ -1,5 +1,6 @@
 package no.novari.test.common.utils
 
+import no.novari.test.common.config.KcConfig
 import no.novari.test.common.environment.kc.KcEnvironment
 import org.keycloak.admin.client.CreatedResponseUtil
 import org.keycloak.admin.client.Keycloak
@@ -7,10 +8,13 @@ import org.keycloak.admin.client.KeycloakBuilder
 import org.keycloak.admin.client.resource.RealmResource
 import org.keycloak.representations.idm.FederatedIdentityRepresentation
 import org.keycloak.representations.idm.MemberRepresentation
+import org.keycloak.representations.idm.PartialImportRepresentation
 import org.keycloak.representations.idm.ProtocolMapperRepresentation
 import org.keycloak.representations.idm.RealmRepresentation
 import org.keycloak.representations.idm.UserRepresentation
 import org.keycloak.util.JsonSerialization
+import java.nio.charset.StandardCharsets
+import java.util.UUID
 
 /**
  * Utility wrapper around the Keycloak Admin Client used in tests.
@@ -207,5 +211,107 @@ object KcAdminClient {
         mapper.config = newConfig
 
         mappers.update(mapper.id, mapper)
+    }
+
+    fun addScaleTestUsers(
+        env: KcEnvironment,
+        kcConfig: KcConfig,
+        realmName: String,
+        orgAlias: String,
+        userCount: Int = 10_000,
+        importBatchSize: Int = 500,
+        membershipBatchSize: Int = 50,
+        failureThresholdPercent: Double = 5.0,
+    ) {
+        val organizationId = kcConfig.requireOrg(orgAlias).id
+        val users =
+            List(userCount) {
+                createScaleTestUser(
+                    index = it,
+                    realmName = realmName,
+                    organizationId = organizationId,
+                    organizationAlias = orgAlias,
+                )
+            }
+
+        val failedImports =
+            users.chunked(importBatchSize).sumOf { batch ->
+                val (kc, realm) = connect(env, realmName)
+
+                kc.use {
+                    runCatching {
+                        realm.partialImport(
+                            PartialImportRepresentation().apply {
+                                this.users = batch
+                                ifResourceExists = PartialImportRepresentation.Policy.SKIP.name
+                            },
+                        )
+                    }.fold(
+                        onSuccess = { 0 },
+                        onFailure = {
+                            println("Failed importing ${batch.first().username}–${batch.last().username}: ${it.message}")
+                            batch.size
+                        },
+                    )
+                }
+            }
+
+        val failedMemberships =
+            users.chunked(membershipBatchSize).sumOf { batch ->
+                val (kc, realm) = connect(env, realmName)
+
+                kc.use {
+                    batch.count { user ->
+                        runCatching {
+                            realm
+                                .organizations()
+                                .get(organizationId)
+                                .members()
+                                .addMember(user.id)
+                        }.onFailure {
+                            println("Failed adding ${user.username} to organization: ${it.message}")
+                        }.isFailure
+                    }
+                }
+            }
+
+        fun checkFailures(
+            name: String,
+            failures: Int,
+        ) {
+            val percentage = failures * 100.0 / userCount
+            check(percentage < failureThresholdPercent) {
+                "$name failed for $failures/$userCount users ($percentage%)"
+            }
+        }
+
+        checkFailures("User import", failedImports)
+        checkFailures("Organization membership", failedMemberships)
+    }
+
+    private fun createScaleTestUser(
+        index: Int,
+        realmName: String,
+        organizationId: String,
+        organizationAlias: String,
+    ): UserRepresentation {
+        val suffix = index.toString().padStart(5, '0')
+        val username = "scale-test-user-$suffix"
+
+        return UserRepresentation().apply {
+            id =
+                UUID
+                    .nameUUIDFromBytes(
+                        "$realmName:$organizationId:$username"
+                            .toByteArray(StandardCharsets.UTF_8),
+                    ).toString()
+            this.username = username
+            email = "$username@$organizationAlias.no"
+            firstName = "ScaleTest"
+            lastName = suffix
+            isEnabled = true
+            isEmailVerified = true
+            realmRoles = listOf("scim-managed")
+        }
     }
 }

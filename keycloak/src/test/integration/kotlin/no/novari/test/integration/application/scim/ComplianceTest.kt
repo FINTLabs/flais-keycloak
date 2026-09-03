@@ -36,6 +36,16 @@ class ComplianceTest {
         env: KcEnvironment,
         kcConfig: KcConfig,
     ) {
+        if (orgAlias == Orgs.TELEMARK) {
+            KcAdminClient.addScaleTestUsers(
+                env = env,
+                kcConfig = kcConfig,
+                realmName = Realms.EXTERNAL,
+                orgAlias = Orgs.TELEMARK,
+                userCount = 10_000,
+            )
+        }
+
         val token = ScimHttpClient.getAccessToken("${env.flaisScimAuthUrl()}/token")
         val container = createScimverifyContainer(env, kcConfig, orgAlias, token)
         val (kc, realmRes) = KcAdminClient.connect(env, realm)
