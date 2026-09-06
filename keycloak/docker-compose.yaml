@@ -90,7 +90,7 @@ services:
             - keycloak
 
     authentik-ready:
-      image: curlimages/curl:8.21.0
+      image: curlimages/curl:8.22.0
       entrypoint: ["/bin/sh"]
       command: ["-c", "while true; do sleep 3600; done"]
       healthcheck:
