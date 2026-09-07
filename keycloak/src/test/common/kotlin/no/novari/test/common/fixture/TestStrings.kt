@@ -48,7 +48,7 @@ object TestStrings {
         const val JON_ROGALAND_EMAIL = "jon.basic@rogaland.no"
         const val JON_TELEMARK = "c463c343-76e6-4002-9b61-a47b77672021"
         const val JON_TELEMARK_EMAIL = "jon.basic@telemark.no"
-        
+
         const val SCIMVERIFY_FIRST_NAME = "Scimverify"
         const val BASIC_LAST_NAME = "Basic"
         const val PASSWORD = "password"
