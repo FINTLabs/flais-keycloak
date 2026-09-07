@@ -24,10 +24,10 @@ class ProvisionTest {
                                 "urn:ietf:params:scim:schemas:core:2.0:User",
                                 "urn:ietf:params:scim:schemas:extension:fint:2.0:User",
                             ),
-                        externalId = "11111111-1111-1111-1111-111111111111",
+                        externalId = Users.ALICE_TELEMARK,
                         userName = Users.ALICE_TELEMARK,
                         active = true,
-                        emails = listOf(ScimUser.Email(Users.ALICE_TELEMARK, primary = true)),
+                        emails = listOf(ScimUser.Email(Users.ALICE_TELEMARK_EMAIL, primary = true)),
                         roles =
                             listOf(
                                 ScimUser.Role("read", "read", "WindowsAzureActiveDirectoryRole", false),
@@ -39,7 +39,7 @@ class ProvisionTest {
                                 Users.BASIC_LAST_NAME,
                                 "1234",
                                 "1234",
-                                Users.ALICE_TELEMARK,
+                                Users.ALICE_TELEMARK_EMAIL,
                             ),
                     ),
                     ScimUser(
@@ -47,10 +47,10 @@ class ProvisionTest {
                             listOf(
                                 "urn:ietf:params:scim:schemas:core:2.0:User",
                             ),
-                        externalId = "22222222-2222-2222-2222-222222222222",
+                        externalId = Users.JON_TELEMARK,
                         userName = Users.JON_TELEMARK,
                         active = true,
-                        emails = listOf(ScimUser.Email(Users.JON_TELEMARK, primary = true)),
+                        emails = listOf(ScimUser.Email(Users.JON_TELEMARK_EMAIL, primary = true)),
                         roles =
                             listOf(
                                 ScimUser.Role("read", "read", "WindowsAzureActiveDirectoryRole", false),
@@ -62,7 +62,7 @@ class ProvisionTest {
                                 Users.BASIC_LAST_NAME,
                                 "1234",
                                 "1234",
-                                Users.JON_TELEMARK,
+                                Users.JON_TELEMARK_EMAIL,
                             ),
                     ),
                 ),
@@ -74,10 +74,10 @@ class ProvisionTest {
                                 "urn:ietf:params:scim:schemas:core:2.0:User",
                                 "urn:ietf:params:scim:schemas:extension:fint:2.0:User",
                             ),
-                        externalId = "11111111-1111-1111-1111-111111111111",
+                        externalId = Users.ALICE_ROGALAND,
                         userName = Users.ALICE_ROGALAND,
                         active = true,
-                        emails = listOf(ScimUser.Email(Users.ALICE_ROGALAND, primary = true)),
+                        emails = listOf(ScimUser.Email(Users.ALICE_ROGALAND_EMAIL, primary = true)),
                         roles =
                             listOf(
                                 ScimUser.Role("read", "read", "WindowsAzureActiveDirectoryRole", false),
@@ -89,7 +89,7 @@ class ProvisionTest {
                                 Users.BASIC_LAST_NAME,
                                 "1234",
                                 "1234",
-                                Users.ALICE_ROGALAND,
+                                Users.ALICE_ROGALAND_EMAIL,
                             ),
                     ),
                     ScimUser(
@@ -97,10 +97,10 @@ class ProvisionTest {
                             listOf(
                                 "urn:ietf:params:scim:schemas:core:2.0:User",
                             ),
-                        externalId = "22222222-2222-2222-2222-222222222222",
+                        externalId = Users.JON_ROGALAND,
                         userName = Users.JON_ROGALAND,
                         active = true,
-                        emails = listOf(ScimUser.Email(Users.JON_ROGALAND, primary = true)),
+                        emails = listOf(ScimUser.Email(Users.JON_ROGALAND_EMAIL, primary = true)),
                         roles =
                             listOf(
                                 ScimUser.Role("read", "read", "WindowsAzureActiveDirectoryRole", false),
@@ -112,7 +112,7 @@ class ProvisionTest {
                                 Users.BASIC_LAST_NAME,
                                 "1234",
                                 "1234",
-                                Users.JON_ROGALAND,
+                                Users.JON_ROGALAND_EMAIL,
                             ),
                     ),
                 ),

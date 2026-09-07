@@ -23,6 +23,7 @@ import org.junit.jupiter.api.extension.ExtendWith
 class FlaisFirstBrokerLoginFlowTest {
     private val realm = Realms.EXTERNAL
     private val username = Users.ALICE_TELEMARK
+    private val email = Users.ALICE_TELEMARK_EMAIL
     private val firstname = Users.ALICE_FIRST_NAME
     private val lastname = Users.BASIC_LAST_NAME
     private val password = Users.PASSWORD
@@ -86,7 +87,7 @@ class FlaisFirstBrokerLoginFlowTest {
         val (kc, realmRes) = KcAdminClient.connect(env, realm)
 
         kc.use {
-            val userId = KcAdminClient.createUser(realmRes, username, username, firstname, lastname)
+            val userId = KcAdminClient.createUser(realmRes, username, email, firstname, lastname)
             assertNotNull(userId)
 
             val links = KcAdminClient.getFederatedIdentities(realmRes, userId)
@@ -124,7 +125,7 @@ class FlaisFirstBrokerLoginFlowTest {
         val (kc, realmRes) = KcAdminClient.connect(env, realm)
 
         kc.use {
-            val userId = KcAdminClient.createUser(realmRes, username, username, firstname, lastname)
+            val userId = KcAdminClient.createUser(realmRes, username, email, firstname, lastname)
             assertNotNull(userId)
 
             val member = KcAdminClient.getOrgMember(realmRes, kcConfig.requireOrg(orgAlias).id, userId)
