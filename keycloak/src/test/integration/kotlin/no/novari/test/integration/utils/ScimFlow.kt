@@ -46,7 +46,7 @@ object ScimFlow {
 
         @Serializable
         data class Role(
-            var value: String,
+            var value: String? = null,
             var display: String? = null,
             var type: String? = null,
             var primary: Boolean? = null,

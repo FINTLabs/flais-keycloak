@@ -23,12 +23,19 @@ import jakarta.persistence.criteria.CriteriaQuery
 import jakarta.persistence.criteria.Expression
 import jakarta.persistence.criteria.From
 import jakarta.persistence.criteria.Predicate
+import no.novari.keycloak.scim.mapping.AlwaysPresentComplex
+import no.novari.keycloak.scim.mapping.Attribute
+import no.novari.keycloak.scim.mapping.Column
+import no.novari.keycloak.scim.mapping.Constant
+import no.novari.keycloak.scim.mapping.FieldKind
+import no.novari.keycloak.scim.mapping.FieldMapping
+import no.novari.keycloak.scim.mapping.Unsupported
+import no.novari.keycloak.scim.mapping.keycloak.KeycloakScimUserMappingRegistry
 import org.keycloak.models.jpa.entities.UserAttributeEntity
 import org.keycloak.models.jpa.entities.UserEntity
 
 /**
- * Raised when a filter cannot be translated to SQL. Callers are expected to fall back to in-memory
- * evaluation rather than surfacing this to the client.
+ * Raised when a filter cannot be translated to SQL.
  */
 internal class UnsupportedScimFilterException(
     message: String,
@@ -37,10 +44,9 @@ internal class UnsupportedScimFilterException(
 /**
  * Compiles a SCIM filter into a JPA [Predicate] over `UserEntity`.
  *
- * This is an optimization with an escape hatch, not a second implementation of SCIM. Whenever the
- * database cannot reproduce the SDK's in-memory semantics exactly, it throws
- * [UnsupportedScimFilterException] so the caller falls back to the evaluator that defines the
- * correct answer. It must never return a predicate that disagrees with that evaluator.
+ * This compiler must never return a predicate that disagrees with the SDK's in-memory evaluator.
+ * Whenever the database cannot reproduce those semantics exactly, it throws
+ * [UnsupportedScimFilterException].
  *
  * ### Null handling
  *
@@ -52,9 +58,9 @@ internal class UnsupportedScimFilterException(
  * ### User attributes
  *
  * Keycloak stores user attribute strings longer than 255 characters in `LONG_VALUE` instead of
- * `VALUE`. Attribute presence can still be compiled exactly by checking both columns, but text
- * comparisons fall back to the SDK evaluator because the native query cannot safely ignore
- * `LONG_VALUE`.
+ * `VALUE`, so attribute predicates must check both columns. Role comparisons are deliberately not
+ * compiled because the SCIM role is a complex value and the scalar `roles` attribute is only an
+ * auxiliary projection.
  */
 internal class ScimFilterCompiler(
     private val builder: CriteriaBuilder,
@@ -130,12 +136,11 @@ internal class ScimFilterCompiler(
         param: Unit,
     ): Predicate =
         when (val field = resolve(filter.attributePath)) {
-            is UserField.Constant -> constant(true)
-            is UserField.Attribute ->
-                attributePresent(field.name)
-
-            is UserField.Column ->
-                presentColumn(field)
+            is Constant -> constant(true)
+            is AlwaysPresentComplex -> constant(true)
+            is Attribute -> attributePresent(field.name)
+            is Column<*> -> presentColumn(field)
+            is Unsupported -> unsupported(field.reason)
         }
 
     /**
@@ -156,14 +161,19 @@ internal class ScimFilterCompiler(
         val value = filter.comparisonValue ?: unsupported("filter '$filter' has no comparison value")
 
         return when (field) {
-            is UserField.Constant -> compareConstant(field, op, value)
-            is UserField.Column -> compareColumn(field, op, value)
-            is UserField.Attribute -> unsupported("attribute '${filter.attributePath}' may be stored in LONG_VALUE")
+            is Constant -> compareConstant(field, op, value)
+            is AlwaysPresentComplex -> compareComplex(field)
+            is Column<*> -> compareColumn(field, op, value)
+            is Attribute -> compareAttribute(field, op, value)
+            is Unsupported -> unsupported(field.reason)
         }
     }
 
+    private fun compareComplex(field: AlwaysPresentComplex<UserEntity>): Predicate =
+        unsupported("complex attribute '${field.name}' cannot be compared in the database")
+
     private fun compareConstant(
-        field: UserField.Constant,
+        field: Constant<UserEntity>,
         op: Op,
         value: ValueNode,
     ): Predicate {
@@ -176,11 +186,11 @@ internal class ScimFilterCompiler(
     }
 
     private fun compareColumn(
-        field: UserField.Column,
+        field: Column<*>,
         op: Op,
         value: ValueNode,
     ): Predicate {
-        if (field.kind == UserField.Kind.BOOLEAN) {
+        if (field.kind == FieldKind.BOOLEAN) {
             if (!value.isBoolean) unsupported("'$value' is not a boolean")
             val wanted = value.booleanValue()
             return when (op) {
@@ -201,40 +211,61 @@ internal class ScimFilterCompiler(
         }
     }
 
-    private fun presentColumn(field: UserField.Column): Predicate {
-        if (field.kind == UserField.Kind.BOOLEAN) {
-            return nullSafe(field.property) { builder.conjunction() }
+    private fun compareAttribute(
+        field: Attribute<UserEntity>,
+        op: Op,
+        value: ValueNode,
+    ): Predicate {
+        if (field.name == ROLE_ATTRIBUTE || field.name == RAW_ROLE_ATTRIBUTE) {
+            unsupported("attribute '${field.name}' is a complex SCIM role and cannot be compared in the database")
         }
 
-        return nullSafe(field.property) { column -> builder.notEqual(column, "") }
+        if (field.kind == FieldKind.BOOLEAN) {
+            if (!value.isBoolean) unsupported("'$value' is not a boolean")
+            val wanted = value.booleanValue()
+            return when (op) {
+                Op.EQ -> attributeNullSafe(field.name) { column -> builder.equal(column, wanted.toString()) }
+                Op.NE -> nullableAttribute(field.name) { column -> builder.notEqual(column, wanted.toString()) }
+                else -> unsupported("operator $op is not defined for a boolean attribute")
+            }
+        }
+
+        val needle = text(value)
+        val predicate = { value: Expression<String> ->
+            stringPredicate(value, field.kind, op, needle)
+        }
+
+        return if (op == Op.NE) {
+            nullableAttribute(field.name, predicate)
+        } else {
+            attributeNullSafe(field.name, predicate)
+        }
     }
+
+    private fun presentColumn(field: Column<*>): Predicate = builder.isNotNull(user.get<Any>(field.property))
 
     private fun stringPredicate(
         raw: Expression<String>,
-        kind: UserField.Kind,
+        kind: FieldKind,
         op: Op,
         value: String,
     ): Predicate {
         val expression: Expression<String>
         val needle: String
         when (kind) {
-            UserField.Kind.CASE_EXACT -> {
+            FieldKind.CASE_EXACT -> {
                 expression = raw
                 needle = value
             }
-
-            // Already folded in storage, so folding the column again would defeat the index.
-            UserField.Kind.STORED_LOWERCASE -> {
+            FieldKind.STORED_LOWERCASE -> {
                 expression = raw
                 needle = value.lowercase()
             }
-
-            UserField.Kind.MIXED_CASE -> {
+            FieldKind.MIXED_CASE -> {
                 expression = builder.lower(raw)
                 needle = value.lowercase()
             }
-
-            UserField.Kind.BOOLEAN -> unsupported("boolean attribute compared as text")
+            FieldKind.BOOLEAN -> unsupported("boolean attribute compared as text")
         }
 
         return when (op) {
@@ -254,7 +285,12 @@ internal class ScimFilterCompiler(
      * Correlated `EXISTS` over `UserAttributeEntity`. A join would be wrong here: it multiplies rows
      * for multivalued attributes and breaks under negation and disjunction.
      */
-    private fun attributePresent(name: String): Predicate {
+    private fun attributePresent(name: String): Predicate = attributeNullSafe(name)
+
+    private fun attributeNullSafe(
+        attributeName: String,
+        predicate: ((Expression<String>) -> Predicate) = { builder.conjunction() },
+    ): Predicate {
         val subquery = query.subquery(String::class.java)
         val attribute = subquery.from(UserAttributeEntity::class.java)
         val stored = attribute.get<String>("value")
@@ -263,15 +299,28 @@ internal class ScimFilterCompiler(
         subquery.select(attribute.get("name"))
         subquery.where(
             builder.equal(attribute.get<Any>("user"), user),
-            builder.equal(attribute.get<String>("name"), name),
+            builder.equal(attribute.get<String>("name"), attributeName),
             builder.or(
                 builder.isNotNull(stored),
                 builder.isNotNull(longStored),
+            ),
+            builder.or(
+                predicate(stored),
+                predicate(longStored),
             ),
         )
 
         return builder.exists(subquery)
     }
+
+    private fun nullableAttribute(
+        attributeName: String,
+        predicate: ((Expression<String>) -> Predicate) = { builder.conjunction() },
+    ): Predicate =
+        builder.or(
+            builder.not(attributePresent(attributeName)),
+            attributeNullSafe(attributeName, predicate),
+        )
 
     /**
      * Guards a column comparison so the result is FALSE, never UNKNOWN, when the column is NULL.
@@ -299,9 +348,9 @@ internal class ScimFilterCompiler(
 
     private fun constant(value: Boolean): Predicate = if (value) builder.conjunction() else builder.disjunction()
 
-    private fun resolve(path: Path?): UserField {
+    private fun resolve(path: Path?): FieldMapping<UserEntity> {
         val resolved = path ?: unsupported("filter has no attribute path")
-        return ScimUserFields.resolve(resolved)
+        return KeycloakScimUserMappingRegistry.resolve(resolved)
             ?: unsupported("attribute '$resolved' cannot be resolved to Keycloak storage")
     }
 
@@ -324,6 +373,8 @@ internal class ScimFilterCompiler(
 
     private companion object {
         const val LIKE_ESCAPE = '\\'
+        const val RAW_ROLE_ATTRIBUTE = "rawRoles"
+        const val ROLE_ATTRIBUTE = "roles"
 
         /** Length of `USER_ATTRIBUTE.VALUE`; longer values are stored in `LONG_VALUE`. */
         const val MAX_INDEXED_VALUE_LENGTH = 255

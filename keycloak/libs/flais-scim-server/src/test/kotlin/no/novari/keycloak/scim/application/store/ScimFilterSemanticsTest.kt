@@ -6,6 +6,7 @@ import com.unboundid.scim2.common.filters.Filter
 import com.unboundid.scim2.common.utils.FilterEvaluator
 import com.unboundid.scim2.common.utils.JsonUtils
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
 
@@ -18,7 +19,7 @@ import org.junit.jupiter.params.provider.CsvSource
  * of the two suites fails.
  *
  * The interesting cases are missing attributes under negation, where SQL's three-valued logic does
- * not match SCIM, and multivalued attributes, where "any value matches" changes what `ne` means.
+ * not match SCIM.
  */
 class ScimFilterSemanticsTest {
     /** Mirrors what `ScimUserEndpoint.translateUser` emits. */
@@ -67,6 +68,29 @@ class ScimFilterSemanticsTest {
         return users.count { FilterEvaluator.evaluate(parsed, it.objectNode) }
     }
 
+    @Test
+    fun `presence and complex comparisons follow the evaluator for partial complex values`() {
+        val resource =
+            GenericScimResource(
+                JsonUtils.getObjectReader().readTree(
+                    """{"emails":[{"value":"","primary":true}],"roles":[{"display":"reader"}]}""",
+                ) as ObjectNode,
+            )
+
+        val expectations =
+            mapOf(
+                "emails.value pr" to true,
+                "emails eq true" to false,
+                "emails ne true" to true,
+                "roles pr" to true,
+                "roles.value pr" to false,
+            )
+
+        expectations.forEach { (filter, expected) ->
+            assertEquals(expected, FilterEvaluator.evaluate(Filter.fromString(filter), resource.objectNode), filter)
+        }
+    }
+
     @ParameterizedTest(name = "{0} matches {1} user(s)")
     @CsvSource(
         delimiter = '|',
@@ -80,12 +104,8 @@ class ScimFilterSemanticsTest {
             "active eq false                                          | 1",
             "emails pr                                                | 4",
             "emails.value pr                                          | 3",
-            "emails eq \"alice.search@telemark.no\"                   | 0",
             "active eq true and userName sw \"alice\"                 | 1",
             "userName sw \"alice\" or userName sw \"bob\"             | 2",
-            "roles.value eq \"read\"                                  | 2",
-            "roles.value eq \"write\"                                 | 1",
-            "roles.value co \"long-role-marker\"                      | 1",
         ],
     )
     fun `the evaluator agrees with the compiled predicates`(
@@ -104,10 +124,6 @@ class ScimFilterSemanticsTest {
             "not (emails.value eq \"alice.search@telemark.no\")       | 3",
             "not (emails.value co \"search\")                         | 1",
             "emails.value ne \"alice.search@telemark.no\"             | 3",
-            // Only Carol has no `read` role.
-            "not (roles.value eq \"read\")                            | 2",
-            // Only Alice holds a role other than `read`; Carol holds none at all.
-            "roles.value ne \"read\"                                  | 2",
             "not (active eq true)                                     | 1",
         ],
     )

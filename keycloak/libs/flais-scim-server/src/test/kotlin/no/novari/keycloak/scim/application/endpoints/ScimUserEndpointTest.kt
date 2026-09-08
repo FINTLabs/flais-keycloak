@@ -3,6 +3,7 @@ package no.novari.keycloak.scim.application.endpoints
 import com.fasterxml.jackson.databind.JsonNode
 import com.unboundid.scim2.common.GenericScimResource
 import com.unboundid.scim2.common.exceptions.BadRequestException
+import com.unboundid.scim2.common.messages.ErrorResponse
 import com.unboundid.scim2.common.messages.ListResponse
 import com.unboundid.scim2.common.messages.PatchOperation
 import com.unboundid.scim2.common.messages.PatchRequest
@@ -23,11 +24,11 @@ import jakarta.ws.rs.core.UriInfo
 import no.novari.keycloak.scim.context.ScimContext
 import no.novari.keycloak.scim.endpoints.ScimUserEndpoint
 import no.novari.keycloak.scim.resources.UserResource
-import no.novari.keycloak.scim.store.ScimCursor
-import no.novari.keycloak.scim.store.ScimPage
-import no.novari.keycloak.scim.store.ScimUserSearch
-import no.novari.keycloak.scim.store.ScimUserSearchCriteria
-import no.novari.keycloak.scim.store.ScimUserSearchResult
+import no.novari.keycloak.scim.search.ScimCursor
+import no.novari.keycloak.scim.search.ScimPage
+import no.novari.keycloak.scim.search.ScimUserSearch
+import no.novari.keycloak.scim.search.ScimUserSearchCriteria
+import no.novari.keycloak.scim.search.ScimUserSearchResult
 import no.novari.keycloak.scim.types.FintUserExtension
 import no.novari.keycloak.scim.utils.ScimRoles
 import no.novari.keycloak.scim.utils.TestUriInfo
@@ -360,44 +361,39 @@ class ScimUserEndpointTest {
     }
 
     @Test
-    fun `getUsers falls back to in-memory filtering for filters that cannot be pushed down`() {
-        val user2 = mockk<UserModel>(relaxed = true)
+    fun `getUsers returns 400 for filters that cannot be pushed down`() {
         templateUser(user)
         stubOrganizationLookup()
-        nativeUserSearch.result = ScimUserSearchResult.Unsupported("attribute 'roles.value' may be stored in LONG_VALUE")
-        every { user2.hasRole(scimRole) } returns false
-        every {
-            orgProvider.getMembersStream(scimContext.organization, emptyMap(), true, null, null)
-        } returns listOf(user, user2).stream()
+        nativeUserSearch.result =
+            ScimUserSearchResult.Unsupported("attribute 'roles' is a complex SCIM role and cannot be compared in the database")
 
-        // User attribute values can be stored in LONG_VALUE, so text comparisons fall back to the
-        // SDK evaluator. The value is one templateUser actually has, so a passing assertion means the
-        // fallback really evaluated the filter rather than short-circuiting.
         val response =
             endpoint.getUsers(
                 usersUriInfoWith(filter("""roles.value co "read"""")),
             )
 
-        // Only the scim-managed member is counted; user2 is excluded.
-        assertEquals(1, (response.entity as ListResponse<*>).totalResults)
+        assertEquals(Response.Status.BAD_REQUEST.statusCode, response.status)
+        assertEquals(
+            "attribute 'roles' is a complex SCIM role and cannot be compared in the database",
+            (response.entity as ErrorResponse).detail,
+        )
+        verify(exactly = 0) {
+            orgProvider.getMembersStream(any(), any<Map<String, String>>(), any(), any(), any())
+        }
     }
 
     @Test
-    fun `getUsers falls back to in-memory filtering for a sort it cannot push down`() {
+    fun `getUsers returns 400 for a sort it cannot push down`() {
         templateUser(user)
         stubOrganizationLookup()
         nativeUserSearch.result = ScimUserSearchResult.Unsupported("roles cannot be sorted in the database")
-        val organization = scimContext.organization
-        every {
-            orgProvider.getMembersStream(organization, emptyMap(), true, null, null)
-        } returns listOf(user).stream()
 
-        // roles is multivalued, so ordering by it has no single well-defined key.
-        endpoint.getUsers(usersUriInfoWith(mapOf(ApiConstants.QUERY_PARAMETER_SORT_BY to "roles")))
+        val response = endpoint.getUsers(usersUriInfoWith(mapOf(ApiConstants.QUERY_PARAMETER_SORT_BY to "roles")))
 
-        // Sorting spans the whole result set, so it has to be pushed down with the filter or not at all.
-        verify(exactly = 1) {
-            orgProvider.getMembersStream(organization, emptyMap(), true, null, null)
+        assertEquals(Response.Status.BAD_REQUEST.statusCode, response.status)
+        assertEquals("roles cannot be sorted in the database", (response.entity as ErrorResponse).detail)
+        verify(exactly = 0) {
+            orgProvider.getMembersStream(any(), any<Map<String, String>>(), any(), any(), any())
         }
     }
 

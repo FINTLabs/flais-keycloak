@@ -1,6 +1,5 @@
 package no.novari.keycloak.scim.resources
 
-import com.unboundid.scim2.common.GenericScimResource
 import com.unboundid.scim2.common.Path
 import com.unboundid.scim2.common.ScimResource
 import com.unboundid.scim2.common.annotations.NotNull
@@ -10,10 +9,8 @@ import com.unboundid.scim2.common.filters.Filter
 import com.unboundid.scim2.common.messages.ListResponse
 import com.unboundid.scim2.common.messages.SortOrder
 import com.unboundid.scim2.common.utils.ApiConstants
-import com.unboundid.scim2.server.utils.ResourceComparator
 import com.unboundid.scim2.server.utils.ResourcePreparer
 import com.unboundid.scim2.server.utils.ResourceTypeDefinition
-import com.unboundid.scim2.server.utils.SchemaAwareFilterEvaluator
 import jakarta.ws.rs.core.UriInfo
 
 class SearchHandler<T : ScimResource> {
@@ -31,12 +28,6 @@ class SearchHandler<T : ScimResource> {
     @Nullable
     val cursor: String?
 
-    @NotNull
-    val filterEvaluator: SchemaAwareFilterEvaluator
-
-    @Nullable
-    val resourceComparator: ResourceComparator<ScimResource>?
-
     /** The parsed `sortBy` path, exposed so callers can try to push sorting into the database. */
     @Nullable
     val sortBy: Path?
@@ -52,7 +43,6 @@ class SearchHandler<T : ScimResource> {
         resourceType: ResourceTypeDefinition,
         uriInfo: UriInfo,
     ) {
-        filterEvaluator = SchemaAwareFilterEvaluator(resourceType)
         responsePreparer = ResourcePreparer(resourceType, uriInfo)
 
         val qp = uriInfo.queryParameters
@@ -96,72 +86,17 @@ class SearchHandler<T : ScimResource> {
 
         this.sortBy = sortBy
         this.sortOrder = sortOrder
-
-        resourceComparator =
-            sortBy?.let {
-                ResourceComparator(it, sortOrder, resourceType)
-            }
-    }
-
-    fun createSearchResult(resources: Sequence<T>): ListResponse<T> {
-        val resolvedStartIndex = (startIndex ?: 1).coerceAtLeast(1)
-        val resolvedCount = count ?: Int.MAX_VALUE
-
-        var preparedResources =
-            resources
-                .map { it.asGenericScimResource() }
-                .filter { prepareAndFilter(it) }
-                .toList()
-
-        val totalCount = preparedResources.size
-        if (totalCount == 0) {
-            return ListResponse(
-                0,
-                emptyList<T>(),
-                resolvedStartIndex,
-                0,
-            )
-        }
-
-        resourceComparator?.let { comparator ->
-            preparedResources =
-                preparedResources.sortedWith(comparator)
-        }
-
-        val fromIndex = (resolvedStartIndex - 1).coerceAtMost(totalCount)
-        val toIndex = (fromIndex + resolvedCount).coerceAtMost(totalCount)
-        val page =
-            if (fromIndex >= toIndex) {
-                emptyList()
-            } else {
-                preparedResources.subList(fromIndex, toIndex)
-            }
-
-        @Suppress("UNCHECKED_CAST")
-        return ListResponse(
-            totalCount,
-            page as List<T>,
-            resolvedStartIndex,
-            page.size,
-        )
-    }
-
-    private fun prepareAndFilter(resource: GenericScimResource): Boolean {
-        responsePreparer.setResourceTypeAndLocation(resource)
-        val currentFilter = filter ?: return true
-        return currentFilter.visit(filterEvaluator, resource.objectNode)
     }
 
     /**
      * Builds a [ListResponse] from resources that have **already** been filtered, sorted and paged
      * by the caller — typically by a database query.
      *
-     * Unlike [createSearchResult] this applies no filter, no sort and no sub-listing; it only runs
-     * the response preparer over each resource. [totalResults] is the size of the full matching set,
-     * not of [resources].
+     * This applies no filter, no sort and no sub-listing; it only runs the response preparer over
+     * each resource. [totalResults] is the size of the full matching set, not of [resources].
      *
-     * Only use this when [filter] and [resourceComparator] could not have changed the result,
-     * otherwise the reported [totalResults] will not agree with the returned page.
+     * Only use this when [filter] and [sortBy] have already been pushed down, otherwise the reported
+     * [totalResults] will not agree with the returned page.
      */
     fun createPagedSearchResult(
         resources: Sequence<T>,

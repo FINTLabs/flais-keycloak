@@ -24,6 +24,10 @@ import org.junit.jupiter.api.assertNotNull
 import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
+import org.keycloak.admin.client.CreatedResponseUtil
+import org.keycloak.representations.idm.GroupRepresentation
+import org.keycloak.representations.idm.RoleRepresentation
+import java.util.UUID
 
 /**
  * Covers the database-backed SCIM user search.
@@ -33,7 +37,7 @@ import org.junit.jupiter.params.provider.CsvSource
  *
  * The expected result sets for the negation and multivalued cases are mirrored by
  * `ScimFilterSemanticsTest`, which asserts the same expectations against the SDK's in-memory
- * evaluator. Together they show the native path and the fallback agree.
+ * evaluator.
  */
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @ExtendWith(KcEnvironmentExtension::class)
@@ -121,6 +125,20 @@ class ScimUserSearchTest {
                 Json.parseToJsonElement(requireNotNull(resp.body).string()).jsonObject
             }
 
+    private fun listUsersStatus(
+        env: KcEnvironment,
+        kcConfig: KcConfig,
+        filter: String? = null,
+        sortBy: String? = null,
+    ): Int =
+        ScimFlow
+            .listUsers(
+                scimBaseUrl(env, kcConfig),
+                tokenUrl(env),
+                filter,
+                sortBy = sortBy,
+            ).use { resp -> resp.code }
+
     private fun JsonObject.totalResults() = getValue("totalResults").jsonPrimitive.int
 
     private fun JsonObject.nextCursor() = this["nextCursor"]?.jsonPrimitive?.content
@@ -192,6 +210,66 @@ class ScimUserSearchTest {
         assertFalse(intruder in body.userNames())
     }
 
+    @Test
+    fun `list includes users with an inherited scim-managed role`(
+        env: KcEnvironment,
+        kcConfig: KcConfig,
+    ) {
+        val (kc, realmRes) = KcAdminClient.connect(env, realm)
+        kc.use {
+            val suffix = UUID.randomUUID().toString()
+            val compositeName = "scim-search-composite-$suffix"
+            realmRes.roles().create(RoleRepresentation().apply { name = compositeName })
+            val composite = realmRes.roles().get(compositeName)
+            val scimRole = realmRes.roles().get("scim-managed").toRepresentation()
+            composite.addComposites(listOf(scimRole))
+
+            val groupResponse = realmRes.groups().add(GroupRepresentation().apply { name = "scim-search-group-$suffix" })
+            val groupId = groupResponse.use { CreatedResponseUtil.getCreatedId(it) }
+            val group = realmRes.groups().group(groupId)
+            group.roles().realmLevel().add(listOf(composite.toRepresentation()))
+
+            val userId = requireNotNull(KcAdminClient.findUserByUsername(realmRes, alice)?.id)
+            val user = realmRes.users().get(userId)
+            user.roles().realmLevel().remove(listOf(scimRole))
+            user.joinGroup(groupId)
+
+            try {
+                val body = listUsers(env, kcConfig)
+                assertEquals(fixture.size, body.totalResults())
+                assertEquals(true, alice in body.userNames())
+            } finally {
+                group.remove()
+                composite.remove()
+            }
+        }
+    }
+
+    @Test
+    fun `role presence distinguishes partial role objects from their value fields`(
+        env: KcEnvironment,
+        kcConfig: KcConfig,
+    ) {
+        val edgeUser = "edge-presence@telemark.no"
+        ScimFlow
+            .createUser(
+                scimBaseUrl(env, kcConfig),
+                tokenUrl(env),
+                ScimUser(
+                    schemas = listOf(CORE_SCHEMA),
+                    externalId = "44444444-4444-4444-4444-444444444444",
+                    userName = edgeUser,
+                    active = true,
+                    emails = listOf(ScimUser.Email(edgeUser, primary = true)),
+                    roles = listOf(ScimUser.Role(display = "reader")),
+                ),
+            ).use { response -> assertEquals(201, response.code) }
+
+        assertEquals(3, listUsers(env, kcConfig, filter = "roles pr").totalResults())
+        assertEquals(2, listUsers(env, kcConfig, filter = "roles.value pr").totalResults())
+        assertEquals(400, listUsersStatus(env, kcConfig, filter = "emails eq true"))
+    }
+
     @ParameterizedTest(name = "{0} matches {1} user(s)")
     @CsvSource(
         delimiter = '|',
@@ -201,6 +279,8 @@ class ScimUserSearchTest {
             "userName ne \"alice.search@telemark.no\"                 | 2",
             "id pr                                                    | 3",
             "externalId pr                                            | 3",
+            "externalId eq \"11111111-1111-1111-1111-111111111111\"   | 1",
+            "externalId co \"long-external-id\"                       | 1",
             // Substring operators.
             "userName co \"search\"                                   | 3",
             "userName sw \"alice\"                                    | 1",
@@ -211,14 +291,10 @@ class ScimUserSearchTest {
             // Presence, including the user with no email at all.
             "emails pr                                                | 3",
             "emails.value pr                                          | 2",
-            "emails eq \"alice.search@telemark.no\"                   | 0",
             "emails.primary eq true                                   | 3",
             // Logical combinators.
             "active eq true and userName sw \"alice\"                 | 1",
             "userName sw \"alice\" or userName sw \"bob\"             | 2",
-            // Multivalued attribute: any value may match.
-            "roles.value eq \"read\"                                  | 2",
-            "roles.value eq \"write\"                                 | 1",
             "roles pr                                                 | 2",
         ],
     )
@@ -240,10 +316,7 @@ class ScimUserSearchTest {
             "not (emails.value eq \"alice.search@telemark.no\")       | 2",
             "not (emails.value co \"search\")                         | 1",
             "emails.value ne \"alice.search@telemark.no\"             | 2",
-            // Negation over a multivalued attribute means "has no such value".
-            "not (roles.value eq \"read\")                            | 1",
-            // Inequality over a multivalued attribute means "has some other value".
-            "roles.value ne \"read\"                                  | 1",
+            "urn:ietf:params:scim:schemas:extension:fint:2.0:User:employeeId ne \"E1\" | 2",
             "not (active eq true)                                     | 1",
         ],
     )
@@ -263,16 +336,17 @@ class ScimUserSearchTest {
     ) {
         assertEquals(1, listUsers(env, kcConfig, filter = """$fintUrn:employeeId eq "E1"""").totalResults())
         assertEquals(0, listUsers(env, kcConfig, filter = """$fintUrn:employeeId eq "e1"""").totalResults())
+        assertEquals(2, listUsers(env, kcConfig, filter = """$fintUrn:employeeId ne "E1"""").totalResults())
         assertEquals(2, listUsers(env, kcConfig, filter = """$fintUrn:employeeId pr""").totalResults())
         assertEquals(1, listUsers(env, kcConfig, filter = """$fintUrn:givenName eq "alice"""").totalResults())
     }
 
     @Test
-    fun `long user attribute values follow the SCIM evaluator`(
+    fun `long user attribute values are filterable`(
         env: KcEnvironment,
         kcConfig: KcConfig,
     ) {
-        assertEquals(1, listUsers(env, kcConfig, filter = """roles.value co "long-role-marker"""").totalResults())
+        assertEquals(1, listUsers(env, kcConfig, filter = """externalId co "long-external-id"""").totalResults())
     }
 
     @Test
@@ -391,24 +465,21 @@ class ScimUserSearchTest {
     }
 
     @Test
-    fun `filters that cannot be compiled still work through the in-memory fallback`(
+    fun `complex attribute comparison filters are rejected`(
         env: KcEnvironment,
         kcConfig: KcConfig,
     ) {
-        // roles.type only exists inside the rawRoles JSON blob.
-        val body = listUsers(env, kcConfig, filter = """roles.type eq "WindowsAzureActiveDirectoryRole"""")
-
-        assertEquals(2, body.totalResults())
+        assertEquals(400, listUsersStatus(env, kcConfig, filter = """roles.value eq "read""""))
+        assertEquals(400, listUsersStatus(env, kcConfig, filter = """roles.type eq "WindowsAzureActiveDirectoryRole""""))
+        assertEquals(400, listUsersStatus(env, kcConfig, filter = """emails eq "alice.search@telemark.no""""))
     }
 
     @Test
-    fun `sorts that cannot be compiled still work through the in-memory fallback`(
+    fun `sorts that cannot be compiled are rejected`(
         env: KcEnvironment,
         kcConfig: KcConfig,
     ) {
-        val body = listUsers(env, kcConfig, sortBy = "roles")
-
-        assertEquals(fixture.size, body.totalResults())
+        assertEquals(400, listUsersStatus(env, kcConfig, sortBy = "roles"))
     }
 
     private companion object {

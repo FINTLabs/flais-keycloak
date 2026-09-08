@@ -1,4 +1,4 @@
-package no.novari.keycloak.scim.store
+package no.novari.keycloak.scim.search
 
 import com.unboundid.scim2.common.filters.Filter
 import java.security.MessageDigest

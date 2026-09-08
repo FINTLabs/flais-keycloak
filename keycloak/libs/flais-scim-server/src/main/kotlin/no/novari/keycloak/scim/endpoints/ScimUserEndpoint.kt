@@ -3,6 +3,7 @@ package no.novari.keycloak.scim.endpoints
 import com.fasterxml.jackson.databind.node.ObjectNode
 import com.unboundid.scim2.common.annotations.Attribute
 import com.unboundid.scim2.common.exceptions.BadRequestException
+import com.unboundid.scim2.common.messages.ErrorResponse
 import com.unboundid.scim2.common.messages.ListResponse
 import com.unboundid.scim2.common.messages.PatchRequest
 import com.unboundid.scim2.common.messages.SortOrder
@@ -34,10 +35,10 @@ import jakarta.ws.rs.core.UriInfo
 import no.novari.keycloak.scim.context.ScimContext
 import no.novari.keycloak.scim.resources.SearchHandler
 import no.novari.keycloak.scim.resources.UserResource
-import no.novari.keycloak.scim.store.ScimCursor
-import no.novari.keycloak.scim.store.ScimPage
-import no.novari.keycloak.scim.store.ScimUserSearchCriteria
-import no.novari.keycloak.scim.store.ScimUserSearchResult
+import no.novari.keycloak.scim.search.ScimCursor
+import no.novari.keycloak.scim.search.ScimPage
+import no.novari.keycloak.scim.search.ScimUserSearchCriteria
+import no.novari.keycloak.scim.search.ScimUserSearchResult
 import no.novari.keycloak.scim.store.UnsupportedScimFilterException
 import no.novari.keycloak.scim.types.FintUserExtension
 import no.novari.keycloak.scim.utils.EntraScimTransformer
@@ -50,7 +51,6 @@ import org.keycloak.models.FederatedIdentityModel
 import org.keycloak.models.RoleModel
 import org.keycloak.models.UserModel
 import org.keycloak.util.JsonSerialization
-import kotlin.streams.asSequence
 
 @ResourceType(
     description = "User Account",
@@ -86,12 +86,20 @@ class ScimUserEndpoint(
             try {
                 nativeSearch(searchHandler, scimRole)
             } catch (e: UnsupportedScimFilterException) {
-                logger.debugf(
-                    "SCIM user search cannot be pushed to the database, evaluating in memory. org=%s reason=%s",
+                logger.warnf(
+                    "SCIM user search cannot be pushed to the database. org=%s reason=%s",
                     scimContext.organization.alias,
                     e.message,
                 )
-                inMemorySearch(searchHandler, scimRole)
+
+                return Response
+                    .status(Response.Status.BAD_REQUEST)
+                    .type(ApiConstants.MEDIA_TYPE_SCIM)
+                    .entity(
+                        ErrorResponse(400).apply {
+                            detail = e.message
+                        },
+                    ).build()
             }
 
         logger.debugf(
@@ -181,28 +189,6 @@ class ScimUserEndpoint(
                 }
 
         return ScimPage.Keyset(after, searchHandler.count)
-    }
-
-    /**
-     * Reference implementation for anything the database cannot express. Correct but loads every
-     * organization member, so it should stay off the common paths.
-     */
-    private fun inMemorySearch(
-        searchHandler: SearchHandler<UserResource>,
-        scimRole: RoleModel,
-    ): ListResponse<UserResource> {
-        val userResources =
-            scimContext.orgProvider
-                .getMembersStream(
-                    scimContext.organization,
-                    emptyMap(),
-                    true,
-                    null,
-                    null,
-                ).filter { it.hasRole(scimRole) }
-                .map { translateUser(it) }
-                .asSequence()
-        return searchHandler.createSearchResult(userResources)
     }
 
     @GET
