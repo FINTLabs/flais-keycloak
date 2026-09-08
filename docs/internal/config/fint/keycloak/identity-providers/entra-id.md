@@ -87,11 +87,11 @@ Some settings may differ depending on the vendor or specific integration.
 
 ## Username mapping
 
-| Name                         | Mapper type                | Template       | Target      | Sync mode |
-| ---------------------------- | -------------------------- | -------------- | ----------- | --------- |
-| `map_oid_as_username`        | Username Template Importer | `${CLAIM.oid}` | `LOCAL`     | Inherit   |
-| `map_oid_as_broker_id`       | Username Template Importer | `${CLAIM.oid}` | `BROKER_ID` | Inherit   |
-| `map_oid_as_broker_username` | Username Template Importer | `${CLAIM.oid}` | `BROKER_ID` | Inherit   |
+| Name                         | Mapper type                | Template       | Target            | Sync mode |
+| ---------------------------- | -------------------------- | -------------- | ----------------- | --------- |
+| `map_oid_as_username`        | Username Template Importer | `${CLAIM.oid}` | `LOCAL`           | Inherit   |
+| `map_oid_as_broker_id`       | Username Template Importer | `${CLAIM.oid}` | `BROKER_ID`       | Inherit   |
+| `map_oid_as_broker_username` | Username Template Importer | `${CLAIM.oid}` | `BROKER_USERNAME` | Inherit   |
 
 ## Attribute mapping
 
