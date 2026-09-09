@@ -35,6 +35,13 @@ dependencies {
     compileOnly(libs.keycloak.services)
     compileOnly(libs.keycloak.server.spi)
     compileOnly(libs.keycloak.server.spi.priv)
+    compileOnly(libs.keycloak.model.jpa) {
+        because(
+            "SCIM user search needs a read-only JPA query joining organization group membership with the " +
+                "scim-managed role mapping. Neither OrganizationProvider nor UserProvider can express that " +
+                "combination, so exact totalResults is otherwise impossible. Provided by the Keycloak runtime.",
+        )
+    }
     compileOnly(libs.guava)
 
     testImplementation(platform(libs.junit.bom))

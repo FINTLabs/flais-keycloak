@@ -5,6 +5,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
+import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
@@ -45,7 +46,7 @@ object ScimFlow {
 
         @Serializable
         data class Role(
-            var value: String,
+            var value: String? = null,
             var display: String? = null,
             var type: String? = null,
             var primary: Boolean? = null,
@@ -98,6 +99,41 @@ object ScimFlow {
                 .Builder()
                 .url("$baseUrl/Users")
                 .post(body)
+                .build()
+
+        return client.newCall(request).execute()
+    }
+
+    fun listUsers(
+        baseUrl: String,
+        tokenUrl: String,
+        filter: String? = null,
+        startIndex: Int? = null,
+        count: Int? = null,
+        sortBy: String? = null,
+        sortOrder: String? = null,
+        cursor: String? = null,
+        httpClient: OkHttpClient? = null,
+    ): Response {
+        val client = resolveClient(httpClient, tokenUrl)
+        val url =
+            "$baseUrl/Users"
+                .toHttpUrl()
+                .newBuilder()
+                .apply {
+                    filter?.let { addQueryParameter("filter", it) }
+                    startIndex?.let { addQueryParameter("startIndex", it.toString()) }
+                    count?.let { addQueryParameter("count", it.toString()) }
+                    sortBy?.let { addQueryParameter("sortBy", it) }
+                    sortOrder?.let { addQueryParameter("sortOrder", it) }
+                    cursor?.let { addQueryParameter("cursor", it) }
+                }.build()
+
+        val request =
+            Request
+                .Builder()
+                .url(url)
+                .get()
                 .build()
 
         return client.newCall(request).execute()
