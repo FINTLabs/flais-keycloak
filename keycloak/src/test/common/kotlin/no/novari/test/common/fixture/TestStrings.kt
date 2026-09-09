@@ -38,11 +38,17 @@ object TestStrings {
 
     object Users {
         const val ALICE_FIRST_NAME = "Alice"
-        const val ALICE_ROGALAND = "alice.basic@rogaland.no"
-        const val ALICE_TELEMARK = "alice.basic@telemark.no"
+        const val ALICE_ROGALAND = "8b08335d-e716-4d45-8d40-f75aa7884083"
+        const val ALICE_ROGALAND_EMAIL = "alice.basic@rogaland.no"
+        const val ALICE_TELEMARK = "8123912f-9ea4-4f56-9c52-57f752332699"
+        const val ALICE_TELEMARK_EMAIL = "alice.basic@telemark.no"
+
         const val JON_FIRST_NAME = "Jon"
-        const val JON_ROGALAND = "jon.basic@rogaland.no"
-        const val JON_TELEMARK = "jon.basic@telemark.no"
+        const val JON_ROGALAND = "84ad338c-b778-43f2-9636-1e2dda3d9f08"
+        const val JON_ROGALAND_EMAIL = "jon.basic@rogaland.no"
+        const val JON_TELEMARK = "c463c343-76e6-4002-9b61-a47b77672021"
+        const val JON_TELEMARK_EMAIL = "jon.basic@telemark.no"
+
         const val SCIMVERIFY_FIRST_NAME = "Scimverify"
         const val BASIC_LAST_NAME = "Basic"
         const val PASSWORD = "password"
