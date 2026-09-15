@@ -27,7 +27,7 @@ playwright = "1.62.0"
 
 scim-server-sdk = "5.0.0"
 nimbusds-jwt = "10.9.1"
-guava = "33.5.0-jre"
+guava = "33.7.1-jre"
 
 [libraries]
 keycloak-spi-bom = { module = "org.keycloak.bom:keycloak-spi-bom", version.ref = "keycloak" }
