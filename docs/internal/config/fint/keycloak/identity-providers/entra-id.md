@@ -2,7 +2,8 @@
 
 Configuration of a single **Identity Provider (IDP)**.
 
-This configuration is based on an OpenID Connect v1.0 for Entra ID and serves as a template.
+This configuration is based on an OpenID Connect v1.0 for Entra ID and serves as
+a template.
 Some settings may differ depending on the vendor or specific integration.
 
 # Settings
@@ -53,8 +54,10 @@ Some settings may differ depending on the vendor or specific integration.
 > This matches Microsoft’s default token validation clock skew.
 >
 > References:
-> - [ID-porten: Validering av `logout_token`](https://docs.digdir.no/docs/idporten/oidc/oidc_func_backchannel_logout.html#validering-av-logout_token)
-> - [Microsoft: `TokenValidationParameters.DefaultClockSkew`](https://learn.microsoft.com/en-us/dotnet/api/microsoft.identitymodel.tokens.tokenvalidationparameters.defaultclockskew)
+> - [ID-porten: Validering av
+    `logout_token`](https://docs.digdir.no/docs/idporten/oidc/oidc_func_backchannel_logout.html#validering-av-logout_token)
+> - [Microsoft:
+    `TokenValidationParameters.DefaultClockSkew`](https://learn.microsoft.com/en-us/dotnet/api/microsoft.identitymodel.tokens.tokenvalidationparameters.defaultclockskew)
 
 ## Advanced settings
 
@@ -76,17 +79,19 @@ Some settings may differ depending on the vendor or specific integration.
 > [!NOTE]
 > Set **Post login flow** to `flais-post-login-flow` for every IDP.
 >
-> This runs `ClientOrgAccessAuthenticator` after each broker callback and helps prevent broker URL tampering attacks.
+> This runs `ClientOrgAccessAuthenticator` after each broker callback and helps
+> prevent broker URL tampering attacks.
 > See [flais-post-login-flow](../../../auth-flows/flais-post-login-flow.md).
 
 # Mappers
 
 ## Username mapping
 
-| Name                  | Mapper type                | Template       | Target      | Sync mode |
-| --------------------- | -------------------------- | -------------- | ----------- | --------- |
-| `map_oid_as_username` | Username Template Importer | `${CLAIM.oid}` | `LOCAL`     | Inherit   |
-| `map_oid_as_brokerid` | Username Template Importer | `${CLAIM.oid}` | `BROKER_ID` | Inherit   |
+| Name                         | Mapper type                | Template       | Target            | Sync mode |
+| ---------------------------- | -------------------------- | -------------- | ----------------- | --------- |
+| `map_oid_as_username`        | Username Template Importer | `${CLAIM.oid}` | `LOCAL`           | Inherit   |
+| `map_oid_as_broker_id`       | Username Template Importer | `${CLAIM.oid}` | `BROKER_ID`       | Inherit   |
+| `map_oid_as_broker_username` | Username Template Importer | `${CLAIM.oid}` | `BROKER_USERNAME` | Inherit   |
 
 ## Attribute mapping
 
