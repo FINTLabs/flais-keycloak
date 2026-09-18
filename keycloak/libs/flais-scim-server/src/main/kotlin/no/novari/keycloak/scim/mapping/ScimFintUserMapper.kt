@@ -19,7 +19,7 @@ internal object ScimFintUserMapper :
             FintUserExtension::givenName,
             column(
                 UserModel.FIRST_NAME,
-                FieldKind.CASE_EXACT,
+                FieldKind.MIXED_CASE,
             ),
         )
 
@@ -27,7 +27,7 @@ internal object ScimFintUserMapper :
             FintUserExtension::familyName,
             column(
                 UserModel.LAST_NAME,
-                FieldKind.CASE_EXACT,
+                FieldKind.MIXED_CASE,
             ),
         )
 

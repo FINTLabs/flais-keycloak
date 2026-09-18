@@ -17,7 +17,10 @@ internal object ScimUserMapper :
 
         property(
             "externalId",
-            unsupported(""),
+            attribute(
+                "externalId", // TODO: Move to constant
+                FieldKind.CASE_EXACT,
+            ),
         )
 
         property(
@@ -39,7 +42,7 @@ internal object ScimUserMapper :
         complexCollection(
             UserResource::roles,
             attribute(
-                "rawRoles",
+                "rawRoles", // TODO: Move to constant
                 FieldKind.MIXED_CASE,
             ),
             ScimRoleMapper,

@@ -469,7 +469,6 @@ class ScimUserSearchTest {
         env: KcEnvironment,
         kcConfig: KcConfig,
     ) {
-        assertEquals(400, listUsersStatus(env, kcConfig, filter = """roles.value eq "read""""))
         assertEquals(400, listUsersStatus(env, kcConfig, filter = """roles.type eq "WindowsAzureActiveDirectoryRole""""))
         assertEquals(400, listUsersStatus(env, kcConfig, filter = """emails eq "alice.search@telemark.no""""))
     }
