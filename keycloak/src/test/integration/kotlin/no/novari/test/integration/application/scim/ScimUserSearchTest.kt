@@ -13,8 +13,8 @@ import no.novari.test.common.environment.kc.KcEnvironmentExtension
 import no.novari.test.common.fixture.TestStrings.Orgs
 import no.novari.test.common.fixture.TestStrings.Realms
 import no.novari.test.common.utils.KcAdminClient
-import no.novari.test.integration.utils.ScimFlow
-import no.novari.test.integration.utils.ScimFlow.ScimUser
+import no.novari.test.common.utils.ScimFlow
+import no.novari.test.common.utils.ScimFlow.ScimUser
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.BeforeEach

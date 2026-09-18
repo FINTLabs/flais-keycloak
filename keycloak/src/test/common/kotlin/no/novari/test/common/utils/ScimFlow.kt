@@ -1,4 +1,4 @@
-package no.novari.test.integration.utils
+package no.novari.test.common.utils
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -12,7 +12,7 @@ import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.Response
 
 /**
- * Utility functions to simplify SCIM flows in integration tests.
+ * Utility functions to simplify SCIM flows in integration and system tests.
  */
 object ScimFlow {
     private val json =

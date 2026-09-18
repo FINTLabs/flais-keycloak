@@ -7,7 +7,7 @@ import no.novari.test.common.fixture.TestStrings.Orgs
 import no.novari.test.common.fixture.TestStrings.Realms
 import no.novari.test.common.fixture.TestStrings.Users
 import no.novari.test.common.utils.KcAdminClient
-import no.novari.test.integration.utils.ScimHttpClient
+import no.novari.test.common.utils.ScimHttpClient
 import org.awaitility.Awaitility.await
 import org.awaitility.kotlin.withPollInterval
 import org.junit.jupiter.api.Assertions.assertFalse
