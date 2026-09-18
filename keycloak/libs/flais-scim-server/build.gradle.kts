@@ -13,6 +13,7 @@ plugins {
 group = "no.novari"
 
 dependencies {
+    implementation(kotlin("reflect"))
     implementation(platform(libs.keycloak.spi.bom))
     implementation(platform(libs.resteasy.bom))
     implementation(platform(libs.netty.bom)) {
@@ -69,6 +70,7 @@ tasks.shadowJar {
     archiveClassifier.set("")
     mergeServiceFiles()
     minimize {
+        exclude(dependency("org.jetbrains.kotlin:kotlin-reflect:.*"))
         exclude(dependency("com.fasterxml.jackson.module:jackson-module-jakarta-xmlbind-annotations:.*"))
     }
 }
