@@ -1,5 +1,6 @@
 package no.novari.keycloak.scim.store
 
+import com.unboundid.scim2.common.Path
 import jakarta.persistence.criteria.CriteriaBuilder
 import jakarta.persistence.criteria.CriteriaQuery
 import jakarta.persistence.criteria.Expression
@@ -9,7 +10,7 @@ import jakarta.persistence.criteria.Predicate
 import jakarta.persistence.criteria.Root
 import no.novari.keycloak.scim.mapping.Column
 import no.novari.keycloak.scim.mapping.FieldKind
-import no.novari.keycloak.scim.mapping.keycloak.KeycloakScimUserMappingRegistry
+import no.novari.keycloak.scim.mapping.KeycloakScimSearchMappings
 import no.novari.keycloak.scim.search.ScimPage
 import no.novari.keycloak.scim.search.ScimUserSearch
 import no.novari.keycloak.scim.search.ScimUserSearchCriteria
@@ -97,7 +98,7 @@ internal class JpaScimUserSearch(
     private fun resolveSort(criteria: ScimUserSearchCriteria): ScimSort? {
         val sortBy = criteria.sortBy ?: return null
         val column =
-            KeycloakScimUserMappingRegistry.resolveSortColumn(sortBy)
+            resolveSortColumn(path = sortBy)
                 ?: throw UnsupportedScimFilterException("cannot sort by '$sortBy' in the database")
 
         return ScimSort(column, criteria.sortAscending)
@@ -295,6 +296,9 @@ internal class JpaScimUserSearch(
 
         return entityManager.createQuery(query).resultList.toCollection(linkedSetOf())
     }
+
+    private fun resolveSortColumn(path: Path) =
+        (KeycloakScimSearchMappings.users.resolve(path) as? Column<UserEntity>)?.takeIf { it.sortable }
 }
 
 private data class EffectiveRoleScope(

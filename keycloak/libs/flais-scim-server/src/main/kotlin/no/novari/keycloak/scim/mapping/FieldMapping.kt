@@ -1,5 +1,15 @@
 package no.novari.keycloak.scim.mapping
 
+sealed interface ConstantValue {
+    data class Text(
+        val value: String,
+    ) : ConstantValue
+
+    data class Bool(
+        val value: Boolean,
+    ) : ConstantValue
+}
+
 /**
  * A SCIM attribute resolved to somewhere it can be found in the backing persistence model.
  */
@@ -22,8 +32,8 @@ internal data class Attribute<E : Any>(
 ) : FieldMapping<E>
 
 internal data class Constant<E : Any>(
-    val value: Boolean,
-    override val kind: FieldKind = FieldKind.BOOLEAN,
+    val value: ConstantValue,
+    override val kind: FieldKind,
     override val sortable: Boolean = false,
 ) : FieldMapping<E>
 
@@ -64,7 +74,12 @@ internal fun <E : Any> attribute(
     multiValued: Boolean = false,
 ): Attribute<E> = Attribute(name, kind, multiValued)
 
-internal fun <E : Any> constant(value: Boolean): Constant<E> = Constant(value)
+internal fun <E : Any> constant(value: Boolean): Constant<E> = Constant(ConstantValue.Bool(value), FieldKind.BOOLEAN)
+
+internal fun <E : Any> constant(
+    value: String,
+    kind: FieldKind = FieldKind.MIXED_CASE,
+): Constant<E> = Constant(ConstantValue.Text(value), kind)
 
 internal fun <E : Any> alwaysPresentComplex(name: String): AlwaysPresentComplex<E> = AlwaysPresentComplex(name)
 

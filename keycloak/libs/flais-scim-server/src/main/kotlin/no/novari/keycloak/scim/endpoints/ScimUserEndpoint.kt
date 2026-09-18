@@ -33,6 +33,7 @@ import jakarta.ws.rs.core.Response
 import jakarta.ws.rs.core.UriBuilder
 import jakarta.ws.rs.core.UriInfo
 import no.novari.keycloak.scim.context.ScimContext
+import no.novari.keycloak.scim.resources.FintUserExtension
 import no.novari.keycloak.scim.resources.SearchHandler
 import no.novari.keycloak.scim.resources.UserResource
 import no.novari.keycloak.scim.search.ScimCursor
@@ -40,7 +41,6 @@ import no.novari.keycloak.scim.search.ScimPage
 import no.novari.keycloak.scim.search.ScimUserSearchCriteria
 import no.novari.keycloak.scim.search.ScimUserSearchResult
 import no.novari.keycloak.scim.store.UnsupportedScimFilterException
-import no.novari.keycloak.scim.types.FintUserExtension
 import no.novari.keycloak.scim.utils.EntraScimTransformer
 import no.novari.keycloak.scim.utils.ResourcePath
 import no.novari.keycloak.scim.utils.ResourceTypeDefinitionUtil.createResourceTypeDefinition
@@ -573,7 +573,7 @@ class ScimUserEndpoint(
     }
 
     companion object {
-        private val RESOURCE_TYPE_DEFINITION = createResourceTypeDefinition<ScimUserEndpoint>()
+        val RESOURCE_TYPE_DEFINITION = createResourceTypeDefinition<ScimUserEndpoint>()
         private val SCHEMA_CHECKER = SchemaChecker(RESOURCE_TYPE_DEFINITION)
     }
 }

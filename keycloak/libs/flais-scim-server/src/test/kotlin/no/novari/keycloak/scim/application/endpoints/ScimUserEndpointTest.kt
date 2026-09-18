@@ -2,12 +2,8 @@ package no.novari.keycloak.scim.application.endpoints
 
 import com.fasterxml.jackson.databind.JsonNode
 import com.unboundid.scim2.common.GenericScimResource
-import com.unboundid.scim2.common.exceptions.BadRequestException
-import com.unboundid.scim2.common.messages.ErrorResponse
-import com.unboundid.scim2.common.messages.ListResponse
 import com.unboundid.scim2.common.messages.PatchOperation
 import com.unboundid.scim2.common.messages.PatchRequest
-import com.unboundid.scim2.common.utils.ApiConstants
 import com.unboundid.scim2.common.utils.JsonUtils
 import io.mockk.every
 import io.mockk.impl.annotations.MockK
@@ -18,31 +14,21 @@ import io.mockk.unmockkAll
 import io.mockk.verify
 import jakarta.ws.rs.ForbiddenException
 import jakarta.ws.rs.NotFoundException
-import jakarta.ws.rs.core.MultivaluedHashMap
 import jakarta.ws.rs.core.Response
-import jakarta.ws.rs.core.UriInfo
 import no.novari.keycloak.scim.context.ScimContext
 import no.novari.keycloak.scim.endpoints.ScimUserEndpoint
+import no.novari.keycloak.scim.resources.FintUserExtension
 import no.novari.keycloak.scim.resources.UserResource
-import no.novari.keycloak.scim.search.ScimCursor
-import no.novari.keycloak.scim.search.ScimPage
-import no.novari.keycloak.scim.search.ScimUserSearch
-import no.novari.keycloak.scim.search.ScimUserSearchCriteria
-import no.novari.keycloak.scim.search.ScimUserSearchResult
-import no.novari.keycloak.scim.types.FintUserExtension
 import no.novari.keycloak.scim.utils.ScimRoles
 import no.novari.keycloak.scim.utils.TestUriInfo
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertNotNull
-import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
 import org.keycloak.models.FederatedIdentityModel
-import org.keycloak.models.GroupModel
 import org.keycloak.models.IdentityProviderModel
 import org.keycloak.models.KeycloakSession
 import org.keycloak.models.RealmModel
@@ -61,8 +47,6 @@ class ScimUserEndpointTest {
 
     private val extId = "any-ext-id"
     private val userId = "any-id"
-    private val groupId = "any-org-group-id"
-    private val roleId = "any-scim-role-id"
     private val userUriInfo = TestUriInfo(URI("http://localhost/scim/v2/Users/$userId"))
     private val usersUriInfo = TestUriInfo(URI("http://localhost/scim/v2/Users"))
 
@@ -88,14 +72,11 @@ class ScimUserEndpointTest {
     lateinit var userProvider: UserProvider
 
     lateinit var endpoint: ScimUserEndpoint
-    private lateinit var nativeUserSearch: RecordingScimUserSearch
 
     @BeforeEach
     fun setup() {
-        nativeUserSearch = RecordingScimUserSearch()
         every { scimContext.orgProvider } returns orgProvider
         every { scimContext.realm } returns realm
-        every { scimContext.userSearch } returns nativeUserSearch
 
         every { scimContext.session } returns keycloakSession
         every { keycloakSession.users() } returns userProvider
@@ -108,41 +89,7 @@ class ScimUserEndpointTest {
         unmockkAll()
     }
 
-    private fun usersUriInfoWith(params: Map<String, String>): UriInfo {
-        val query = MultivaluedHashMap<String, String>()
-        params.forEach { (k, v) -> query.add(k, v) }
-        return TestUriInfo(URI("http://localhost/scim/v2/Users"), query)
-    }
-
-    private fun filter(expression: String) = mapOf(ApiConstants.QUERY_PARAMETER_FILTER to expression)
-
-    /** Stubs what the native path needs to reach the database, without stubbing the query itself. */
-    private fun stubOrganizationLookup() {
-        val group = mockk<GroupModel> { every { id } returns groupId }
-        every { orgProvider.getOrganizationGroup(scimContext.organization) } returns group
-        every { scimRole.id } returns roleId
-    }
-
-    private fun stubNativeQuery(
-        totalResults: Int,
-        users: List<UserModel>,
-        hasMore: Boolean = false,
-    ) {
-        stubOrganizationLookup()
-        nativeUserSearch.result = ScimUserSearchResult.Page(users, totalResults, hasMore)
-    }
-
-    private class RecordingScimUserSearch : ScimUserSearch {
-        lateinit var criteria: ScimUserSearchCriteria
-        var result: ScimUserSearchResult = ScimUserSearchResult.Unsupported("not stubbed")
-
-        override fun search(criteria: ScimUserSearchCriteria): ScimUserSearchResult {
-            this.criteria = criteria
-            return result
-        }
-    }
-
-    fun templateUser(user: UserModel) {
+    private fun templateUser(user: UserModel) {
         every { realm.getRole(ScimRoles.SCIM_MANAGED_ROLE) } returns scimRole
         every { user.hasRole(scimRole) } returns true
         every { user.id } returns userId
@@ -198,203 +145,6 @@ class ScimUserEndpointTest {
         every { userProvider.getFederatedIdentity(realm, user, any()) } returns null
 
         return endpoint.createUser(usersUriInfo, scimUser)
-    }
-
-    @Test
-    fun `getUsers returns exact totalResults from the database and only the requested page`() {
-        templateUser(user)
-        stubNativeQuery(totalResults = 57, users = listOf(user))
-
-        val response = endpoint.getUsers(usersUriInfo)
-
-        assertEquals(Response.Status.OK.statusCode, response.status)
-        val result = response.entity as ListResponse<*>
-        assertEquals(57, result.totalResults)
-        assertEquals(1, result.resources.size)
-    }
-
-    @Test
-    fun `getUsers does not materialize all organization members on the native path`() {
-        templateUser(user)
-        stubNativeQuery(totalResults = 1, users = listOf(user))
-
-        endpoint.getUsers(usersUriInfo)
-
-        verify(exactly = 0) {
-            orgProvider.getMembersStream(any(), any<Map<String, String>>(), any(), any(), any())
-        }
-    }
-
-    @Test
-    fun `getUsers translates startIndex and count into a database offset and limit`() {
-        templateUser(user)
-        stubNativeQuery(totalResults = 57, users = listOf(user))
-
-        endpoint.getUsers(
-            usersUriInfoWith(
-                mapOf(
-                    ApiConstants.QUERY_PARAMETER_PAGE_START_INDEX to "3",
-                    ApiConstants.QUERY_PARAMETER_PAGE_SIZE to "2",
-                ),
-            ),
-        )
-
-        // startIndex is 1-based in SCIM, firstResult is 0-based in JPA.
-        val page = nativeUserSearch.criteria.page as ScimPage.Index
-        assertEquals(2, page.firstResult)
-        assertEquals(2, page.maxResults)
-    }
-
-    @Test
-    fun `getUsers pushes a supported filter into the database instead of scanning`() {
-        templateUser(user)
-        stubNativeQuery(totalResults = 1, users = listOf(user))
-
-        val response = endpoint.getUsers(usersUriInfoWith(filter("""userName eq "$USERNAME"""")))
-
-        val result = response.entity as ListResponse<*>
-        assertEquals(1, result.totalResults)
-        assertEquals(1, result.resources.size)
-        assertNotNull(nativeUserSearch.criteria.filter)
-        verify(exactly = 0) {
-            orgProvider.getMembersStream(any(), any<Map<String, String>>(), any(), any(), any())
-        }
-    }
-
-    @Test
-    fun `getUsers pushes a supported sort into the database`() {
-        templateUser(user)
-        stubNativeQuery(totalResults = 1, users = listOf(user))
-
-        endpoint.getUsers(
-            usersUriInfoWith(
-                mapOf(
-                    ApiConstants.QUERY_PARAMETER_SORT_BY to "userName",
-                    ApiConstants.QUERY_PARAMETER_SORT_ORDER to "descending",
-                ),
-            ),
-        )
-
-        assertEquals("userName", nativeUserSearch.criteria.sortBy.toString())
-        assertEquals(false, nativeUserSearch.criteria.sortAscending)
-    }
-
-    @Test
-    fun `getUsers can start cursor pagination with a blank cursor`() {
-        templateUser(user)
-        stubNativeQuery(totalResults = 57, users = listOf(user), hasMore = true)
-
-        val response =
-            endpoint.getUsers(
-                usersUriInfoWith(
-                    mapOf(
-                        ApiConstants.QUERY_PARAMETER_PAGE_CURSOR to "",
-                        ApiConstants.QUERY_PARAMETER_PAGE_SIZE to "1",
-                    ),
-                ),
-            )
-
-        val result = response.entity as ListResponse<*>
-        val page = nativeUserSearch.criteria.page as ScimPage.Keyset
-        assertNull(page.after)
-        assertEquals(1, page.maxResults)
-        assertNull(result.startIndex)
-        assertEquals(1, result.itemsPerPage)
-        assertEquals(
-            ScimCursor(ScimCursor.queryHash(null, groupId), userId).encode(),
-            result.nextCursor,
-        )
-    }
-
-    @Test
-    fun `getUsers resumes cursor pagination from a matching cursor`() {
-        templateUser(user)
-        stubNativeQuery(totalResults = 57, users = listOf(user))
-        val cursor = ScimCursor(ScimCursor.queryHash(null, groupId), "previous-user-id").encode()
-
-        endpoint.getUsers(
-            usersUriInfoWith(
-                mapOf(
-                    ApiConstants.QUERY_PARAMETER_PAGE_CURSOR to cursor,
-                    ApiConstants.QUERY_PARAMETER_PAGE_SIZE to "1",
-                ),
-            ),
-        )
-
-        val page = nativeUserSearch.criteria.page as ScimPage.Keyset
-        assertEquals("previous-user-id", page.after)
-        assertEquals(1, page.maxResults)
-    }
-
-    @Test
-    fun `getUsers rejects a cursor from a different query`() {
-        templateUser(user)
-        stubOrganizationLookup()
-        val cursor = ScimCursor(ScimCursor.queryHash(null, groupId), "previous-user-id").encode()
-
-        assertThrows<BadRequestException> {
-            endpoint.getUsers(
-                usersUriInfoWith(
-                    filter("""userName eq "$USERNAME"""") +
-                        (ApiConstants.QUERY_PARAMETER_PAGE_CURSOR to cursor),
-                ),
-            )
-        }
-    }
-
-    @Test
-    fun `getUsers rejects a cursor from a different organization`() {
-        templateUser(user)
-        stubOrganizationLookup()
-        val cursor = ScimCursor(ScimCursor.queryHash(null, "another-org-group-id"), "previous-user-id").encode()
-
-        assertThrows<BadRequestException> {
-            endpoint.getUsers(
-                usersUriInfoWith(
-                    mapOf(
-                        ApiConstants.QUERY_PARAMETER_PAGE_CURSOR to cursor,
-                        ApiConstants.QUERY_PARAMETER_PAGE_SIZE to "1",
-                    ),
-                ),
-            )
-        }
-    }
-
-    @Test
-    fun `getUsers returns 400 for filters that cannot be pushed down`() {
-        templateUser(user)
-        stubOrganizationLookup()
-        nativeUserSearch.result =
-            ScimUserSearchResult.Unsupported("attribute 'roles' is a complex SCIM role and cannot be compared in the database")
-
-        val response =
-            endpoint.getUsers(
-                usersUriInfoWith(filter("""roles.value co "read"""")),
-            )
-
-        assertEquals(Response.Status.BAD_REQUEST.statusCode, response.status)
-        assertEquals(
-            "attribute 'roles' is a complex SCIM role and cannot be compared in the database",
-            (response.entity as ErrorResponse).detail,
-        )
-        verify(exactly = 0) {
-            orgProvider.getMembersStream(any(), any<Map<String, String>>(), any(), any(), any())
-        }
-    }
-
-    @Test
-    fun `getUsers returns 400 for a sort it cannot push down`() {
-        templateUser(user)
-        stubOrganizationLookup()
-        nativeUserSearch.result = ScimUserSearchResult.Unsupported("roles cannot be sorted in the database")
-
-        val response = endpoint.getUsers(usersUriInfoWith(mapOf(ApiConstants.QUERY_PARAMETER_SORT_BY to "roles")))
-
-        assertEquals(Response.Status.BAD_REQUEST.statusCode, response.status)
-        assertEquals("roles cannot be sorted in the database", (response.entity as ErrorResponse).detail)
-        verify(exactly = 0) {
-            orgProvider.getMembersStream(any(), any<Map<String, String>>(), any(), any(), any())
-        }
     }
 
     @Test

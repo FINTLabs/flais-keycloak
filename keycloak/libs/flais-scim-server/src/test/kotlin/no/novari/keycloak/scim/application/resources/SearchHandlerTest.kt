@@ -32,9 +32,9 @@ class SearchHandlerTest {
         } just Runs
     }
 
-    fun uriInfoWithParams(params: Map<String, String>): UriInfo {
+    private fun uriInfoWithParams(vararg params: Pair<String, String>): UriInfo {
         val query = MultivaluedHashMap<String, String>()
-        params.forEach { (k, v) -> query.add(k, v) }
+        params.forEach { (key, value) -> query.add(key, value) }
 
         return TestUriInfo(
             URI("http://localhost/scim/v2/Users"),
@@ -42,16 +42,16 @@ class SearchHandlerTest {
         )
     }
 
-    private fun createHandler(params: Map<String, String>): SearchHandler<GenericScimResource> {
+    private fun createHandler(vararg params: Pair<String, String>): SearchHandler<GenericScimResource> {
         mockScimInfrastructure()
         val resourceType = mockk<ResourceTypeDefinition>(relaxed = true)
-        val uriInfo = uriInfoWithParams(params)
+        val uriInfo = uriInfoWithParams(*params)
         return SearchHandler(resourceType, uriInfo)
     }
 
     @Test
     fun `constructor with no query params leaves filter and pagination null`() {
-        val handler = createHandler(emptyMap())
+        val handler = createHandler()
 
         assertNull(handler.filter)
         assertNull(handler.startIndex)
@@ -64,7 +64,7 @@ class SearchHandlerTest {
     fun `constructor parses filter when present`() {
         assertNotNull(
             createHandler(
-                mapOf(ApiConstants.QUERY_PARAMETER_FILTER to """userName eq "alice""""),
+                ApiConstants.QUERY_PARAMETER_FILTER to """userName eq "alice"""",
             ).filter,
         )
     }
@@ -73,10 +73,8 @@ class SearchHandlerTest {
     fun `constructor coerces startIndex and count to valid ranges`() {
         val handler =
             createHandler(
-                mapOf(
-                    ApiConstants.QUERY_PARAMETER_PAGE_START_INDEX to "0",
-                    ApiConstants.QUERY_PARAMETER_PAGE_SIZE to "-5",
-                ),
+                ApiConstants.QUERY_PARAMETER_PAGE_START_INDEX to "0",
+                ApiConstants.QUERY_PARAMETER_PAGE_SIZE to "-5",
             )
 
         assertEquals(1, handler.startIndex)
@@ -87,10 +85,8 @@ class SearchHandlerTest {
     fun `constructor parses sort parameters when sortBy is present`() {
         val handler =
             createHandler(
-                mapOf(
-                    ApiConstants.QUERY_PARAMETER_SORT_BY to "userName",
-                    ApiConstants.QUERY_PARAMETER_SORT_ORDER to "descending",
-                ),
+                ApiConstants.QUERY_PARAMETER_SORT_BY to "userName",
+                ApiConstants.QUERY_PARAMETER_SORT_ORDER to "descending",
             )
 
         assertEquals("userName", handler.sortBy.toString())
@@ -101,10 +97,8 @@ class SearchHandlerTest {
     fun `createPagedSearchResult returns database page with index pagination metadata`() {
         val result: ListResponse<GenericScimResource> =
             createHandler(
-                mapOf(
-                    ApiConstants.QUERY_PARAMETER_PAGE_START_INDEX to "5",
-                    ApiConstants.QUERY_PARAMETER_PAGE_SIZE to "2",
-                ),
+                ApiConstants.QUERY_PARAMETER_PAGE_START_INDEX to "5",
+                ApiConstants.QUERY_PARAMETER_PAGE_SIZE to "2",
             ).createPagedSearchResult(
                 sequenceOf(
                     GenericScimResource(),
@@ -123,7 +117,7 @@ class SearchHandlerTest {
     fun `createPagedSearchResult returns cursor pagination metadata`() {
         val result: ListResponse<GenericScimResource> =
             createHandler(
-                mapOf(ApiConstants.QUERY_PARAMETER_PAGE_CURSOR to "current-cursor"),
+                ApiConstants.QUERY_PARAMETER_PAGE_CURSOR to "current-cursor",
             ).createPagedSearchResult(
                 sequenceOf(
                     GenericScimResource(),
@@ -144,10 +138,8 @@ class SearchHandlerTest {
     fun `createPagedSearchResult keeps empty database page metadata`() {
         val result: ListResponse<GenericScimResource> =
             createHandler(
-                mapOf(
-                    ApiConstants.QUERY_PARAMETER_PAGE_START_INDEX to "10",
-                    ApiConstants.QUERY_PARAMETER_PAGE_SIZE to "5",
-                ),
+                ApiConstants.QUERY_PARAMETER_PAGE_START_INDEX to "10",
+                ApiConstants.QUERY_PARAMETER_PAGE_SIZE to "5",
             ).createPagedSearchResult(
                 emptySequence(),
                 totalResults = 3,
@@ -162,7 +154,7 @@ class SearchHandlerTest {
     @Test
     fun `createPagedSearchResult defaults startIndex for index pagination`() {
         val result: ListResponse<GenericScimResource> =
-            createHandler(emptyMap()).createPagedSearchResult(
+            createHandler().createPagedSearchResult(
                 sequenceOf(GenericScimResource()),
                 totalResults = 1,
             )
@@ -176,7 +168,7 @@ class SearchHandlerTest {
     fun `constructor detects cursor pagination when cursor parameter is present`() {
         val handler =
             createHandler(
-                mapOf(ApiConstants.QUERY_PARAMETER_PAGE_CURSOR to ""),
+                ApiConstants.QUERY_PARAMETER_PAGE_CURSOR to "",
             )
 
         assertTrue(handler.cursorRequested)
@@ -185,7 +177,7 @@ class SearchHandlerTest {
 
     @Test
     fun `constructor leaves cursor pagination disabled when cursor parameter is absent`() {
-        val handler = createHandler(emptyMap())
+        val handler = createHandler()
 
         assertEquals(false, handler.cursorRequested)
         assertNull(handler.cursor)
@@ -193,6 +185,6 @@ class SearchHandlerTest {
 
     @Test
     fun `constructor leaves count null when page size is absent`() {
-        assertNull(createHandler(emptyMap()).count)
+        assertNull(createHandler().count)
     }
 }

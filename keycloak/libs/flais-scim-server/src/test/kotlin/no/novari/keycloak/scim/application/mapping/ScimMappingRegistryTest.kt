@@ -1,33 +1,65 @@
 package no.novari.keycloak.scim.application.mapping
 
 import com.unboundid.scim2.common.Path
+import com.unboundid.scim2.common.annotations.Schema
+import com.unboundid.scim2.server.annotations.ResourceType
+import com.unboundid.scim2.server.utils.ResourceTypeDefinition
 import no.novari.keycloak.scim.mapping.Column
+import no.novari.keycloak.scim.mapping.Constant
+import no.novari.keycloak.scim.mapping.ConstantValue
 import no.novari.keycloak.scim.mapping.FieldKind
-import no.novari.keycloak.scim.mapping.ScimFieldPath
-import no.novari.keycloak.scim.mapping.ScimMappingEntry
-import no.novari.keycloak.scim.mapping.ScimMappingModule
+import no.novari.keycloak.scim.mapping.ScimMapping
 import no.novari.keycloak.scim.mapping.ScimMappingRegistry
 import no.novari.keycloak.scim.mapping.column
 import no.novari.keycloak.scim.mapping.constant
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
+import jakarta.ws.rs.Path as JaxRsPath
 
 internal class ScimMappingRegistryTest {
     private object TestEntity
 
-    private object TestModule : ScimMappingModule<TestEntity> {
-        override val schemaUrn = "urn:test:schemas:core"
+    @ResourceType(
+        description = "Test resource",
+        name = "Test",
+        schema = TestSchema::class,
+    )
+    @JaxRsPath("Test")
+    private class TestResource
 
-        override val entries =
-            listOf(
-                ScimMappingEntry(ScimFieldPath(schemaUrn, "userName"), column<TestEntity>("username", FieldKind.STORED_LOWERCASE)),
-                ScimMappingEntry(ScimFieldPath(schemaUrn, "emails.value"), column<TestEntity>("email", FieldKind.STORED_LOWERCASE)),
-                ScimMappingEntry(ScimFieldPath(schemaUrn, "emails.primary"), constant<TestEntity>(true)),
-            )
+    @Schema(id = "urn:test:schemas:core", name = "TestSchema", description = "Test schema")
+    private class TestSchema {
+        var userName: String? = null
+        var emails: List<TestEmail>? = null
     }
 
-    private val registry = ScimMappingRegistry(listOf(TestModule), defaultSchemaUrn = TestModule.schemaUrn)
+    private class TestEmail {
+        var value: String? = null
+        var primary: Boolean? = null
+    }
+
+    private object TestEmailMapping : ScimMapping<TestEmail, TestEntity>(TestEmail::class) {
+        init {
+            property(TestEmail::value, column<TestEntity>("email", FieldKind.STORED_LOWERCASE))
+            property(TestEmail::primary, constant<TestEntity>(true))
+        }
+    }
+
+    @Schema(id = "urn:test:schemas:core", name = "TestSchema", description = "Test schema")
+    private object TestMapping : ScimMapping<TestSchema, TestEntity>(TestSchema::class) {
+        init {
+            property(TestSchema::userName, column<TestEntity>("username", FieldKind.STORED_LOWERCASE))
+            complexCollection(TestSchema::emails, column<TestEntity>("email", FieldKind.STORED_LOWERCASE), TestEmailMapping)
+        }
+    }
+
+    private val registry =
+        ScimMappingRegistry.create<TestEntity>(
+            resourceTypeDefinition = ResourceTypeDefinition.fromJaxRsResource(TestResource::class.java),
+            configurators = listOf(TestMapping),
+        )
 
     @Test
     fun `paths without schema urn resolve against default schema`() {
@@ -46,22 +78,30 @@ internal class ScimMappingRegistryTest {
     }
 
     @Test
-    fun `paths without schema urn do not resolve when no default schema is configured`() {
-        val registryWithoutDefault = ScimMappingRegistry(listOf(TestModule), defaultSchemaUrn = null)
-
-        assertNull(registryWithoutDefault.resolve(Path.fromString("userName")))
+    fun `registry validates that resource core schema has a mapping`() {
+        assertThrows<IllegalArgumentException> {
+            ScimMappingRegistry.create<TestEntity>(
+                resourceTypeDefinition = ResourceTypeDefinition.fromJaxRsResource(TestResource::class.java),
+                configurators = emptyList(),
+            )
+        }
     }
 
     @Test
-    fun `value filters matching boolean constants are collapsed`() {
+    fun `nested paths resolve against complex mappings`() {
         assertEquals(
             Column<TestEntity>("email", FieldKind.STORED_LOWERCASE),
-            registry.resolve(Path.fromString("emails[primary eq true].value")),
+            registry.resolve(Path.fromString("emails.value")),
+        )
+        assertEquals(
+            Constant<TestEntity>(ConstantValue.Bool(true), FieldKind.BOOLEAN),
+            registry.resolve(Path.fromString("emails.primary")),
         )
     }
 
     @Test
-    fun `value filters that do not match boolean constants are unresolved`() {
+    fun `value filtered paths are unresolved`() {
+        assertNull(registry.resolve(Path.fromString("emails[primary eq true].value")))
         assertNull(registry.resolve(Path.fromString("emails[primary eq false].value")))
         assertNull(registry.resolve(Path.fromString("""emails[value eq "a@example.no"].value""")))
     }
