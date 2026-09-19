@@ -1,4 +1,4 @@
-package no.novari.keycloak.scim.mapping
+package no.novari.keycloak.scim.search.jpa.mapping
 
 import com.unboundid.scim2.common.Path
 import com.unboundid.scim2.common.annotations.Schema

@@ -1,4 +1,4 @@
-package no.novari.keycloak.scim.store
+package no.novari.keycloak.scim.search.jpa
 
 import com.unboundid.scim2.common.Path
 import jakarta.persistence.criteria.CriteriaBuilder
@@ -8,13 +8,13 @@ import jakarta.persistence.criteria.Join
 import jakarta.persistence.criteria.Order
 import jakarta.persistence.criteria.Predicate
 import jakarta.persistence.criteria.Root
-import no.novari.keycloak.scim.mapping.Column
-import no.novari.keycloak.scim.mapping.FieldKind
-import no.novari.keycloak.scim.mapping.KeycloakScimSearchMappings
 import no.novari.keycloak.scim.search.ScimPage
 import no.novari.keycloak.scim.search.ScimUserSearch
 import no.novari.keycloak.scim.search.ScimUserSearchCriteria
 import no.novari.keycloak.scim.search.ScimUserSearchResult
+import no.novari.keycloak.scim.search.jpa.mapping.Column
+import no.novari.keycloak.scim.search.jpa.mapping.FieldKind
+import no.novari.keycloak.scim.search.jpa.mapping.KeycloakScimSearchMappings
 import org.keycloak.connections.jpa.JpaConnectionProvider
 import org.keycloak.models.KeycloakSession
 import org.keycloak.models.RealmModel
@@ -60,7 +60,7 @@ internal class JpaScimUserSearch(
         val sort =
             try {
                 resolveSort(criteria)
-            } catch (e: UnsupportedScimFilterException) {
+            } catch (e: UnsupportedScimSearchException) {
                 return ScimUserSearchResult.Unsupported(e.message.orEmpty())
             }
 
@@ -82,7 +82,7 @@ internal class JpaScimUserSearch(
             val users = pageIds.mapNotNull { userProvider.getUserById(realm, it) }
 
             ScimUserSearchResult.Page(users, totalResults, hasMore)
-        } catch (e: UnsupportedScimFilterException) {
+        } catch (e: UnsupportedScimSearchException) {
             ScimUserSearchResult.Unsupported(e.message.orEmpty())
         }
     }
@@ -98,7 +98,7 @@ internal class JpaScimUserSearch(
         val sortBy = criteria.sortBy ?: return null
         val column =
             resolveSortColumn(path = sortBy)
-                ?: throw UnsupportedScimFilterException("cannot sort by '$sortBy' in the database")
+                ?: throw UnsupportedScimSearchException("cannot sort by '$sortBy' in the database")
 
         return ScimSort(column, criteria.sortAscending)
     }

@@ -1,17 +1,17 @@
-package no.novari.keycloak.scim.application.mapping
+package no.novari.keycloak.scim.application.search.jpa.mapping
 
 import com.unboundid.scim2.common.Path
 import com.unboundid.scim2.common.annotations.Schema
 import com.unboundid.scim2.server.annotations.ResourceType
 import com.unboundid.scim2.server.utils.ResourceTypeDefinition
-import no.novari.keycloak.scim.mapping.Column
-import no.novari.keycloak.scim.mapping.Constant
-import no.novari.keycloak.scim.mapping.ConstantValue
-import no.novari.keycloak.scim.mapping.FieldKind
-import no.novari.keycloak.scim.mapping.ScimMapping
-import no.novari.keycloak.scim.mapping.ScimMappingRegistry
-import no.novari.keycloak.scim.mapping.column
-import no.novari.keycloak.scim.mapping.constant
+import no.novari.keycloak.scim.search.jpa.mapping.Column
+import no.novari.keycloak.scim.search.jpa.mapping.Constant
+import no.novari.keycloak.scim.search.jpa.mapping.ConstantValue
+import no.novari.keycloak.scim.search.jpa.mapping.FieldKind
+import no.novari.keycloak.scim.search.jpa.mapping.ScimMapping
+import no.novari.keycloak.scim.search.jpa.mapping.ScimMappingRegistry
+import no.novari.keycloak.scim.search.jpa.mapping.column
+import no.novari.keycloak.scim.search.jpa.mapping.constant
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Test

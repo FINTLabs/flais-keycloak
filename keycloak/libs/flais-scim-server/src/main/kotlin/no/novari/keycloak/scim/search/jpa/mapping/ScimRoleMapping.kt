@@ -1,9 +1,9 @@
-package no.novari.keycloak.scim.mapping
+package no.novari.keycloak.scim.search.jpa.mapping
 
 import com.unboundid.scim2.common.types.Role
 import org.keycloak.models.jpa.entities.UserEntity
 
-internal object ScimRoleMapper :
+internal object ScimRoleMapping :
     ScimMapping<Role, UserEntity>(Role::class) {
     init {
         property(

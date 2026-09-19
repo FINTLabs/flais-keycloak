@@ -1,4 +1,4 @@
-package no.novari.keycloak.scim.mapping
+package no.novari.keycloak.scim.search.jpa.mapping
 
 import com.unboundid.scim2.common.types.EnterpriseUserExtension
 import org.keycloak.models.jpa.entities.UserEntity

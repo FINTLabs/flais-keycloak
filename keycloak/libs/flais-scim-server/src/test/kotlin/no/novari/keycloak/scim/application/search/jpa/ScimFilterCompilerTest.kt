@@ -1,4 +1,4 @@
-package no.novari.keycloak.scim.application.store
+package no.novari.keycloak.scim.application.search.jpa
 
 import com.unboundid.scim2.common.filters.Filter
 import io.mockk.every
@@ -12,8 +12,8 @@ import jakarta.persistence.criteria.Path
 import jakarta.persistence.criteria.Predicate
 import jakarta.persistence.criteria.Root
 import jakarta.persistence.criteria.Subquery
-import no.novari.keycloak.scim.store.ScimFilterCompiler
-import no.novari.keycloak.scim.store.UnsupportedScimFilterException
+import no.novari.keycloak.scim.search.jpa.ScimFilterCompiler
+import no.novari.keycloak.scim.search.jpa.UnsupportedScimSearchException
 import org.junit.jupiter.api.Assertions.assertSame
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -88,7 +88,7 @@ internal class ScimFilterCompilerTest {
         ],
     )
     fun `unsupported value filter mappings are rejected`(filter: String) {
-        assertThrows<UnsupportedScimFilterException> { TestCriteria().compile(filter) }
+        assertThrows<UnsupportedScimSearchException> { TestCriteria().compile(filter) }
     }
 
     @Test
@@ -219,7 +219,7 @@ internal class ScimFilterCompilerTest {
     fun `complex attributes cannot be compared directly`() {
         val criteria = TestCriteria()
 
-        assertThrows<UnsupportedScimFilterException> {
+        assertThrows<UnsupportedScimSearchException> {
             criteria.compile("emails eq true")
         }
     }

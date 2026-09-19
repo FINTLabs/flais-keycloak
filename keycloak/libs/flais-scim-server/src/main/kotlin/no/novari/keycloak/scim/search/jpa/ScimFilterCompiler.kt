@@ -1,4 +1,4 @@
-package no.novari.keycloak.scim.store
+package no.novari.keycloak.scim.search.jpa
 
 import com.fasterxml.jackson.databind.node.ValueNode
 import com.unboundid.scim2.common.Path
@@ -23,40 +23,19 @@ import jakarta.persistence.criteria.CriteriaQuery
 import jakarta.persistence.criteria.Expression
 import jakarta.persistence.criteria.From
 import jakarta.persistence.criteria.Predicate
-import no.novari.keycloak.scim.mapping.AlwaysPresentComplex
-import no.novari.keycloak.scim.mapping.Attribute
-import no.novari.keycloak.scim.mapping.Column
-import no.novari.keycloak.scim.mapping.ComparisonOp
-import no.novari.keycloak.scim.mapping.Constant
-import no.novari.keycloak.scim.mapping.ConstantValue
-import no.novari.keycloak.scim.mapping.FieldKind
-import no.novari.keycloak.scim.mapping.FieldMapping
-import no.novari.keycloak.scim.mapping.KeycloakScimSearchMappings
-import no.novari.keycloak.scim.mapping.Unsupported
+import no.novari.keycloak.scim.search.jpa.mapping.AlwaysPresentComplex
+import no.novari.keycloak.scim.search.jpa.mapping.Attribute
+import no.novari.keycloak.scim.search.jpa.mapping.Column
+import no.novari.keycloak.scim.search.jpa.mapping.Constant
+import no.novari.keycloak.scim.search.jpa.mapping.ConstantValue
+import no.novari.keycloak.scim.search.jpa.mapping.FieldKind
+import no.novari.keycloak.scim.search.jpa.mapping.FieldMapping
+import no.novari.keycloak.scim.search.jpa.mapping.KeycloakScimSearchMappings
+import no.novari.keycloak.scim.search.jpa.mapping.Unsupported
 import org.keycloak.models.jpa.entities.UserAttributeEntity
 import org.keycloak.models.jpa.entities.UserEntity
 import org.keycloak.storage.jpa.JpaHashUtils
 import java.util.Locale
-
-internal class UnsupportedScimFilterException(
-    message: String,
-) : RuntimeException(message)
-
-/**
- * Intermediate representation of a compiled SCIM predicate.
- *
- * Keeping TRUE/FALSE separate from SQL lets us constant-fold filters before
- * creating Criteria predicates.
- */
-internal sealed interface CompiledPredicate {
-    data object True : CompiledPredicate
-
-    data object False : CompiledPredicate
-
-    data class Sql(
-        val predicate: Predicate,
-    ) : CompiledPredicate
-}
 
 /**
  * Compiles a SCIM filter into a JPA Predicate over UserEntity.
@@ -965,7 +944,7 @@ internal class ScimFilterCompiler(
         }
 
     private fun unsupported(message: String): Nothing =
-        throw UnsupportedScimFilterException(
+        throw UnsupportedScimSearchException(
             message,
         )
 

@@ -1,10 +1,10 @@
-package no.novari.keycloak.scim.mapping
+package no.novari.keycloak.scim.search.jpa.mapping
 
 import no.novari.keycloak.scim.resources.UserResource
 import org.keycloak.models.UserModel
 import org.keycloak.models.jpa.entities.UserEntity
 
-internal object ScimUserMapper :
+internal object ScimUserMapping :
     ScimMapping<UserResource, UserEntity>(UserResource::class) {
     init {
         property(
@@ -46,13 +46,13 @@ internal object ScimUserMapper :
                 FieldKind.CASE_EXACT,
                 multiValued = true,
             ),
-            ScimRoleMapper,
+            ScimRoleMapping,
         )
 
         complexCollection(
             UserResource::emails,
             alwaysPresentComplex("emails"),
-            ScimEmailMapper,
+            ScimEmailMapping,
         )
     }
 }

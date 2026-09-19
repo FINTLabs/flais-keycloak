@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.node.ObjectNode
 import com.unboundid.scim2.common.annotations.Attribute
 import com.unboundid.scim2.common.exceptions.BadRequestException
 import com.unboundid.scim2.common.messages.ErrorResponse
-import com.unboundid.scim2.common.messages.ListResponse
 import com.unboundid.scim2.common.messages.PatchRequest
 import com.unboundid.scim2.common.messages.SortOrder
 import com.unboundid.scim2.common.types.Email
@@ -40,7 +39,6 @@ import no.novari.keycloak.scim.search.ScimCursor
 import no.novari.keycloak.scim.search.ScimPage
 import no.novari.keycloak.scim.search.ScimUserSearchCriteria
 import no.novari.keycloak.scim.search.ScimUserSearchResult
-import no.novari.keycloak.scim.store.UnsupportedScimFilterException
 import no.novari.keycloak.scim.utils.EntraScimTransformer
 import no.novari.keycloak.scim.utils.ResourcePath
 import no.novari.keycloak.scim.utils.ResourceTypeDefinitionUtil.createResourceTypeDefinition
@@ -82,45 +80,17 @@ class ScimUserEndpoint(
                 "SCIM managed role not found"
             }
 
-        val searchResult =
-            try {
-                nativeSearch(searchHandler, scimRole)
-            } catch (e: UnsupportedScimFilterException) {
-                logger.warnf(
-                    "SCIM user search cannot be pushed to the database. org=%s reason=%s",
-                    scimContext.organization.alias,
-                    e.message,
-                )
-
-                return Response
-                    .status(Response.Status.BAD_REQUEST)
-                    .type(ApiConstants.MEDIA_TYPE_SCIM)
-                    .entity(
-                        ErrorResponse(400).apply {
-                            detail = e.message
-                        },
-                    ).build()
-            }
-
-        logger.debugf(
-            "SCIM user search completed. org=%s totalResults=%d returned=%d",
-            scimContext.organization.alias,
-            searchResult.totalResults,
-            searchResult.resources.size,
-        )
-        return Response.ok(searchResult).build()
+        return nativeSearch(searchHandler, scimRole)
     }
 
     /**
      * Database-backed search. Produces an exact `totalResults` and fetches only the requested page,
      * instead of materializing every organization member.
-     *
-     * @throws UnsupportedScimFilterException when the filter or sort cannot be expressed in SQL.
      */
     private fun nativeSearch(
         searchHandler: SearchHandler<UserResource>,
         scimRole: RoleModel,
-    ): ListResponse<UserResource> {
+    ): Response {
         val groupId = scimContext.orgProvider.getOrganizationGroup(scimContext.organization).id
         val queryHash = ScimCursor.queryHash(searchHandler.filter, groupId)
         val page = resolvePage(searchHandler, queryHash)
@@ -143,12 +113,20 @@ class ScimUserEndpoint(
                         null
                     }
 
-                searchHandler.createPagedSearchResult(
-                    result.users.asSequence().map { translateUser(it) },
-                    result.totalResults,
-                    nextCursor,
-                    cursorPagination = page is ScimPage.Keyset,
+                val searchResult =
+                    searchHandler.createPagedSearchResult(
+                        result.users.asSequence().map { translateUser(it) },
+                        result.totalResults,
+                        nextCursor,
+                        cursorPagination = page is ScimPage.Keyset,
+                    )
+                logger.debugf(
+                    "SCIM user search completed. org=%s totalResults=%d returned=%d",
+                    scimContext.organization.alias,
+                    searchResult.totalResults,
+                    searchResult.resources.size,
                 )
+                Response.ok(searchResult).build()
             }
 
             is ScimUserSearchResult.Unsupported -> {
@@ -157,7 +135,19 @@ class ScimUserEndpoint(
                         "cursor pagination cannot be used for this query: ${result.reason}",
                     )
                 }
-                throw UnsupportedScimFilterException(result.reason)
+                logger.warnf(
+                    "SCIM user search cannot be pushed to the database. org=%s reason=%s",
+                    scimContext.organization.alias,
+                    result.reason,
+                )
+                Response
+                    .status(Response.Status.BAD_REQUEST)
+                    .type(ApiConstants.MEDIA_TYPE_SCIM)
+                    .entity(
+                        ErrorResponse(400).apply {
+                            detail = result.reason
+                        },
+                    ).build()
             }
         }
     }

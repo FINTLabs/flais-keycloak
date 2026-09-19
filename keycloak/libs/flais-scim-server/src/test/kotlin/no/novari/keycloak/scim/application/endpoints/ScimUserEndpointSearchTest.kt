@@ -247,6 +247,26 @@ class ScimUserEndpointSearchTest {
     }
 
     @Test
+    fun `getUsers rejects unsupported cursor searches with invalidValue`() {
+        stubUser()
+        stubOrganizationLookup()
+        userSearch.result = ScimUserSearchResult.Unsupported(UNSUPPORTED_FILTER)
+
+        val exception =
+            assertThrows<BadRequestException> {
+                endpoint.getUsers(
+                    usersUriInfo(
+                        filter("""roles.value co "read""""),
+                        ApiConstants.QUERY_PARAMETER_PAGE_CURSOR to "",
+                    ),
+                )
+            }
+
+        assertEquals("cursor pagination cannot be used for this query: $UNSUPPORTED_FILTER", exception.message)
+        verifyNoOrganizationScan()
+    }
+
+    @Test
     fun `getUsers returns 400 for a sort it cannot push down`() {
         stubUser()
         stubOrganizationLookup()

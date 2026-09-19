@@ -1,10 +1,10 @@
-package no.novari.keycloak.scim.mapping
+package no.novari.keycloak.scim.search.jpa.mapping
 
 import com.unboundid.scim2.common.types.Email
 import org.keycloak.models.UserModel
 import org.keycloak.models.jpa.entities.UserEntity
 
-internal object ScimEmailMapper :
+internal object ScimEmailMapping :
     ScimMapping<Email, UserEntity>(Email::class) {
     init {
         property(

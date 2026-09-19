@@ -1,4 +1,4 @@
-package no.novari.keycloak.scim.mapping
+package no.novari.keycloak.scim.search.jpa.mapping
 
 import no.novari.keycloak.scim.endpoints.ScimUserEndpoint
 
@@ -8,8 +8,8 @@ internal object KeycloakScimSearchMappings {
             resourceTypeDefinition = ScimUserEndpoint.RESOURCE_TYPE_DEFINITION,
             configurators =
                 listOf(
-                    ScimUserMapper,
-                    ScimFintUserMapper,
+                    ScimUserMapping,
+                    ScimFintUserMapping,
                     ScimEnterpriseUserMapping,
                 ),
         )

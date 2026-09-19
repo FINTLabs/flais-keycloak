@@ -1,10 +1,10 @@
-package no.novari.keycloak.scim.mapping
+package no.novari.keycloak.scim.search.jpa.mapping
 
 import no.novari.keycloak.scim.resources.FintUserExtension
 import org.keycloak.models.UserModel
 import org.keycloak.models.jpa.entities.UserEntity
 
-internal object ScimFintUserMapper :
+internal object ScimFintUserMapping :
     ScimMapping<FintUserExtension, UserEntity>(FintUserExtension::class) {
     init {
         property(

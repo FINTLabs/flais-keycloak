@@ -1,4 +1,4 @@
-package no.novari.keycloak.scim.mapping
+package no.novari.keycloak.scim.search.jpa
 
 internal enum class ComparisonOp {
     EQ,
