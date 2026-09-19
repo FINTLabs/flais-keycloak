@@ -65,6 +65,7 @@ resteasy-core = { module = "org.jboss.resteasy:resteasy-core" }
 junit-jupiter = { module = "org.junit.jupiter:junit-jupiter" }
 junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher" }
 testcontainers-core = { module = "org.testcontainers:testcontainers", version.ref = "testcontainers" }
+testcontainers-k6 = { module = "org.testcontainers:testcontainers-k6", version.ref = "testcontainers" }
 testcontainers-junit-jupiter = { module = "org.testcontainers:testcontainers-junit-jupiter", version.ref = "testcontainers" }
 okhttp = { module = "com.squareup.okhttp3:okhttp" }
 
