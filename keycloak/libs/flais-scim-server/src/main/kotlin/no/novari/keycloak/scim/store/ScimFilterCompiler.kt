@@ -74,56 +74,56 @@ internal class ScimFilterCompiler(
     private val builder: CriteriaBuilder,
     private val query: CriteriaQuery<*>,
     private val user: From<*, UserEntity>,
-) : FilterVisitor<CompiledPredicate, Unit> {
+) : FilterVisitor<CompiledPredicate, Path> {
     fun compile(filter: Filter): Predicate =
         filter
-            .visit(this, Unit)
+            .visit(this, Path.root())
             .toPredicate()
 
     override fun visit(
         filter: EqualFilter,
-        param: Unit,
-    ): CompiledPredicate = compare(filter, ComparisonOp.EQ)
+        param: Path,
+    ): CompiledPredicate = compare(filter, ComparisonOp.EQ, param)
 
     override fun visit(
         filter: NotEqualFilter,
-        param: Unit,
-    ): CompiledPredicate = compare(filter, ComparisonOp.NE)
+        param: Path,
+    ): CompiledPredicate = compare(filter, ComparisonOp.NE, param)
 
     override fun visit(
         filter: ContainsFilter,
-        param: Unit,
-    ): CompiledPredicate = compare(filter, ComparisonOp.CO)
+        param: Path,
+    ): CompiledPredicate = compare(filter, ComparisonOp.CO, param)
 
     override fun visit(
         filter: StartsWithFilter,
-        param: Unit,
-    ): CompiledPredicate = compare(filter, ComparisonOp.SW)
+        param: Path,
+    ): CompiledPredicate = compare(filter, ComparisonOp.SW, param)
 
     override fun visit(
         filter: EndsWithFilter,
-        param: Unit,
-    ): CompiledPredicate = compare(filter, ComparisonOp.EW)
+        param: Path,
+    ): CompiledPredicate = compare(filter, ComparisonOp.EW, param)
 
     override fun visit(
         filter: GreaterThanFilter,
-        param: Unit,
-    ): CompiledPredicate = compare(filter, ComparisonOp.GT)
+        param: Path,
+    ): CompiledPredicate = compare(filter, ComparisonOp.GT, param)
 
     override fun visit(
         filter: GreaterThanOrEqualFilter,
-        param: Unit,
-    ): CompiledPredicate = compare(filter, ComparisonOp.GE)
+        param: Path,
+    ): CompiledPredicate = compare(filter, ComparisonOp.GE, param)
 
     override fun visit(
         filter: LessThanFilter,
-        param: Unit,
-    ): CompiledPredicate = compare(filter, ComparisonOp.LT)
+        param: Path,
+    ): CompiledPredicate = compare(filter, ComparisonOp.LT, param)
 
     override fun visit(
         filter: LessThanOrEqualFilter,
-        param: Unit,
-    ): CompiledPredicate = compare(filter, ComparisonOp.LE)
+        param: Path,
+    ): CompiledPredicate = compare(filter, ComparisonOp.LE, param)
 
     /*
      * TRUE and x  -> x
@@ -134,7 +134,7 @@ internal class ScimFilterCompiler(
      */
     override fun visit(
         filter: AndFilter,
-        param: Unit,
+        param: Path,
     ): CompiledPredicate {
         val predicates =
             mutableListOf<Predicate>()
@@ -172,7 +172,7 @@ internal class ScimFilterCompiler(
      */
     override fun visit(
         filter: OrFilter,
-        param: Unit,
+        param: Path,
     ): CompiledPredicate {
         val predicates =
             mutableListOf<Predicate>()
@@ -206,7 +206,7 @@ internal class ScimFilterCompiler(
 
     override fun visit(
         filter: NotFilter,
-        param: Unit,
+        param: Path,
     ): CompiledPredicate =
         when (
             val compiled =
@@ -226,104 +226,117 @@ internal class ScimFilterCompiler(
 
     override fun visit(
         filter: PresentFilter,
-        param: Unit,
+        param: Path,
     ): CompiledPredicate =
-        when (val field = resolve(filter.attributePath)) {
+        withPath(filter.attributePath, param) { path ->
+            when (val field = resolve(path)) {
             /*
              * A configured constant is always emitted, so `pr` is known
              * without touching the database.
              */
-            is Constant<*> ->
-                CompiledPredicate.True
+                is Constant<*> ->
+                    CompiledPredicate.True
 
-            is AlwaysPresentComplex<*> ->
-                CompiledPredicate.True
+                is AlwaysPresentComplex<*> ->
+                    CompiledPredicate.True
 
-            is Attribute<*> ->
-                CompiledPredicate.Sql(
-                    attributePresent(field.name),
-                )
+                is Attribute<*> ->
+                    CompiledPredicate.Sql(
+                        attributePresent(field.name),
+                    )
 
-            is Column<*> ->
-                CompiledPredicate.Sql(
-                    presentColumn(field),
-                )
+                is Column<*> ->
+                    CompiledPredicate.Sql(
+                        presentColumn(field),
+                    )
 
-            is Unsupported<*> ->
-                unsupported(field.reason)
+                is Unsupported<*> ->
+                    unsupported(field.reason)
+            }
         }
 
-    /**
-     * Value filters such as:
-     *
-     *   emails[value sw "a"]
-     *
-     * are not directly compiled.
-     *
-     * Constant value-path conditions such as:
-     *
-     *   emails[primary eq true].value
-     *   emails[type eq "work"].value
-     *
-     * should already have been simplified by ScimMappingRegistry while
-     * resolving the Path.
-     */
     override fun visit(
         filter: ComplexValueFilter,
-        param: Unit,
+        param: Path,
     ): CompiledPredicate =
-        unsupported(
-            "value filter '$filter' is not compiled to SQL",
-        )
+        withPath(filter.attributePath, param) { path ->
+            compileValueFilter(path, filter.valueFilter)
+        }
+
+    private fun compileValueFilter(
+        path: Path,
+        filter: Filter,
+    ): CompiledPredicate {
+        // Flattening is safe only for a complex mapping with one emitted entry.
+        if (resolve(path) !is AlwaysPresentComplex<*>) {
+            unsupported("value filters on '$path' require a single complex entry")
+        }
+        return filter.visit(this, path)
+    }
+
+    private fun withPath(
+        path: Path?,
+        scope: Path,
+        compile: (Path) -> CompiledPredicate,
+    ): CompiledPredicate {
+        val relative = path ?: unsupported("filter has no attribute path")
+        if (!scope.isRoot && relative.schemaUrn != null) {
+            unsupported("value filter attribute '$relative' must be relative")
+        }
+        val absolute = if (scope.isRoot) relative else scope.attribute(relative)
+        return compile(absolute)
+    }
 
     private fun compare(
         filter: Filter,
         op: ComparisonOp,
-    ): CompiledPredicate {
-        val field =
-            resolve(filter.attributePath)
+        scope: Path,
+    ): CompiledPredicate =
+        withPath(filter.attributePath, scope) { path ->
+            val field =
+                resolve(path)
 
-        val value =
-            filter.comparisonValue
-                ?: unsupported(
-                    "filter '$filter' has no comparison value",
-                )
+            val value =
+                filter.comparisonValue
+                    ?: unsupported(
+                        "filter '$filter' has no comparison value",
+                    )
 
-        return when (field) {
-            is Constant<*> ->
-                compareConstant(
-                    field = field,
-                    op = op,
-                    value = value,
-                )
-
-            is AlwaysPresentComplex<*> ->
-                unsupported(
-                    "complex attribute '${field.name}' cannot be compared in the database",
-                )
-
-            is Column<*> ->
-                CompiledPredicate.Sql(
-                    compareColumn(
+            when (field) {
+                is Constant<*> ->
+                    compareConstant(
                         field = field,
                         op = op,
                         value = value,
-                    ),
-                )
+                    )
 
-            is Attribute<*> ->
-                CompiledPredicate.Sql(
-                    compareAttribute(
-                        field = field,
-                        op = op,
-                        value = value,
-                    ),
-                )
+                is AlwaysPresentComplex<*> ->
+                    unsupported(
+                        "complex attribute '${field.name}' cannot be compared in the database",
+                    )
 
-            is Unsupported<*> ->
-                unsupported(field.reason)
+                is Column<*> ->
+                    CompiledPredicate.Sql(
+                        compareColumn(
+                            field = field,
+                            op = op,
+                            value = value,
+                        ),
+                    )
+
+                is Attribute<*> ->
+                    CompiledPredicate.Sql(
+                        compareAttribute(
+                            field = field,
+                            op = op,
+                            value = value,
+                        ),
+                    )
+
+                is Unsupported<*> ->
+                    unsupported(field.reason)
+            }
         }
-    }
 
     /**
      * Constant fields never need SQL.
