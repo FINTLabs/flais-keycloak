@@ -18,12 +18,15 @@ import no.novari.keycloak.scim.search.ScimUserSearchResult
 import org.keycloak.connections.jpa.JpaConnectionProvider
 import org.keycloak.models.KeycloakSession
 import org.keycloak.models.RealmModel
+import org.keycloak.models.jpa.PaginationUtils.paginateQuery
 import org.keycloak.models.jpa.entities.CompositeRoleEntity
 import org.keycloak.models.jpa.entities.GroupEntity
 import org.keycloak.models.jpa.entities.GroupRoleMappingEntity
 import org.keycloak.models.jpa.entities.UserEntity
 import org.keycloak.models.jpa.entities.UserGroupMembershipEntity
 import org.keycloak.models.jpa.entities.UserRoleMappingEntity
+import org.keycloak.utils.StreamsUtil.closing
+import java.util.stream.Stream
 
 /**
  * Read-only, database-backed [ScimUserSearch].
@@ -74,7 +77,7 @@ internal class JpaScimUserSearch(
 
             // One extra row tells us whether a next cursor is warranted, without a second query.
             val fetchLimit = pageSize?.let { if (it > 0) it + 1 else it }
-            val ids = findIds(criteria, roleScope, sort, fetchLimit)
+            val ids = findIds(criteria, roleScope, sort, fetchLimit).use { it.toList() }
 
             val hasMore = pageSize != null && pageSize > 0 && ids.size > pageSize
             val pageIds = if (hasMore) ids.take(pageSize) else ids
@@ -126,7 +129,7 @@ internal class JpaScimUserSearch(
         roleScope: EffectiveRoleScope,
         sort: ScimSort?,
         limit: Int?,
-    ): List<String> {
+    ): Stream<String> {
         val em = entityManager
         val builder = em.criteriaBuilder
         val query = builder.createQuery(String::class.java)
@@ -143,14 +146,9 @@ internal class JpaScimUserSearch(
         query.orderBy(ordering(builder, user, sort))
 
         val typedQuery = em.createQuery(query)
-        if (criteria.page is ScimPage.Index && criteria.page.firstResult > 0) {
-            typedQuery.firstResult = criteria.page.firstResult
-        }
-        if (limit != null && limit >= 0) {
-            typedQuery.maxResults = limit
-        }
-
-        return typedQuery.resultList
+        return closing(
+            paginateQuery(typedQuery, (criteria.page as? ScimPage.Index)?.firstResult, limit).resultStream,
+        )
     }
 
     /**
@@ -232,7 +230,6 @@ internal class JpaScimUserSearch(
         val predicates =
             mutableListOf(
                 builder.equal(membership.get<String>("groupId"), criteria.organizationGroupId),
-                // Defence in depth: the organization group already implies the realm.
                 builder.equal(user.get<String>("realmId"), realm.id),
                 builder.or(*rolePredicates.toTypedArray()),
             )
