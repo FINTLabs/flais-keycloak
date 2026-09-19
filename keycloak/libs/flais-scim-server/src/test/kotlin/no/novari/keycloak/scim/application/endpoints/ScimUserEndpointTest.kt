@@ -2,8 +2,10 @@ package no.novari.keycloak.scim.application.endpoints
 
 import com.fasterxml.jackson.databind.JsonNode
 import com.unboundid.scim2.common.GenericScimResource
+import com.unboundid.scim2.common.messages.ErrorResponse
 import com.unboundid.scim2.common.messages.PatchOperation
 import com.unboundid.scim2.common.messages.PatchRequest
+import com.unboundid.scim2.common.utils.ApiConstants
 import com.unboundid.scim2.common.utils.JsonUtils
 import io.mockk.every
 import io.mockk.impl.annotations.MockK
@@ -148,12 +150,40 @@ class ScimUserEndpointTest {
     }
 
     @Test
+    fun `createUser returns a SCIM uniqueness error for an existing user`() {
+        val scimUser =
+            UserResource().apply {
+                userName = USERNAME
+                active = true
+            }
+        every { userProvider.getUserById(realm, USERNAME) } returns user
+
+        val response = endpoint.createUser(usersUriInfo, scimUser)
+
+        assertEquals(409, response.status)
+        assertEquals(ApiConstants.MEDIA_TYPE_SCIM, response.mediaType.toString())
+        val error = response.entity as ErrorResponse
+        assertEquals(409, error.status)
+        assertEquals("uniqueness", error.scimType)
+        assertEquals("A user with userName $USERNAME already exists", error.detail)
+        verify(exactly = 0) { userProvider.addUser(any(), any<String>()) }
+    }
+
+    @Test
     fun `getUser returns 404 when user does not exist`() {
         every {
             orgProvider.getMemberById(scimContext.organization, userId)
         } returns null
 
-        assertEquals(Response.Status.NOT_FOUND.statusCode, endpoint.getUser(userId, userUriInfo).status)
+        val response = endpoint.getUser(userId, userUriInfo)
+        assertEquals(Response.Status.NOT_FOUND.statusCode, response.status)
+        assertEquals(ApiConstants.MEDIA_TYPE_SCIM, response.mediaType.toString())
+        val error = response.entity as ErrorResponse
+        assertEquals(404, error.status)
+        assertEquals("No user found with id $userId", error.detail)
+        val node = JsonUtils.valueToNode<JsonNode>(error)
+        assertEquals("urn:ietf:params:scim:api:messages:2.0:Error", node["schemas"][0].asText())
+        assertEquals("404", node["status"].asText())
     }
 
     @Test

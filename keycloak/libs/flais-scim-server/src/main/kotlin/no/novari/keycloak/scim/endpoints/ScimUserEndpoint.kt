@@ -199,13 +199,12 @@ class ScimUserEndpoint(
                         .status(Response.Status.NOT_FOUND)
                         .type(ApiConstants.MEDIA_TYPE_SCIM)
                         .entity(
-                            mapOf(
-                                "schemas" to listOf("urn:ietf:params:scim:api:messages:2.0:Error"),
-                                "status" to 404,
-                                "detail" to "No user found with id $id",
-                            ),
+                            ErrorResponse(404).apply {
+                                detail = "No user found with id $id"
+                            },
                         ).build()
                 }
+
         assertUserScimManaged(user)
 
         val scimUser =
@@ -237,7 +236,15 @@ class ScimUserEndpoint(
         val userProvider = scimContext.session.users()
         if (userProvider.getUserById(scimContext.realm, scimUser.userName) != null) {
             logger.warnf("SCIM user create conflict. org=%s", scimContext.organization.alias)
-            return Response.status(Response.Status.CONFLICT).build()
+            return Response
+                .status(Response.Status.CONFLICT)
+                .type(ApiConstants.MEDIA_TYPE_SCIM)
+                .entity(
+                    ErrorResponse(409).apply {
+                        scimType = "uniqueness"
+                        detail = "A user with userName ${scimUser.userName} already exists"
+                    },
+                ).build()
         }
 
         logger.debugf("Creating SCIM user. org=%s", scimContext.organization.alias)
