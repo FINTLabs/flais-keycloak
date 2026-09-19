@@ -1,4 +1,4 @@
-package no.novari.keycloak.scim.search.jpa
+package no.novari.keycloak.scim.search.jpa.filter
 
 import jakarta.persistence.criteria.Predicate
 

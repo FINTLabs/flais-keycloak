@@ -12,6 +12,7 @@ import no.novari.keycloak.scim.search.ScimPage
 import no.novari.keycloak.scim.search.ScimUserSearch
 import no.novari.keycloak.scim.search.ScimUserSearchCriteria
 import no.novari.keycloak.scim.search.ScimUserSearchResult
+import no.novari.keycloak.scim.search.jpa.filter.ScimFilterCompiler
 import no.novari.keycloak.scim.search.jpa.mapping.Column
 import no.novari.keycloak.scim.search.jpa.mapping.FieldKind
 import no.novari.keycloak.scim.search.jpa.mapping.KeycloakScimSearchMappings

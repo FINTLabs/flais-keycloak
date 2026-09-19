@@ -1,4 +1,4 @@
-package no.novari.keycloak.scim.application.search.jpa
+package no.novari.keycloak.scim.application.search.jpa.filter
 
 import com.unboundid.scim2.common.filters.Filter
 import io.mockk.every
@@ -12,8 +12,8 @@ import jakarta.persistence.criteria.Path
 import jakarta.persistence.criteria.Predicate
 import jakarta.persistence.criteria.Root
 import jakarta.persistence.criteria.Subquery
-import no.novari.keycloak.scim.search.jpa.ScimFilterCompiler
 import no.novari.keycloak.scim.search.jpa.UnsupportedScimSearchException
+import no.novari.keycloak.scim.search.jpa.filter.ScimFilterCompiler
 import org.junit.jupiter.api.Assertions.assertSame
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
