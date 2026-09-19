@@ -211,7 +211,7 @@ class ScimUserSearchTest {
     }
 
     @Test
-    fun `list includes users with an inherited scim-managed role`(
+    fun `list excludes users with only an inherited scim-managed role`(
         env: KcEnvironment,
         kcConfig: KcConfig,
     ) {
@@ -232,13 +232,19 @@ class ScimUserSearchTest {
             val userId = requireNotNull(KcAdminClient.findUserByUsername(realmRes, alice)?.id)
             val user = realmRes.users().get(userId)
             user.roles().realmLevel().remove(listOf(scimRole))
-            user.joinGroup(groupId)
-
             try {
-                val body = listUsers(env, kcConfig)
-                assertEquals(fixture.size, body.totalResults())
-                assertEquals(true, alice in body.userNames())
+                user.roles().realmLevel().add(listOf(composite.toRepresentation()))
+                val compositeBody = listUsers(env, kcConfig)
+                assertEquals(fixture.size - 1, compositeBody.totalResults())
+                assertFalse(alice in compositeBody.userNames())
+
+                user.roles().realmLevel().remove(listOf(composite.toRepresentation()))
+                user.joinGroup(groupId)
+                val groupBody = listUsers(env, kcConfig, cursor = "")
+                assertEquals(fixture.size - 1, groupBody.totalResults())
+                assertFalse(alice in groupBody.userNames())
             } finally {
+                user.roles().realmLevel().add(listOf(scimRole))
                 group.remove()
                 composite.remove()
             }

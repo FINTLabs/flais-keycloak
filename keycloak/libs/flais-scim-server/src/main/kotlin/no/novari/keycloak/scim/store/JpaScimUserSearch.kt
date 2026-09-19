@@ -19,9 +19,6 @@ import org.keycloak.connections.jpa.JpaConnectionProvider
 import org.keycloak.models.KeycloakSession
 import org.keycloak.models.RealmModel
 import org.keycloak.models.jpa.PaginationUtils.paginateQuery
-import org.keycloak.models.jpa.entities.CompositeRoleEntity
-import org.keycloak.models.jpa.entities.GroupEntity
-import org.keycloak.models.jpa.entities.GroupRoleMappingEntity
 import org.keycloak.models.jpa.entities.UserEntity
 import org.keycloak.models.jpa.entities.UserGroupMembershipEntity
 import org.keycloak.models.jpa.entities.UserRoleMappingEntity
@@ -32,7 +29,7 @@ import java.util.stream.Stream
  * Read-only, database-backed [ScimUserSearch].
  *
  * The SCIM `/Users` collection is the set of users that are members of an organization's internal
- * group **and** hold the `scim-managed` realm role, optionally narrowed by a SCIM filter. That
+ * group directly **and** directly hold the `scim-managed` realm role, optionally narrowed by a SCIM filter. That
  * combination cannot be expressed through Keycloak's public provider APIs:
  *
  * - [org.keycloak.organization.OrganizationProvider.getMembersCount] takes no filter argument.
@@ -68,8 +65,7 @@ internal class JpaScimUserSearch(
             }
 
         return try {
-            val roleScope = effectiveRoleScope(criteria.scimRoleId)
-            val totalResults = count(criteria, roleScope)
+            val totalResults = count(criteria)
             val pageSize = criteria.page.maxResults
             if (pageSize == 0) {
                 return ScimUserSearchResult.Page(emptyList(), totalResults, hasMore = false)
@@ -77,7 +73,7 @@ internal class JpaScimUserSearch(
 
             // One extra row tells us whether a next cursor is warranted, without a second query.
             val fetchLimit = pageSize?.let { if (it > 0) it + 1 else it }
-            val ids = findIds(criteria, roleScope, sort, fetchLimit).use { it.toList() }
+            val ids = findIds(criteria, sort, fetchLimit).use { it.toList() }
 
             val hasMore = pageSize != null && pageSize > 0 && ids.size > pageSize
             val pageIds = if (hasMore) ids.take(pageSize) else ids
@@ -107,26 +103,24 @@ internal class JpaScimUserSearch(
         return ScimSort(column, criteria.sortAscending)
     }
 
-    private fun count(
-        criteria: ScimUserSearchCriteria,
-        roleScope: EffectiveRoleScope,
-    ): Int {
+    private fun count(criteria: ScimUserSearchCriteria): Int {
         val em = entityManager
         val builder = em.criteriaBuilder
         val query = builder.createQuery(Long::class.java)
         val membership = query.from(UserGroupMembershipEntity::class.java)
+        val roleMapping = query.from(UserRoleMappingEntity::class.java)
         val user = membership.join<UserGroupMembershipEntity, UserEntity>("user")
 
-        query.select(builder.countDistinct(user))
+        // Fixed group/role IDs and unique membership/mapping keys prevent duplicate users.
+        query.select(builder.count(user))
         // The count spans the whole result set, so the keyset position must not be applied here.
-        query.where(*restrictions(builder, query, membership, user, criteria, roleScope, after = null))
+        query.where(*restrictions(builder, query, membership, roleMapping, user, criteria, after = null))
 
         return em.createQuery(query).singleResult.toInt()
     }
 
     private fun findIds(
         criteria: ScimUserSearchCriteria,
-        roleScope: EffectiveRoleScope,
         sort: ScimSort?,
         limit: Int?,
     ): Stream<String> {
@@ -134,15 +128,14 @@ internal class JpaScimUserSearch(
         val builder = em.criteriaBuilder
         val query = builder.createQuery(String::class.java)
         val membership = query.from(UserGroupMembershipEntity::class.java)
+        val roleMapping = query.from(UserRoleMappingEntity::class.java)
         val user = membership.join<UserGroupMembershipEntity, UserEntity>("user")
 
         val after = (criteria.page as? ScimPage.Keyset)?.after
 
-        // (USER_ID, GROUP_ID) is the composite key of UserGroupMembershipEntity and groupId is
-        // fixed, so a user can appear at most once. No DISTINCT is needed, which keeps the ORDER BY
-        // valid across all supported databases.
+        // Fixed group/role IDs preserve one row per user, so DISTINCT is unnecessary.
         query.select(user.get("id"))
-        query.where(*restrictions(builder, query, membership, user, criteria, roleScope, after))
+        query.where(*restrictions(builder, query, membership, roleMapping, user, criteria, after))
         query.orderBy(ordering(builder, user, sort))
 
         val typedQuery = em.createQuery(query)
@@ -202,36 +195,17 @@ internal class JpaScimUserSearch(
         builder: CriteriaBuilder,
         query: CriteriaQuery<*>,
         membership: Root<UserGroupMembershipEntity>,
+        roleMapping: Root<UserRoleMappingEntity>,
         user: Join<UserGroupMembershipEntity, UserEntity>,
         criteria: ScimUserSearchCriteria,
-        roleScope: EffectiveRoleScope,
         after: String?,
     ): Array<Predicate> {
-        val hasDirectScimRole = query.subquery(String::class.java)
-        val roleMapping = hasDirectScimRole.from(UserRoleMappingEntity::class.java)
-        hasDirectScimRole.select(roleMapping.get("roleId"))
-        hasDirectScimRole.where(
-            builder.equal(roleMapping.get<Any>("user"), user),
-            roleMapping.get<String>("roleId").`in`(roleScope.roleIds),
-        )
-
-        val rolePredicates = mutableListOf<Predicate>(builder.exists(hasDirectScimRole))
-        if (roleScope.groupIds.isNotEmpty()) {
-            val hasGroupScimRole = query.subquery(String::class.java)
-            val groupMembership = hasGroupScimRole.from(UserGroupMembershipEntity::class.java)
-            hasGroupScimRole.select(groupMembership.get("groupId"))
-            hasGroupScimRole.where(
-                builder.equal(groupMembership.get<Any>("user"), user),
-                groupMembership.get<String>("groupId").`in`(roleScope.groupIds),
-            )
-            rolePredicates.add(builder.exists(hasGroupScimRole))
-        }
-
         val predicates =
             mutableListOf(
                 builder.equal(membership.get<String>("groupId"), criteria.organizationGroupId),
                 builder.equal(user.get<String>("realmId"), realm.id),
-                builder.or(*rolePredicates.toTypedArray()),
+                builder.equal(roleMapping.get<Any>("user"), user),
+                builder.equal(roleMapping.get<String>("roleId"), criteria.scimRoleId),
             )
 
         after?.let {
@@ -245,63 +219,9 @@ internal class JpaScimUserSearch(
         return predicates.toTypedArray()
     }
 
-    /**
-     * Resolves the direct mappings that make `UserModel.hasRole(scimRole)` true. A user can inherit
-     * the role from a composite mapping or from a directly joined group (including its parents).
-     */
-    private fun effectiveRoleScope(scimRoleId: String): EffectiveRoleScope {
-        val roleIds = linkedSetOf(scimRoleId)
-        var roleFrontier = setOf(scimRoleId)
-
-        while (roleFrontier.isNotEmpty()) {
-            val builder = entityManager.criteriaBuilder
-            val query = builder.createQuery(String::class.java)
-            val composite = query.from(CompositeRoleEntity::class.java)
-            val parentId = composite.get<Any>("parentRole").get<String>("id")
-            val childId = composite.get<Any>("childRole").get<String>("id")
-            query.select(parentId).where(childId.`in`(roleFrontier))
-
-            roleFrontier = entityManager.createQuery(query).resultList.filterTo(linkedSetOf()) { roleIds.add(it) }
-        }
-
-        val groupIds = groupsWithRoles(roleIds)
-        var groupFrontier = groupIds.toSet()
-        while (groupFrontier.isNotEmpty()) {
-            val builder = entityManager.criteriaBuilder
-            val query = builder.createQuery(String::class.java)
-            val group = query.from(GroupEntity::class.java)
-            query
-                .select(group.get("id"))
-                .where(
-                    builder.equal(group.get<String>("realm"), realm.id),
-                    group.get<String>("parentId").`in`(groupFrontier),
-                )
-
-            groupFrontier = entityManager.createQuery(query).resultList.filterTo(linkedSetOf()) { groupIds.add(it) }
-        }
-
-        return EffectiveRoleScope(roleIds, groupIds)
-    }
-
-    private fun groupsWithRoles(roleIds: Set<String>): LinkedHashSet<String> {
-        val builder = entityManager.criteriaBuilder
-        val query = builder.createQuery(String::class.java)
-        val mapping = query.from(GroupRoleMappingEntity::class.java)
-        query
-            .select(mapping.get<Any>("group").get("id"))
-            .where(mapping.get<String>("roleId").`in`(roleIds))
-
-        return entityManager.createQuery(query).resultList.toCollection(linkedSetOf())
-    }
-
     private fun resolveSortColumn(path: Path) =
         (KeycloakScimSearchMappings.users.resolve(path) as? Column<UserEntity>)?.takeIf { it.sortable }
 }
-
-private data class EffectiveRoleScope(
-    val roleIds: Set<String>,
-    val groupIds: Set<String>,
-)
 
 /** How to order a SCIM user search in the database. */
 private data class ScimSort(
