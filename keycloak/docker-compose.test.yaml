@@ -32,7 +32,7 @@ services:
     # Helper services
     # ----------------------
     flais-keycloak-demo:
-        image: nginx:1.31.4-alpine-slim
+        image: nginx:1.31.5-alpine-slim
         ports:
             - "80"
         volumes:

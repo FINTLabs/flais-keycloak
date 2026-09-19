@@ -61,7 +61,7 @@ services:
             - keycloak
 
     authentik:
-        image: ghcr.io/goauthentik/server:2026.8.0
+        image: ghcr.io/goauthentik/server:2026.8.2
         command: server
         environment:
             AUTHENTIK_SECRET_KEY: "authentik"
@@ -74,7 +74,7 @@ services:
             - keycloak
 
     authentik-worker:
-        image: ghcr.io/goauthentik/server:2026.8.0
+        image: ghcr.io/goauthentik/server:2026.8.2
         command: worker
         environment:
             AUTHENTIK_SECRET_KEY: "authentik"
@@ -90,7 +90,7 @@ services:
             - keycloak
 
     authentik-ready:
-      image: curlimages/curl:8.21.0
+      image: curlimages/curl:8.22.0
       entrypoint: ["/bin/sh"]
       command: ["-c", "while true; do sleep 3600; done"]
       healthcheck:
