@@ -39,6 +39,7 @@ import no.novari.keycloak.scim.search.ScimCursor
 import no.novari.keycloak.scim.search.ScimPage
 import no.novari.keycloak.scim.search.ScimUserSearchCriteria
 import no.novari.keycloak.scim.search.ScimUserSearchResult
+import no.novari.keycloak.scim.search.jpa.JpaScimUserSearch
 import no.novari.keycloak.scim.utils.EntraScimTransformer
 import no.novari.keycloak.scim.utils.ResourcePath
 import no.novari.keycloak.scim.utils.ResourceTypeDefinitionUtil.createResourceTypeDefinition
@@ -104,7 +105,8 @@ class ScimUserEndpoint(
                 sortAscending = searchHandler.sortOrder != SortOrder.DESCENDING,
             )
 
-        return when (val result = scimContext.userSearch.search(criteria)) {
+        val userSearch = JpaScimUserSearch(scimContext.session, scimContext.realm)
+        return when (val result = userSearch.search(criteria)) {
             is ScimUserSearchResult.Page -> {
                 val nextCursor =
                     if (page is ScimPage.Keyset && result.hasMore && result.users.isNotEmpty()) {

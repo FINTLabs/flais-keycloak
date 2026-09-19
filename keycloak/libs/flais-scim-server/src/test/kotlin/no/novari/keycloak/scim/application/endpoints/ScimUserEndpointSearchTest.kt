@@ -8,6 +8,7 @@ import io.mockk.every
 import io.mockk.impl.annotations.MockK
 import io.mockk.junit5.MockKExtension
 import io.mockk.mockk
+import io.mockk.mockkConstructor
 import io.mockk.unmockkAll
 import io.mockk.verify
 import jakarta.ws.rs.core.MultivaluedHashMap
@@ -20,6 +21,7 @@ import no.novari.keycloak.scim.search.ScimPage
 import no.novari.keycloak.scim.search.ScimUserSearch
 import no.novari.keycloak.scim.search.ScimUserSearchCriteria
 import no.novari.keycloak.scim.search.ScimUserSearchResult
+import no.novari.keycloak.scim.search.jpa.JpaScimUserSearch
 import no.novari.keycloak.scim.utils.ScimRoles
 import no.novari.keycloak.scim.utils.TestUriInfo
 import org.junit.jupiter.api.AfterEach
@@ -79,7 +81,10 @@ class ScimUserEndpointSearchTest {
 
         every { scimContext.orgProvider } returns orgProvider
         every { scimContext.realm } returns realm
-        every { scimContext.userSearch } returns userSearch
+        mockkConstructor(JpaScimUserSearch::class)
+        every { anyConstructed<JpaScimUserSearch>().search(any()) } answers {
+            userSearch.search(firstArg())
+        }
         every { scimContext.session } returns keycloakSession
         every { keycloakSession.users() } returns userProvider
 
