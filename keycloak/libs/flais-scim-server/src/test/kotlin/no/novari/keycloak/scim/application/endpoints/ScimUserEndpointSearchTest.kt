@@ -9,6 +9,7 @@ import io.mockk.impl.annotations.MockK
 import io.mockk.junit5.MockKExtension
 import io.mockk.mockk
 import io.mockk.mockkConstructor
+import io.mockk.mockkStatic
 import io.mockk.unmockkAll
 import io.mockk.verify
 import jakarta.ws.rs.core.MultivaluedHashMap
@@ -24,6 +25,7 @@ import no.novari.keycloak.scim.search.ScimUserSearchResult
 import no.novari.keycloak.scim.search.jpa.JpaScimUserSearch
 import no.novari.keycloak.scim.utils.ScimRoles
 import no.novari.keycloak.scim.utils.TestUriInfo
+import org.jboss.logging.Logger
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
@@ -74,10 +76,13 @@ class ScimUserEndpointSearchTest {
 
     lateinit var endpoint: ScimUserEndpoint
     private lateinit var userSearch: RecordingScimUserSearch
+    private val logger = mockk<Logger>(relaxed = true)
 
     @BeforeEach
     fun setup() {
         userSearch = RecordingScimUserSearch()
+        mockkStatic(Logger::class)
+        every { Logger.getLogger(ScimUserEndpoint::class.java) } returns logger
 
         every { scimContext.orgProvider } returns orgProvider
         every { scimContext.realm } returns realm
@@ -186,6 +191,29 @@ class ScimUserEndpointSearchTest {
         assertNull(result.startIndex)
         assertEquals(1, result.itemsPerPage)
         assertEquals(ScimCursor(ScimCursor.queryHash(null, GROUP_ID), USER_ID).encode(), result.nextCursor)
+        verify {
+            logger.debugf(
+                "SCIM user search requested. org=%s pagination=%s cursor=%s filter=%s startIndex=%s count=%s sortBy=%s sortOrder=%s",
+                scimContext.organization.alias,
+                "cursor",
+                "initial",
+                null,
+                null,
+                "1",
+                null,
+                null,
+            )
+            logger.debugf(
+                "SCIM user search completed. org=%s pagination=%s queryHash=%s totalResults=%d returned=%d hasMore=%s nextCursor=%s",
+                scimContext.organization.alias,
+                "cursor",
+                ScimCursor.queryHash(null, GROUP_ID),
+                57,
+                1,
+                true,
+                true,
+            )
+        }
     }
 
     @Test

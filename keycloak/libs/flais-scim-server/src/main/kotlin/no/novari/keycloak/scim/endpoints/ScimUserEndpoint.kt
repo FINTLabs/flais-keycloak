@@ -68,12 +68,24 @@ class ScimUserEndpoint(
     fun getUsers(
         @Context uriInfo: UriInfo,
     ): Response {
+        val parameters = uriInfo.queryParameters
+        val cursorRequested = parameters.containsKey(ApiConstants.QUERY_PARAMETER_PAGE_CURSOR)
+        val cursorState =
+            when {
+                !cursorRequested -> "absent"
+                parameters.getFirst(ApiConstants.QUERY_PARAMETER_PAGE_CURSOR).isNullOrBlank() -> "initial"
+                else -> "resume"
+            }
         logger.debugf(
-            "SCIM user search requested. org=%s filter=%s startIndex=%s count=%s",
+            "SCIM user search requested. org=%s pagination=%s cursor=%s filter=%s startIndex=%s count=%s sortBy=%s sortOrder=%s",
             scimContext.organization.alias,
-            uriInfo.queryParameters.getFirst(ApiConstants.QUERY_PARAMETER_FILTER),
-            uriInfo.queryParameters.getFirst(ApiConstants.QUERY_PARAMETER_PAGE_START_INDEX),
-            uriInfo.queryParameters.getFirst(ApiConstants.QUERY_PARAMETER_PAGE_SIZE),
+            if (cursorRequested) "cursor" else "index",
+            cursorState,
+            parameters.getFirst(ApiConstants.QUERY_PARAMETER_FILTER),
+            parameters.getFirst(ApiConstants.QUERY_PARAMETER_PAGE_START_INDEX),
+            parameters.getFirst(ApiConstants.QUERY_PARAMETER_PAGE_SIZE),
+            parameters.getFirst(ApiConstants.QUERY_PARAMETER_SORT_BY),
+            parameters.getFirst(ApiConstants.QUERY_PARAMETER_SORT_ORDER),
         )
         val searchHandler = SearchHandler<UserResource>(RESOURCE_TYPE_DEFINITION, uriInfo)
         val scimRole =
@@ -94,7 +106,19 @@ class ScimUserEndpoint(
     ): Response {
         val groupId = scimContext.orgProvider.getOrganizationGroup(scimContext.organization).id
         val queryHash = ScimCursor.queryHash(searchHandler.filter, groupId)
-        val page = resolvePage(searchHandler, queryHash)
+        val page =
+            try {
+                resolvePage(searchHandler, queryHash)
+            } catch (e: BadRequestException) {
+                logger.debugf(
+                    "SCIM pagination rejected. org=%s queryHash=%s reason=%s",
+                    scimContext.organization.alias,
+                    queryHash,
+                    e.message,
+                )
+                throw e
+            }
+        val pagination = if (page is ScimPage.Keyset) "cursor" else "index"
         val criteria =
             ScimUserSearchCriteria(
                 organizationGroupId = groupId,
@@ -123,25 +147,31 @@ class ScimUserEndpoint(
                         cursorPagination = page is ScimPage.Keyset,
                     )
                 logger.debugf(
-                    "SCIM user search completed. org=%s totalResults=%d returned=%d",
+                    "SCIM user search completed. org=%s pagination=%s queryHash=%s totalResults=%d returned=%d hasMore=%s nextCursor=%s",
                     scimContext.organization.alias,
+                    pagination,
+                    queryHash,
                     searchResult.totalResults,
                     searchResult.resources.size,
+                    result.hasMore,
+                    nextCursor != null,
                 )
                 Response.ok(searchResult).build()
             }
 
             is ScimUserSearchResult.Unsupported -> {
+                logger.warnf(
+                    "SCIM user search cannot be pushed to the database. org=%s pagination=%s queryHash=%s reason=%s",
+                    scimContext.organization.alias,
+                    pagination,
+                    queryHash,
+                    result.reason,
+                )
                 if (page is ScimPage.Keyset) {
                     throw BadRequestException.invalidValue(
                         "cursor pagination cannot be used for this query: ${result.reason}",
                     )
                 }
-                logger.warnf(
-                    "SCIM user search cannot be pushed to the database. org=%s reason=%s",
-                    scimContext.organization.alias,
-                    result.reason,
-                )
                 Response
                     .status(Response.Status.BAD_REQUEST)
                     .type(ApiConstants.MEDIA_TYPE_SCIM)
