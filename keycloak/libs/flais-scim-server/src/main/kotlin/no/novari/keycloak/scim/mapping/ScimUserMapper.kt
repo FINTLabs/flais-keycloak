@@ -42,17 +42,16 @@ internal object ScimUserMapper :
         complexCollection(
             UserResource::roles,
             attribute(
-                "rawRoles", // TODO: Move to constant
-                FieldKind.MIXED_CASE,
+                "roles",
+                FieldKind.CASE_EXACT,
+                multiValued = true,
             ),
             ScimRoleMapper,
         )
 
         complexCollection(
             UserResource::emails,
-            alwaysPresentComplex(
-                "emails",
-            ),
+            alwaysPresentComplex("emails"),
             ScimEmailMapper,
         )
     }

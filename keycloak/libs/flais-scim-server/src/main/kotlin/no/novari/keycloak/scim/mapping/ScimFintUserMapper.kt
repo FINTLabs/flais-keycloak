@@ -9,9 +9,9 @@ internal object ScimFintUserMapper :
     init {
         property(
             FintUserExtension::userPrincipalName,
-            column(
-                UserModel.USERNAME,
-                FieldKind.CASE_EXACT,
+            attribute(
+                "userPrincipalName",
+                FieldKind.MIXED_CASE,
             ),
         )
 

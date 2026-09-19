@@ -265,7 +265,7 @@ class ScimUserSearchTest {
                 ),
             ).use { response -> assertEquals(201, response.code) }
 
-        assertEquals(3, listUsers(env, kcConfig, filter = "roles pr").totalResults())
+        assertEquals(2, listUsers(env, kcConfig, filter = "roles pr").totalResults())
         assertEquals(2, listUsers(env, kcConfig, filter = "roles.value pr").totalResults())
         assertEquals(400, listUsersStatus(env, kcConfig, filter = "emails eq true"))
     }
