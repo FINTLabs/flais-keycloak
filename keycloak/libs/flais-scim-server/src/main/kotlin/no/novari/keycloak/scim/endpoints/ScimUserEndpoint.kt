@@ -2,7 +2,10 @@ package no.novari.keycloak.scim.endpoints
 
 import com.fasterxml.jackson.databind.node.ObjectNode
 import com.unboundid.scim2.common.annotations.Attribute
+import com.unboundid.scim2.common.exceptions.BadRequestException
+import com.unboundid.scim2.common.messages.ErrorResponse
 import com.unboundid.scim2.common.messages.PatchRequest
+import com.unboundid.scim2.common.messages.SortOrder
 import com.unboundid.scim2.common.types.Email
 import com.unboundid.scim2.common.types.EnterpriseUserExtension
 import com.unboundid.scim2.common.types.Role
@@ -29,9 +32,14 @@ import jakarta.ws.rs.core.Response
 import jakarta.ws.rs.core.UriBuilder
 import jakarta.ws.rs.core.UriInfo
 import no.novari.keycloak.scim.context.ScimContext
+import no.novari.keycloak.scim.resources.FintUserExtension
 import no.novari.keycloak.scim.resources.SearchHandler
 import no.novari.keycloak.scim.resources.UserResource
-import no.novari.keycloak.scim.types.FintUserExtension
+import no.novari.keycloak.scim.search.ScimCursor
+import no.novari.keycloak.scim.search.ScimPage
+import no.novari.keycloak.scim.search.ScimUserSearchCriteria
+import no.novari.keycloak.scim.search.ScimUserSearchResult
+import no.novari.keycloak.scim.search.jpa.JpaScimUserSearch
 import no.novari.keycloak.scim.utils.EntraScimTransformer
 import no.novari.keycloak.scim.utils.ResourcePath
 import no.novari.keycloak.scim.utils.ResourceTypeDefinitionUtil.createResourceTypeDefinition
@@ -39,9 +47,9 @@ import no.novari.keycloak.scim.utils.ScimRoles
 import no.novari.keycloak.scim.utils.UserPrincipalNameDomainMatcher
 import org.jboss.logging.Logger
 import org.keycloak.models.FederatedIdentityModel
+import org.keycloak.models.RoleModel
 import org.keycloak.models.UserModel
 import org.keycloak.util.JsonSerialization
-import kotlin.streams.asSequence
 
 @ResourceType(
     description = "User Account",
@@ -60,32 +68,149 @@ class ScimUserEndpoint(
     fun getUsers(
         @Context uriInfo: UriInfo,
     ): Response {
+        val parameters = uriInfo.queryParameters
+        val cursorRequested = parameters.containsKey(ApiConstants.QUERY_PARAMETER_PAGE_CURSOR)
+        val cursorState =
+            when {
+                !cursorRequested -> "absent"
+                parameters.getFirst(ApiConstants.QUERY_PARAMETER_PAGE_CURSOR).isNullOrBlank() -> "initial"
+                else -> "resume"
+            }
         logger.debugf(
-            "SCIM user search requested. org=%s filter=%s startIndex=%s count=%s",
+            "SCIM user search requested. org=%s pagination=%s cursor=%s filter=%s startIndex=%s count=%s sortBy=%s sortOrder=%s",
             scimContext.organization.alias,
-            uriInfo.queryParameters.getFirst(ApiConstants.QUERY_PARAMETER_FILTER),
-            uriInfo.queryParameters.getFirst(ApiConstants.QUERY_PARAMETER_PAGE_START_INDEX),
-            uriInfo.queryParameters.getFirst(ApiConstants.QUERY_PARAMETER_PAGE_SIZE),
+            if (cursorRequested) "cursor" else "index",
+            cursorState,
+            parameters.getFirst(ApiConstants.QUERY_PARAMETER_FILTER),
+            parameters.getFirst(ApiConstants.QUERY_PARAMETER_PAGE_START_INDEX),
+            parameters.getFirst(ApiConstants.QUERY_PARAMETER_PAGE_SIZE),
+            parameters.getFirst(ApiConstants.QUERY_PARAMETER_SORT_BY),
+            parameters.getFirst(ApiConstants.QUERY_PARAMETER_SORT_ORDER),
         )
         val searchHandler = SearchHandler<UserResource>(RESOURCE_TYPE_DEFINITION, uriInfo)
         val scimRole =
             requireNotNull(scimContext.realm.getRole(ScimRoles.SCIM_MANAGED_ROLE)) {
                 "SCIM managed role not found"
             }
-        val userResources =
-            scimContext.orgProvider
-                .getMembersStream(
-                    scimContext.organization,
-                    emptyMap(),
-                    true,
-                    null,
-                    null,
-                ).filter { it.hasRole(scimRole) }
-                .map { translateUser(it) }
-                .asSequence()
-        val searchResult = searchHandler.createSearchResult(userResources)
-        logger.debugf("SCIM user search completed. org=%s", scimContext.organization.alias)
-        return Response.ok(searchResult).build()
+
+        return nativeSearch(searchHandler, scimRole)
+    }
+
+    /**
+     * Database-backed search. Produces an exact `totalResults` and fetches only the requested page,
+     * instead of materializing every organization member.
+     */
+    private fun nativeSearch(
+        searchHandler: SearchHandler<UserResource>,
+        scimRole: RoleModel,
+    ): Response {
+        val groupId = scimContext.orgProvider.getOrganizationGroup(scimContext.organization).id
+        val queryHash = ScimCursor.queryHash(searchHandler.filter, groupId)
+        val page =
+            try {
+                resolvePage(searchHandler, queryHash)
+            } catch (e: BadRequestException) {
+                logger.debugf(
+                    "SCIM pagination rejected. org=%s queryHash=%s reason=%s",
+                    scimContext.organization.alias,
+                    queryHash,
+                    e.message,
+                )
+                throw e
+            }
+        val pagination = if (page is ScimPage.Keyset) "cursor" else "index"
+        val criteria =
+            ScimUserSearchCriteria(
+                organizationGroupId = groupId,
+                scimRoleId = scimRole.id,
+                page = page,
+                filter = searchHandler.filter,
+                sortBy = searchHandler.sortBy,
+                sortAscending = searchHandler.sortOrder != SortOrder.DESCENDING,
+            )
+
+        val userSearch = JpaScimUserSearch(scimContext.session, scimContext.realm)
+        return when (val result = userSearch.search(criteria)) {
+            is ScimUserSearchResult.Page -> {
+                val nextCursor =
+                    if (page is ScimPage.Keyset && result.hasMore && result.users.isNotEmpty()) {
+                        ScimCursor(queryHash, result.users.last().id).encode()
+                    } else {
+                        null
+                    }
+
+                val searchResult =
+                    searchHandler.createPagedSearchResult(
+                        result.users.asSequence().map { translateUser(it) },
+                        result.totalResults,
+                        nextCursor,
+                        cursorPagination = page is ScimPage.Keyset,
+                    )
+                logger.debugf(
+                    "SCIM user search completed. org=%s pagination=%s queryHash=%s totalResults=%d returned=%d hasMore=%s nextCursor=%s",
+                    scimContext.organization.alias,
+                    pagination,
+                    queryHash,
+                    searchResult.totalResults,
+                    searchResult.resources.size,
+                    result.hasMore,
+                    nextCursor != null,
+                )
+                Response.ok(searchResult).build()
+            }
+
+            is ScimUserSearchResult.Unsupported -> {
+                logger.warnf(
+                    "SCIM user search cannot be pushed to the database. org=%s pagination=%s queryHash=%s reason=%s",
+                    scimContext.organization.alias,
+                    pagination,
+                    queryHash,
+                    result.reason,
+                )
+                if (page is ScimPage.Keyset) {
+                    throw BadRequestException.invalidValue(
+                        "cursor pagination cannot be used for this query: ${result.reason}",
+                    )
+                }
+                Response
+                    .status(Response.Status.BAD_REQUEST)
+                    .type(ApiConstants.MEDIA_TYPE_SCIM)
+                    .entity(
+                        ErrorResponse(400).apply {
+                            detail = result.reason
+                        },
+                    ).build()
+            }
+        }
+    }
+
+    private fun resolvePage(
+        searchHandler: SearchHandler<UserResource>,
+        queryHash: String,
+    ): ScimPage {
+        if (!searchHandler.cursorRequested) {
+            return ScimPage.Index(
+                firstResult = (searchHandler.startIndex ?: 1).coerceAtLeast(1) - 1,
+                maxResults = searchHandler.count,
+            )
+        }
+
+        if (searchHandler.startIndex != null) {
+            throw BadRequestException.invalidValue("cursor cannot be combined with startIndex")
+        }
+        if (searchHandler.sortBy != null) {
+            throw BadRequestException.invalidValue("cursor cannot be combined with sortBy")
+        }
+
+        val after =
+            searchHandler.cursor
+                ?.takeIf { it.isNotBlank() }
+                ?.let { cursor ->
+                    ScimCursor.decode(cursor, queryHash)?.lastId
+                        ?: throw BadRequestException.invalidValue("cursor is malformed or does not match this query")
+                }
+
+        return ScimPage.Keyset(after, searchHandler.count)
     }
 
     @GET
@@ -104,13 +229,12 @@ class ScimUserEndpoint(
                         .status(Response.Status.NOT_FOUND)
                         .type(ApiConstants.MEDIA_TYPE_SCIM)
                         .entity(
-                            mapOf(
-                                "schemas" to listOf("urn:ietf:params:scim:api:messages:2.0:Error"),
-                                "status" to 404,
-                                "detail" to "No user found with id $id",
-                            ),
+                            ErrorResponse(404).apply {
+                                detail = "No user found with id $id"
+                            },
                         ).build()
                 }
+
         assertUserScimManaged(user)
 
         val scimUser =
@@ -142,7 +266,15 @@ class ScimUserEndpoint(
         val userProvider = scimContext.session.users()
         if (userProvider.getUserById(scimContext.realm, scimUser.userName) != null) {
             logger.warnf("SCIM user create conflict. org=%s", scimContext.organization.alias)
-            return Response.status(Response.Status.CONFLICT).build()
+            return Response
+                .status(Response.Status.CONFLICT)
+                .type(ApiConstants.MEDIA_TYPE_SCIM)
+                .entity(
+                    ErrorResponse(409).apply {
+                        scimType = "uniqueness"
+                        detail = "A user with userName ${scimUser.userName} already exists"
+                    },
+                ).build()
         }
 
         logger.debugf("Creating SCIM user. org=%s", scimContext.organization.alias)
@@ -470,7 +602,7 @@ class ScimUserEndpoint(
     }
 
     companion object {
-        private val RESOURCE_TYPE_DEFINITION = createResourceTypeDefinition<ScimUserEndpoint>()
+        val RESOURCE_TYPE_DEFINITION = createResourceTypeDefinition<ScimUserEndpoint>()
         private val SCHEMA_CHECKER = SchemaChecker(RESOURCE_TYPE_DEFINITION)
     }
 }

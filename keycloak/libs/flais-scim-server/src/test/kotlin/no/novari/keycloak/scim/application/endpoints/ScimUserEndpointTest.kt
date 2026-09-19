@@ -2,24 +2,28 @@ package no.novari.keycloak.scim.application.endpoints
 
 import com.fasterxml.jackson.databind.JsonNode
 import com.unboundid.scim2.common.GenericScimResource
+import com.unboundid.scim2.common.messages.ErrorResponse
 import com.unboundid.scim2.common.messages.PatchOperation
 import com.unboundid.scim2.common.messages.PatchRequest
+import com.unboundid.scim2.common.utils.ApiConstants
 import com.unboundid.scim2.common.utils.JsonUtils
 import io.mockk.every
 import io.mockk.impl.annotations.MockK
 import io.mockk.junit5.MockKExtension
 import io.mockk.mockk
 import io.mockk.slot
+import io.mockk.unmockkAll
 import io.mockk.verify
 import jakarta.ws.rs.ForbiddenException
 import jakarta.ws.rs.NotFoundException
 import jakarta.ws.rs.core.Response
 import no.novari.keycloak.scim.context.ScimContext
 import no.novari.keycloak.scim.endpoints.ScimUserEndpoint
+import no.novari.keycloak.scim.resources.FintUserExtension
 import no.novari.keycloak.scim.resources.UserResource
-import no.novari.keycloak.scim.types.FintUserExtension
 import no.novari.keycloak.scim.utils.ScimRoles
 import no.novari.keycloak.scim.utils.TestUriInfo
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
@@ -39,6 +43,10 @@ import java.util.stream.Stream
 
 @ExtendWith(MockKExtension::class)
 class ScimUserEndpointTest {
+    private companion object {
+        const val USERNAME = "alice.basic@telemark.no"
+    }
+
     private val extId = "any-ext-id"
     private val userId = "any-id"
     private val userUriInfo = TestUriInfo(URI("http://localhost/scim/v2/Users/$userId"))
@@ -78,11 +86,16 @@ class ScimUserEndpointTest {
         endpoint = ScimUserEndpoint(scimContext)
     }
 
-    fun templateUser(user: UserModel) {
+    @AfterEach
+    fun tearDown() {
+        unmockkAll()
+    }
+
+    private fun templateUser(user: UserModel) {
         every { realm.getRole(ScimRoles.SCIM_MANAGED_ROLE) } returns scimRole
         every { user.hasRole(scimRole) } returns true
         every { user.id } returns userId
-        every { user.username } returns "alice.basic@telemark.no"
+        every { user.username } returns USERNAME
         every { user.isEnabled } returns true
         every { user.email } returns "alice.basic@telemark.no"
         every { user.firstName } returns "Alice"
@@ -137,18 +150,23 @@ class ScimUserEndpointTest {
     }
 
     @Test
-    fun `getUsers returns only SCIM managed users`() {
-        val user2 = mockk<UserModel>(relaxed = true)
-        templateUser(user)
+    fun `createUser returns a SCIM uniqueness error for an existing user`() {
+        val scimUser =
+            UserResource().apply {
+                userName = USERNAME
+                active = true
+            }
+        every { userProvider.getUserById(realm, USERNAME) } returns user
 
-        every { user2.hasRole(scimRole) } returns false
-        every {
-            scimContext.orgProvider.getMembersStream(scimContext.organization, emptyMap(), true, null, null)
-        } returns listOf(user, user2).stream()
+        val response = endpoint.createUser(usersUriInfo, scimUser)
 
-        val response = endpoint.getUsers(usersUriInfo)
-        assertEquals(Response.Status.OK.statusCode, response.status)
-        assertTrue(response.entity != null)
+        assertEquals(409, response.status)
+        assertEquals(ApiConstants.MEDIA_TYPE_SCIM, response.mediaType.toString())
+        val error = response.entity as ErrorResponse
+        assertEquals(409, error.status)
+        assertEquals("uniqueness", error.scimType)
+        assertEquals("A user with userName $USERNAME already exists", error.detail)
+        verify(exactly = 0) { userProvider.addUser(any(), any<String>()) }
     }
 
     @Test
@@ -157,7 +175,15 @@ class ScimUserEndpointTest {
             orgProvider.getMemberById(scimContext.organization, userId)
         } returns null
 
-        assertEquals(Response.Status.NOT_FOUND.statusCode, endpoint.getUser(userId, userUriInfo).status)
+        val response = endpoint.getUser(userId, userUriInfo)
+        assertEquals(Response.Status.NOT_FOUND.statusCode, response.status)
+        assertEquals(ApiConstants.MEDIA_TYPE_SCIM, response.mediaType.toString())
+        val error = response.entity as ErrorResponse
+        assertEquals(404, error.status)
+        assertEquals("No user found with id $userId", error.detail)
+        val node = JsonUtils.valueToNode<JsonNode>(error)
+        assertEquals("urn:ietf:params:scim:api:messages:2.0:Error", node["schemas"][0].asText())
+        assertEquals("404", node["status"].asText())
     }
 
     @Test
