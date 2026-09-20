@@ -23,7 +23,7 @@ slf4j = "2.0.19"
 okhttp = "5.5.0"
 
 kover = "0.9.9"
-playwright = "1.62.0"
+playwright = "1.63.0"
 
 scim-server-sdk = "5.0.0"
 nimbusds-jwt = "10.9.1"
