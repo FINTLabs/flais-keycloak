@@ -12,6 +12,7 @@ import no.novari.test.common.environment.kc.KcEnvironment
 import no.novari.test.common.environment.kc.KcEnvironmentExtension
 import no.novari.test.common.fixture.TestStrings.Orgs
 import no.novari.test.common.fixture.TestStrings.Realms
+import no.novari.test.common.fixture.TestStrings.Users
 import no.novari.test.common.utils.KcAdminClient
 import no.novari.test.common.utils.ScimFlow
 import no.novari.test.common.utils.ScimFlow.ScimUser
@@ -45,8 +46,8 @@ class ScimUserSearchTest {
     private val realm = Realms.EXTERNAL
     private val fintUrn = "urn:ietf:params:scim:schemas:extension:fint:2.0:User"
 
-    private val alice = "alice.search@telemark.no"
-    private val bob = "bob.search@telemark.no"
+    private val alice = Users.ALICE_TELEMARK_EMAIL
+    private val jon = Users.JON_TELEMARK_EMAIL
     private val carol = "carol.search@telemark.no"
     private val longExternalId = "long-external-id-" + "x".repeat(260)
     private val longRole = "long-role-marker-" + "x".repeat(260)
@@ -55,11 +56,11 @@ class ScimUserSearchTest {
      * Three users chosen to exercise the awkward cases: a disabled user, a user with no email and
      * no roles at all (so NULL handling under `not` is visible), and differing role cardinality.
      */
-    private val fixture =
+    private val testUsers =
         listOf(
             ScimUser(
                 schemas = listOf(CORE_SCHEMA, FINT_SCHEMA),
-                externalId = "11111111-1111-1111-1111-111111111111",
+                externalId = Users.ALICE_TELEMARK,
                 userName = alice,
                 active = true,
                 emails = listOf(ScimUser.Email(alice, primary = true)),
@@ -69,16 +70,30 @@ class ScimUserSearchTest {
                         ScimUser.Role("write", "write", "WindowsAzureActiveDirectoryRole", false),
                         ScimUser.Role(longRole, longRole, "WindowsAzureActiveDirectoryRole", false),
                     ),
-                fintUserExtension = ScimUser.FintUserExtension("Alice", "Search", "E1", null, alice),
+                fintUserExtension =
+                    ScimUser.FintUserExtension(
+                        Users.ALICE_FIRST_NAME,
+                        Users.BASIC_LAST_NAME,
+                        "E1",
+                        null,
+                        alice,
+                    ),
             ),
             ScimUser(
                 schemas = listOf(CORE_SCHEMA, FINT_SCHEMA),
-                externalId = "22222222-2222-2222-2222-222222222222",
-                userName = bob,
+                externalId = Users.JON_TELEMARK,
+                userName = jon,
                 active = false,
-                emails = listOf(ScimUser.Email(bob, primary = true)),
+                emails = listOf(ScimUser.Email(jon, primary = true)),
                 roles = listOf(ScimUser.Role("read", "read", "WindowsAzureActiveDirectoryRole", false)),
-                fintUserExtension = ScimUser.FintUserExtension("Bob", "Search", "", null, bob),
+                fintUserExtension =
+                    ScimUser.FintUserExtension(
+                        Users.JON_FIRST_NAME,
+                        Users.BASIC_LAST_NAME,
+                        "",
+                        null,
+                        jon,
+                    ),
             ),
             ScimUser(
                 schemas = listOf(CORE_SCHEMA),
@@ -95,7 +110,7 @@ class ScimUserSearchTest {
         env: KcEnvironment,
         kcConfig: KcConfig,
         orgAlias: String = Orgs.TELEMARK,
-    ) = "${env.keycloakServiceUrl()}/realms/external/scim/v2/${kcConfig.requireOrg(orgAlias).id}"
+    ) = "${env.keycloakServiceUrl()}/realms/$realm/scim/v2/${kcConfig.requireOrg(orgAlias).id}"
 
     private fun tokenUrl(env: KcEnvironment) = "${env.flaisScimAuthUrl()}/token"
 
@@ -159,7 +174,7 @@ class ScimUserSearchTest {
         val (kc, realmRes) = KcAdminClient.connect(env, realm)
         kc.use { KcAdminClient.deleteAllUsers(realmRes) }
 
-        fixture.forEach { user ->
+        testUsers.forEach { user ->
             ScimFlow
                 .createUser(scimBaseUrl(env, kcConfig), tokenUrl(env), user)
                 .use { resp -> assertEquals(201, resp.code) }
@@ -173,8 +188,8 @@ class ScimUserSearchTest {
     ) {
         val body = listUsers(env, kcConfig)
 
-        assertEquals(fixture.size, body.totalResults())
-        assertEquals(fixture.size, body.userNames().size)
+        assertEquals(testUsers.size, body.totalResults())
+        assertEquals(testUsers.size, body.userNames().size)
     }
 
     @Test
@@ -206,7 +221,7 @@ class ScimUserSearchTest {
         val body = listUsers(env, kcConfig)
 
         // The role predicate lives in the SQL, so the extra member must not inflate the count.
-        assertEquals(fixture.size, body.totalResults())
+        assertEquals(testUsers.size, body.totalResults())
         assertFalse(intruder in body.userNames())
     }
 
@@ -235,13 +250,13 @@ class ScimUserSearchTest {
             try {
                 user.roles().realmLevel().add(listOf(composite.toRepresentation()))
                 val compositeBody = listUsers(env, kcConfig)
-                assertEquals(fixture.size - 1, compositeBody.totalResults())
+                assertEquals(testUsers.size - 1, compositeBody.totalResults())
                 assertFalse(alice in compositeBody.userNames())
 
                 user.roles().realmLevel().remove(listOf(composite.toRepresentation()))
                 user.joinGroup(groupId)
                 val groupBody = listUsers(env, kcConfig, cursor = "")
-                assertEquals(fixture.size - 1, groupBody.totalResults())
+                assertEquals(testUsers.size - 1, groupBody.totalResults())
                 assertFalse(alice in groupBody.userNames())
             } finally {
                 user.roles().realmLevel().add(listOf(scimRole))
@@ -281,14 +296,14 @@ class ScimUserSearchTest {
         delimiter = '|',
         value = [
             // Equality and inequality on indexed columns.
-            "userName eq \"alice.search@telemark.no\"                 | 1",
-            "userName ne \"alice.search@telemark.no\"                 | 2",
+            "userName eq \"${Users.ALICE_TELEMARK_EMAIL}\"           | 1",
+            "userName ne \"${Users.ALICE_TELEMARK_EMAIL}\"           | 2",
             "id pr                                                    | 3",
             "externalId pr                                            | 3",
-            "externalId eq \"11111111-1111-1111-1111-111111111111\"   | 1",
+            "externalId eq \"${Users.ALICE_TELEMARK}\"               | 1",
             "externalId co \"long-external-id\"                       | 1",
             // Substring operators.
-            "userName co \"search\"                                   | 3",
+            "userName co \"@telemark.no\"                             | 3",
             "userName sw \"alice\"                                    | 1",
             "userName ew \"@telemark.no\"                             | 3",
             // Booleans.
@@ -300,7 +315,7 @@ class ScimUserSearchTest {
             "emails.primary eq true                                   | 3",
             // Logical combinators.
             "active eq true and userName sw \"alice\"                 | 1",
-            "userName sw \"alice\" or userName sw \"bob\"             | 2",
+            "userName sw \"alice\" or userName sw \"jon\"             | 2",
             "roles pr                                                 | 2",
         ],
     )
@@ -319,9 +334,9 @@ class ScimUserSearchTest {
         value = [
             // A missing attribute makes the inner comparison false, so `not` must include the user
             // that has no email. Getting this wrong in SQL silently drops rows.
-            "not (emails.value eq \"alice.search@telemark.no\")       | 2",
-            "not (emails.value co \"search\")                         | 1",
-            "emails.value ne \"alice.search@telemark.no\"             | 2",
+            "not (emails.value eq \"${Users.ALICE_TELEMARK_EMAIL}\") | 2",
+            "not (emails.value co \"@telemark.no\")                   | 1",
+            "emails.value ne \"${Users.ALICE_TELEMARK_EMAIL}\"       | 2",
             "urn:ietf:params:scim:schemas:extension:fint:2.0:User:employeeId ne \"E1\" | 2",
             "not (active eq true)                                     | 1",
         ],
@@ -361,16 +376,16 @@ class ScimUserSearchTest {
         kcConfig: KcConfig,
     ) {
         val firstPage = listUsers(env, kcConfig, startIndex = 1, count = 2)
-        assertEquals(fixture.size, firstPage.totalResults())
+        assertEquals(testUsers.size, firstPage.totalResults())
         assertEquals(2, firstPage.userNames().size)
 
         val secondPage = listUsers(env, kcConfig, startIndex = 3, count = 2)
-        assertEquals(fixture.size, secondPage.totalResults())
+        assertEquals(testUsers.size, secondPage.totalResults())
         assertEquals(1, secondPage.userNames().size)
 
         // Pages must not overlap, which also proves the offset is applied in the database.
         assertEquals(
-            fixture.size,
+            testUsers.size,
             (firstPage.userNames() + secondPage.userNames()).distinct().size,
         )
     }
@@ -380,7 +395,7 @@ class ScimUserSearchTest {
         env: KcEnvironment,
         kcConfig: KcConfig,
     ) {
-        val body = listUsers(env, kcConfig, filter = """userName co "search"""", startIndex = 1, count = 1)
+        val body = listUsers(env, kcConfig, filter = """userName co "@telemark.no"""", startIndex = 1, count = 1)
 
         assertEquals(3, body.totalResults())
         assertEquals(1, body.userNames().size)
@@ -393,7 +408,7 @@ class ScimUserSearchTest {
     ) {
         val body = listUsers(env, kcConfig, count = 0)
 
-        assertEquals(fixture.size, body.totalResults())
+        assertEquals(testUsers.size, body.totalResults())
         assertEquals(emptyList<String>(), body.userNames())
     }
 
@@ -403,16 +418,16 @@ class ScimUserSearchTest {
         kcConfig: KcConfig,
     ) {
         val firstPage = listUsers(env, kcConfig, count = 2, cursor = "")
-        assertEquals(fixture.size, firstPage.totalResults())
+        assertEquals(testUsers.size, firstPage.totalResults())
         assertEquals(2, firstPage.userNames().size)
 
         val nextCursor = requireNotNull(firstPage.nextCursor())
         val secondPage = listUsers(env, kcConfig, count = 2, cursor = nextCursor)
 
-        assertEquals(fixture.size, secondPage.totalResults())
+        assertEquals(testUsers.size, secondPage.totalResults())
         assertEquals(1, secondPage.userNames().size)
         assertEquals(
-            fixture.size,
+            testUsers.size,
             (firstPage.userNames() + secondPage.userNames()).distinct().size,
         )
     }
@@ -423,15 +438,15 @@ class ScimUserSearchTest {
         kcConfig: KcConfig,
     ) {
         val ascending = listUsers(env, kcConfig, sortBy = "userName", sortOrder = "ascending")
-        assertEquals(listOf(alice, bob, carol), ascending.userNames())
+        assertEquals(listOf(alice, carol, jon), ascending.userNames())
 
         val descending = listUsers(env, kcConfig, sortBy = "userName", sortOrder = "descending")
-        assertEquals(listOf(carol, bob, alice), descending.userNames())
+        assertEquals(listOf(jon, carol, alice), descending.userNames())
 
         // Sorting must survive paging, which only holds if the ORDER BY is in the SQL.
         val firstDescending =
             listUsers(env, kcConfig, sortBy = "userName", sortOrder = "descending", startIndex = 1, count = 1)
-        assertEquals(listOf(carol), firstDescending.userNames())
+        assertEquals(listOf(jon), firstDescending.userNames())
     }
 
     @Test
@@ -440,10 +455,10 @@ class ScimUserSearchTest {
         kcConfig: KcConfig,
     ) {
         val ascending = listUsers(env, kcConfig, sortBy = "emails.value", sortOrder = "ascending")
-        assertEquals(listOf(alice, bob, carol), ascending.userNames())
+        assertEquals(listOf(alice, jon, carol), ascending.userNames())
 
         val descending = listUsers(env, kcConfig, sortBy = "emails.value", sortOrder = "descending")
-        assertEquals(listOf(carol, bob, alice), descending.userNames())
+        assertEquals(listOf(carol, jon, alice), descending.userNames())
     }
 
     @Test
@@ -451,14 +466,14 @@ class ScimUserSearchTest {
         env: KcEnvironment,
         kcConfig: KcConfig,
     ) {
-        val outsider = "search-user-rogaland@rogaland.no"
+        val outsider = Users.ALICE_ROGALAND_EMAIL
         ScimFlow
             .createUser(
                 scimBaseUrl(env, kcConfig, Orgs.ROGALAND),
                 tokenUrl(env),
                 ScimUser(
                     schemas = listOf(CORE_SCHEMA),
-                    externalId = "99999999-9999-9999-9999-999999999999",
+                    externalId = Users.ALICE_ROGALAND,
                     userName = outsider,
                     active = true,
                     emails = listOf(ScimUser.Email(outsider, primary = true)),
@@ -476,7 +491,7 @@ class ScimUserSearchTest {
         kcConfig: KcConfig,
     ) {
         assertEquals(400, listUsersStatus(env, kcConfig, filter = """roles.type eq "WindowsAzureActiveDirectoryRole""""))
-        assertEquals(400, listUsersStatus(env, kcConfig, filter = """emails eq "alice.search@telemark.no""""))
+        assertEquals(400, listUsersStatus(env, kcConfig, filter = """emails eq "${Users.ALICE_TELEMARK_EMAIL}""""))
     }
 
     @Test
