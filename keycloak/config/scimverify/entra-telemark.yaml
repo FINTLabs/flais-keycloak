@@ -152,7 +152,7 @@ users:
         }
 
   put_tests:
-    - id: AUTO
+    - id: "__PUT_USER_ID__"
       request:
         {
           "schemas": [ "urn:ietf:params:scim:schemas:core:2.0:User", "urn:ietf:params:scim:schemas:extension:fint:2.0:User" ],

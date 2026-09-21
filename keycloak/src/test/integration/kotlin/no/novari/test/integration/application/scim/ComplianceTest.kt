@@ -1,5 +1,8 @@
 package no.novari.test.integration.application.scim
 
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 import no.novari.test.common.config.KcConfig
 import no.novari.test.common.environment.kc.KcEnvironment
 import no.novari.test.common.environment.kc.KcEnvironmentExtension
@@ -33,56 +36,52 @@ class ComplianceTest {
     private val users =
         mapOf(
             Orgs.TELEMARK to
-                listOf(
-                    ScimUser(
-                        schemas =
-                            listOf(
-                                "urn:ietf:params:scim:schemas:core:2.0:User",
-                            ),
-                        externalId = Users.JON_TELEMARK,
-                        userName = Users.JON_TELEMARK,
-                        active = true,
-                        emails = listOf(ScimUser.Email(Users.JON_TELEMARK_EMAIL, primary = true)),
-                        roles =
-                            listOf(
-                                ScimUser.Role("read", "read", "WindowsAzureActiveDirectoryRole", false),
-                                ScimUser.Role("write", "write", "WindowsAzureActiveDirectoryRole", false),
-                            ),
-                        fintUserExtension =
-                            ScimUser.FintUserExtension(
-                                Users.JON_FIRST_NAME,
-                                Users.BASIC_LAST_NAME,
-                                "1234",
-                                "1234",
-                                Users.JON_TELEMARK_EMAIL,
-                            ),
-                    ),
+                ScimUser(
+                    schemas =
+                        listOf(
+                            "urn:ietf:params:scim:schemas:core:2.0:User",
+                        ),
+                    externalId = Users.JON_TELEMARK,
+                    userName = Users.JON_TELEMARK,
+                    active = true,
+                    emails = listOf(ScimUser.Email(Users.JON_TELEMARK_EMAIL, primary = true)),
+                    roles =
+                        listOf(
+                            ScimUser.Role("read", "read", "WindowsAzureActiveDirectoryRole", false),
+                            ScimUser.Role("write", "write", "WindowsAzureActiveDirectoryRole", false),
+                        ),
+                    fintUserExtension =
+                        ScimUser.FintUserExtension(
+                            Users.JON_FIRST_NAME,
+                            Users.BASIC_LAST_NAME,
+                            "1234",
+                            "1234",
+                            Users.JON_TELEMARK_EMAIL,
+                        ),
                 ),
             Orgs.ROGALAND to
-                listOf(
-                    ScimUser(
-                        schemas =
-                            listOf(
-                                "urn:ietf:params:scim:schemas:core:2.0:User",
-                            ),
-                        externalId = Users.JON_ROGALAND,
-                        userName = Users.JON_ROGALAND,
-                        active = true,
-                        emails = listOf(ScimUser.Email(Users.JON_ROGALAND_EMAIL, primary = true)),
-                        roles =
-                            listOf(
-                                ScimUser.Role("read", "read", "WindowsAzureActiveDirectoryRole", false),
-                                ScimUser.Role("write", "write", "WindowsAzureActiveDirectoryRole", false),
-                            ),
-                        fintUserExtension =
-                            ScimUser.FintUserExtension(
-                                Users.JON_FIRST_NAME,
-                                Users.BASIC_LAST_NAME,
-                                "1234",
-                                "1234",
-                                Users.JON_ROGALAND_EMAIL,
-                            ),
-                    ),
+                ScimUser(
+                    schemas =
+                        listOf(
+                            "urn:ietf:params:scim:schemas:core:2.0:User",
+                        ),
+                    externalId = Users.JON_ROGALAND,
+                    userName = Users.JON_ROGALAND,
+                    active = true,
+                    emails = listOf(ScimUser.Email(Users.JON_ROGALAND_EMAIL, primary = true)),
+                    roles =
+                        listOf(
+                            ScimUser.Role("read", "read", "WindowsAzureActiveDirectoryRole", false),
+                            ScimUser.Role("write", "write", "WindowsAzureActiveDirectoryRole", false),
+                        ),
+                    fintUserExtension =
+                        ScimUser.FintUserExtension(
+                            Users.JON_FIRST_NAME,
+                            Users.BASIC_LAST_NAME,
+                            "1234",
+                            "1234",
+                            Users.JON_ROGALAND_EMAIL,
+                        ),
                 ),
         )
 
@@ -94,18 +93,39 @@ class ComplianceTest {
         kcConfig: KcConfig,
     ) {
         val token = ScimHttpClient.getAccessToken("${env.flaisScimAuthUrl()}/token")
-        val container = createScimverifyContainer(env, kcConfig, orgAlias, token)
 
-        users[orgAlias]?.forEach { user ->
+        val userId =
             ScimFlow
                 .createUser(
                     "${env.keycloakServiceUrl()}/realms/external/scim/v2/${kcConfig.requireOrg(orgAlias).id}",
                     "${env.flaisScimAuthUrl()}/token",
-                    user,
-                ).use { resp ->
-                    assertEquals(201, resp.code)
+                    users.getValue(orgAlias),
+                ).use { response ->
+                    assertEquals(201, response.code)
+
+                    val responseBody =
+                        requireNotNull(response.body) {
+                            "SCIM create-user response did not contain a body"
+                        }.string()
+
+                    requireNotNull(
+                        Json
+                            .parseToJsonElement(responseBody)
+                            .jsonObject["id"]
+                            ?.jsonPrimitive
+                            ?.content,
+                    ) {
+                        "SCIM create-user response did not contain an id: $responseBody"
+                    }
                 }
-        }
+        val container =
+            createScimverifyContainer(
+                env = env,
+                kcConfig = kcConfig,
+                orgAlias = orgAlias,
+                token = token,
+                userId = userId,
+            )
 
         assertContainerOutput(container)
     }
@@ -130,12 +150,20 @@ class ComplianceTest {
         kcConfig: KcConfig,
         orgAlias: String,
         token: String,
+        userId: String,
     ): GenericContainer<*> {
         val image =
             ImageFromDockerfile("scimverify", false)
                 .withFileFromPath(".", Paths.get("tools/scimverify").toAbsolutePath().normalize())
+
         val svConfig =
-            Files.readString(Paths.get("config/scimverify/entra-$orgAlias.yaml").toAbsolutePath().normalize())
+            Files
+                .readString(
+                    Paths
+                        .get("config/scimverify/entra-$orgAlias.yaml")
+                        .toAbsolutePath()
+                        .normalize(),
+                ).replace("__PUT_USER_ID__", userId)
 
         return GenericContainer(image)
             .withCopyToContainer(
