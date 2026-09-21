@@ -23,7 +23,9 @@ object TestStrings {
         const val INVALID = "invalid-org"
         const val NON_EXISTING = "nonExistingOrg"
         const val ROGALAND = "rogaland"
+        const val ROGALAND_DISPLAY_NAME = "Rogaland"
         const val TELEMARK = "telemark"
+        const val TELEMARK_DISPLAY_NAME = "Telemark"
     }
 
     object Idps {
