@@ -17,7 +17,7 @@ users:
         {
           "schemas": [ "urn:ietf:params:scim:schemas:core:2.0:User", "urn:ietf:params:scim:schemas:extension:fint:2.0:User" ],
           "externalId": "8123912f-9ea4-4f56-9c52-57f752332699",
-          "userName": "alice.basic@telemark.no",
+          "userName": "8123912f-9ea4-4f56-9c52-57f752332699",
           "active": true,
 
           "emails":
@@ -62,7 +62,7 @@ users:
                       "userName":
                         {
                           "type": "string",
-                          "const": "alice.basic@telemark.no",
+                          "const": "8123912f-9ea4-4f56-9c52-57f752332699",
                         },
                       "emails":
                         {
@@ -116,7 +116,7 @@ users:
         }
 
   filter_tests:
-    - filter: userName eq "alice.basic@telemark.no"
+    - filter: userName eq "8123912f-9ea4-4f56-9c52-57f752332699"
       user_schema:
         {
           "type": "object",
@@ -139,7 +139,7 @@ users:
                       "userName":
                         {
                           "type": "string",
-                          "const": "alice.basic@telemark.no",
+                          "const": "8123912f-9ea4-4f56-9c52-57f752332699",
                         },
                     },
                   "required": [ "userName" ],
@@ -152,22 +152,22 @@ users:
         }
 
   put_tests:
-    - id: AUTO
+    - id: "__PUT_USER_ID__"
       request:
         {
           "schemas": [ "urn:ietf:params:scim:schemas:core:2.0:User", "urn:ietf:params:scim:schemas:extension:fint:2.0:User" ],
-          "externalId": "8123912f-9ea4-4f56-9c52-57f752332699",
-          "userName": "alice.basic@telemark.no",
+          "externalId": "c463c343-76e6-4002-9b61-a47b77672021",
+          "userName": "c463c343-76e6-4002-9b61-a47b77672021",
           "active": true,
           "emails":
-            [ { "value": "alice.basic@telemark.no", "primary": true } ],
+            [ { "value": "jon.basic@telemark.no", "primary": true } ],
           "roles": [ { "value": "read","display": "read","type": "WindowsAzureActiveDirectoryRole","primary": false }, { "value": "write","display": "write","type": "WindowsAzureActiveDirectoryRole","primary": false } ],
           "urn:ietf:params:scim:schemas:extension:fint:2.0:User": {
-            givenName: "Alice2",
+            givenName: "Jon2",
             familyName: "Basic2",
             "employeeId": "12_34",
             "studentNumber": "12_34",
-            "userPrincipalName": "alice.basic@telemark.no"
+            "userPrincipalName": "jon.basic@telemark.no"
           }
         }
       response:
@@ -201,7 +201,7 @@ users:
                       "userName":
                         {
                           "type": "string",
-                          "const": "alice.basic@telemark.no",
+                          "const": "c463c343-76e6-4002-9b61-a47b77672021",
                         },
                       "emails":
                         {
@@ -214,7 +214,7 @@ users:
                                   "value":
                                     {
                                       "type": "string",
-                                      "const": "alice.basic@telemark.no",
+                                      "const": "jon.basic@telemark.no",
                                     },
                                 },
                             },
@@ -291,7 +291,7 @@ users:
                   "givenName":
                     {
                       "type": "string",
-                      "const": "Alice2",
+                      "const": "Jon2",
                     },
                   "familyName":
                     {
@@ -308,7 +308,7 @@ users:
                   },
                   "userPrincipalName": {
                     "type": "string",
-                    "const": "alice.basic@telemark.no"
+                    "const": "jon.basic@telemark.no"
                   }
                 },
                 "required": [ "employeeId", "studentNumber", "userPrincipalName" ],
@@ -335,7 +335,7 @@ users:
               {
                 "op": "replace",
                 "path": "emails[primary eq true].value",
-                "value": "alice.basic.new@telemark.no",
+                "value": "new@telemark.no",
               },
             ],
         }
@@ -372,7 +372,7 @@ users:
                                   "value":
                                     {
                                       "type": "string",
-                                      "const": "alice.basic.new@telemark.no",
+                                      "const": "new@telemark.no",
                                     },
                                 },
                               "required": [ "primary", "value" ],

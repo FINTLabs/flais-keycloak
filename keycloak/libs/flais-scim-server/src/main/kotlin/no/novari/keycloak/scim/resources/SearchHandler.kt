@@ -1,6 +1,5 @@
 package no.novari.keycloak.scim.resources
 
-import com.unboundid.scim2.common.GenericScimResource
 import com.unboundid.scim2.common.Path
 import com.unboundid.scim2.common.ScimResource
 import com.unboundid.scim2.common.annotations.NotNull
@@ -10,10 +9,8 @@ import com.unboundid.scim2.common.filters.Filter
 import com.unboundid.scim2.common.messages.ListResponse
 import com.unboundid.scim2.common.messages.SortOrder
 import com.unboundid.scim2.common.utils.ApiConstants
-import com.unboundid.scim2.server.utils.ResourceComparator
 import com.unboundid.scim2.server.utils.ResourcePreparer
 import com.unboundid.scim2.server.utils.ResourceTypeDefinition
-import com.unboundid.scim2.server.utils.SchemaAwareFilterEvaluator
 import jakarta.ws.rs.core.UriInfo
 
 class SearchHandler<T : ScimResource> {
@@ -26,11 +23,17 @@ class SearchHandler<T : ScimResource> {
     @Nullable
     val count: Int?
 
-    @NotNull
-    val filterEvaluator: SchemaAwareFilterEvaluator
+    val cursorRequested: Boolean
 
     @Nullable
-    val resourceComparator: ResourceComparator<ScimResource>?
+    val cursor: String?
+
+    /** The parsed `sortBy` path, exposed so callers can try to push sorting into the database. */
+    @Nullable
+    val sortBy: Path?
+
+    @NotNull
+    val sortOrder: SortOrder
 
     @NotNull
     val responsePreparer: ResourcePreparer<ScimResource>
@@ -40,7 +43,6 @@ class SearchHandler<T : ScimResource> {
         resourceType: ResourceTypeDefinition,
         uriInfo: UriInfo,
     ) {
-        filterEvaluator = SchemaAwareFilterEvaluator(resourceType)
         responsePreparer = ResourcePreparer(resourceType, uriInfo)
 
         val qp = uriInfo.queryParameters
@@ -62,6 +64,9 @@ class SearchHandler<T : ScimResource> {
                 ?.toIntOrNull()
                 ?.coerceAtLeast(0)
 
+        cursorRequested = qp.containsKey(ApiConstants.QUERY_PARAMETER_PAGE_CURSOR)
+        cursor = qp.getFirst(ApiConstants.QUERY_PARAMETER_PAGE_CURSOR)
+
         val sortByString = qp.getFirst(ApiConstants.QUERY_PARAMETER_SORT_BY)
         val sortOrderString = qp.getFirst(ApiConstants.QUERY_PARAMETER_SORT_ORDER)
 
@@ -79,58 +84,48 @@ class SearchHandler<T : ScimResource> {
                 ?.let(SortOrder::fromName)
                 ?: SortOrder.ASCENDING
 
-        resourceComparator =
-            sortBy?.let {
-                ResourceComparator(it, sortOrder, resourceType)
-            }
+        this.sortBy = sortBy
+        this.sortOrder = sortOrder
     }
 
-    fun createSearchResult(resources: Sequence<T>): ListResponse<T> {
-        val resolvedStartIndex = (startIndex ?: 1).coerceAtLeast(1)
-        val resolvedCount = count ?: Int.MAX_VALUE
-
-        var preparedResources =
+    /**
+     * Builds a [ListResponse] from resources that have **already** been filtered, sorted and paged
+     * by the caller — typically by a database query.
+     *
+     * This applies no filter, no sort and no sub-listing; it only runs the response preparer over
+     * each resource. [totalResults] is the size of the full matching set, not of [resources].
+     *
+     * Only use this when [filter] and [sortBy] have already been pushed down, otherwise the reported
+     * [totalResults] will not agree with the returned page.
+     */
+    fun createPagedSearchResult(
+        resources: Sequence<T>,
+        totalResults: Int,
+        nextCursor: String? = null,
+        cursorPagination: Boolean = false,
+    ): ListResponse<T> {
+        val preparedResources =
             resources
                 .map { it.asGenericScimResource() }
-                .filter { prepareAndFilter(it) }
+                .onEach { responsePreparer.setResourceTypeAndLocation(it) }
                 .toList()
 
-        val totalCount = preparedResources.size
-        if (totalCount == 0) {
+        if (cursorPagination) {
+            @Suppress("UNCHECKED_CAST")
             return ListResponse(
-                0,
-                emptyList<T>(),
-                resolvedStartIndex,
-                0,
+                totalResults,
+                nextCursor,
+                preparedResources.size,
+                preparedResources as List<T>,
             )
         }
 
-        resourceComparator?.let { comparator ->
-            preparedResources =
-                preparedResources.sortedWith(comparator)
-        }
-
-        val fromIndex = (resolvedStartIndex - 1).coerceAtMost(totalCount)
-        val toIndex = (fromIndex + resolvedCount).coerceAtMost(totalCount)
-        val page =
-            if (fromIndex >= toIndex) {
-                emptyList()
-            } else {
-                preparedResources.subList(fromIndex, toIndex)
-            }
-
         @Suppress("UNCHECKED_CAST")
         return ListResponse(
-            totalCount,
-            page as List<T>,
-            resolvedStartIndex,
-            page.size,
+            totalResults,
+            preparedResources as List<T>,
+            (startIndex ?: 1).coerceAtLeast(1),
+            preparedResources.size,
         )
-    }
-
-    private fun prepareAndFilter(resource: GenericScimResource): Boolean {
-        responsePreparer.setResourceTypeAndLocation(resource)
-        val currentFilter = filter ?: return true
-        return currentFilter.visit(filterEvaluator, resource.objectNode)
     }
 }

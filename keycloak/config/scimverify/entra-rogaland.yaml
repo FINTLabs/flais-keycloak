@@ -17,7 +17,7 @@ users:
         {
           "schemas": [ "urn:ietf:params:scim:schemas:core:2.0:User", "urn:ietf:params:scim:schemas:extension:fint:2.0:User" ],
           "externalId": "8b08335d-e716-4d45-8d40-f75aa7884083",
-          "userName": "alice.basic@rogaland.no",
+          "userName": "8b08335d-e716-4d45-8d40-f75aa7884083",
           "active": true,
           "emails":
             [ { "value": "alice.basic@rogaland.no", "primary": true } ],
@@ -61,7 +61,7 @@ users:
                       "userName":
                         {
                           "type": "string",
-                          "const": "alice.basic@rogaland.no",
+                          "const": "8b08335d-e716-4d45-8d40-f75aa7884083",
                         },
                       "emails":
                         {
@@ -114,7 +114,7 @@ users:
         }
 
   filter_tests:
-    - filter: userName eq "alice.basic@rogaland.no"
+    - filter: userName eq "8b08335d-e716-4d45-8d40-f75aa7884083"
       user_schema:
         {
           "type": "object",
@@ -137,7 +137,7 @@ users:
                       "userName":
                         {
                           "type": "string",
-                          "const": "alice.basic@rogaland.no",
+                          "const": "8b08335d-e716-4d45-8d40-f75aa7884083",
                         },
                     },
                   "required": [ "userName" ],
@@ -150,22 +150,22 @@ users:
         }
 
   put_tests:
-    - id: AUTO
+    - id: "__PUT_USER_ID__"
       request:
         {
           "schemas": [ "urn:ietf:params:scim:schemas:core:2.0:User", "urn:ietf:params:scim:schemas:extension:fint:2.0:User" ],
-          "externalId": "8b08335d-e716-4d45-8d40-f75aa7884083",
-          "userName": "alice.basic@rogaland.no",
+          "externalId": "84ad338c-b778-43f2-9636-1e2dda3d9f08",
+          "userName": "84ad338c-b778-43f2-9636-1e2dda3d9f08",
           "active": true,
           "emails":
-            [ { "value": "alice.basic@rogaland.no", "primary": true } ],
+            [ { "value": "jon.basic@rogaland.no", "primary": true } ],
           "roles": [ { "value": "read","display": "read","type": "WindowsAzureActiveDirectoryRole","primary": false }, { "value": "write","display": "write","type": "WindowsAzureActiveDirectoryRole","primary": false } ],
           "urn:ietf:params:scim:schemas:extension:fint:2.0:User": {
-            "givenName": "Alice2",
+            "givenName": "Jon2",
             "familyName": "Basic2",
             "employeeId": "12_34",
             "studentNumber": "12_34",
-            "userPrincipalName": "alice.basic@rogaland.no"
+            "userPrincipalName": "jon.basic@rogaland.no"
           }
         }
       response:
@@ -199,7 +199,7 @@ users:
                       "userName":
                         {
                           "type": "string",
-                          "const": "alice.basic@rogaland.no",
+                          "const": "84ad338c-b778-43f2-9636-1e2dda3d9f08",
                         },
                       "emails":
                         {
@@ -212,7 +212,7 @@ users:
                                   "value":
                                     {
                                       "type": "string",
-                                      "const": "alice.basic@rogaland.no",
+                                      "const": "jon.basic@rogaland.no",
                                     },
                                 },
                             },
@@ -289,7 +289,7 @@ users:
                   "givenName":
                     {
                       "type": "string",
-                      "const": "Alice2",
+                      "const": "Jon2",
                     },
                   "familyName":
                     {
@@ -306,7 +306,7 @@ users:
                   },
                   "userPrincipalName": {
                     "type": "string",
-                    "const": "alice.basic@rogaland.no"
+                    "const": "jon.basic@rogaland.no"
                   }
                 },
                 "required": [ "employeeId", "studentNumber", "userPrincipalName" ],
@@ -333,7 +333,7 @@ users:
               {
                 "op": "replace",
                 "path": "emails[primary eq true].value",
-                "value": "alice.basic.new@rogaland.no",
+                "value": "new@rogaland.no",
               },
             ],
         }
@@ -370,7 +370,7 @@ users:
                                   "value":
                                     {
                                       "type": "string",
-                                      "const": "alice.basic.new@rogaland.no",
+                                      "const": "new@rogaland.no",
                                     },
                                 },
                               "required": [ "primary", "value" ],

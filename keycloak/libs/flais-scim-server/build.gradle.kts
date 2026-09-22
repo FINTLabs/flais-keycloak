@@ -13,6 +13,7 @@ plugins {
 group = "no.novari"
 
 dependencies {
+    implementation(kotlin("reflect"))
     implementation(platform(libs.keycloak.spi.bom))
     implementation(platform(libs.resteasy.bom))
     implementation(platform(libs.netty.bom)) {
@@ -35,6 +36,13 @@ dependencies {
     compileOnly(libs.keycloak.services)
     compileOnly(libs.keycloak.server.spi)
     compileOnly(libs.keycloak.server.spi.priv)
+    compileOnly(libs.keycloak.model.jpa) {
+        because(
+            "SCIM user search needs a read-only JPA query joining organization group membership with the " +
+                "scim-managed role mapping. Neither OrganizationProvider nor UserProvider can express that " +
+                "combination, so exact totalResults is otherwise impossible. Provided by the Keycloak runtime.",
+        )
+    }
     compileOnly(libs.guava)
 
     testImplementation(platform(libs.junit.bom))
@@ -62,6 +70,7 @@ tasks.shadowJar {
     archiveClassifier.set("")
     mergeServiceFiles()
     minimize {
+        exclude(dependency("org.jetbrains.kotlin:kotlin-reflect:.*"))
         exclude(dependency("com.fasterxml.jackson.module:jackson-module-jakarta-xmlbind-annotations:.*"))
     }
 }

@@ -1,5 +1,7 @@
 package no.novari.test.common.fixture
 
+import jakarta.ws.rs.NotFoundException
+
 object TestStrings {
     object Uris {
         fun redirectCallback(base: String) = "$base/callback"
@@ -49,15 +51,25 @@ object TestStrings {
         const val JON_TELEMARK = "c463c343-76e6-4002-9b61-a47b77672021"
         const val JON_TELEMARK_EMAIL = "jon.basic@telemark.no"
 
-        const val SCIMVERIFY_FIRST_NAME = "Scimverify"
+        const val QLIK_ROGALAND = "dc759da2-c412-47ba-b455-982d3f437ac5"
+        const val QLIK_TELEMARK = "7bc2790b-c829-419d-903e-99c4409213dd"
+
         const val BASIC_LAST_NAME = "Basic"
         const val PASSWORD = "password"
 
-        fun alice(orgAlias: String) = "alice.basic@$orgAlias.no"
+        fun alice(orgAlias: String): String =
+            when (orgAlias) {
+                Orgs.ROGALAND -> ALICE_ROGALAND
+                Orgs.TELEMARK -> ALICE_TELEMARK
+                else -> throw NotFoundException()
+            }
 
-        fun qlikBasic(orgAlias: String) = "qlik.basic@$orgAlias.no"
-
-        fun scimVerify(orgAlias: String) = "scimverify.user@$orgAlias.no"
+        fun qlik(orgAlias: String): String =
+            when (orgAlias) {
+                Orgs.ROGALAND -> QLIK_ROGALAND
+                Orgs.TELEMARK -> QLIK_TELEMARK
+                else -> throw NotFoundException()
+            }
     }
 
     object Realms {
