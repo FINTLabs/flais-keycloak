@@ -426,6 +426,7 @@ class ScimUserEndpoint(
                 mutableListOf(
                     Email().apply {
                         primary = true
+                        type = "work" // We only support work
                         value = user.email
                     },
                 )
