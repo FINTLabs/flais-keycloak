@@ -868,4 +868,42 @@ class ScimUserEndpointTest {
         verify(exactly = 0) { user.setSingleAttribute(eq("givenName"), any()) }
         verify(exactly = 0) { user.setSingleAttribute(eq("familyName"), any()) }
     }
+
+    @Test
+    fun `patchUser replaces email selected by work type`() {
+        templateUser(user)
+
+        every {
+            orgProvider.getMemberById(scimContext.organization, userId)
+        } returns user
+        every {
+            orgProvider.isManagedMember(scimContext.organization, user)
+        } returns true
+        every {
+            orgProvider.getIdentityProviders(scimContext.organization)
+        } answers { Stream.empty() }
+        every {
+            userProvider.getFederatedIdentitiesStream(realm, user)
+        } answers { Stream.empty() }
+
+        val updatedEmail = "alice.updated@telemark.no"
+
+        val response =
+            endpoint.patchUser(
+                userUriInfo,
+                userId,
+                PatchRequest(
+                    listOf(
+                        PatchOperation.replace(
+                            """emails[type eq "work"].value""",
+                            updatedEmail,
+                        ),
+                    ),
+                ),
+            )
+
+        assertEquals(Response.Status.OK.statusCode, response.status)
+        verify(exactly = 1) { user.email = updatedEmail }
+        verify(exactly = 1) { user.isEmailVerified = true }
+    }
 }
