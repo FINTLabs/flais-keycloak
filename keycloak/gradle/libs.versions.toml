@@ -22,7 +22,7 @@ kotlinx-serialization-json = "1.11.0"
 slf4j = "2.0.20"
 okhttp = "5.5.0"
 
-kover = "0.9.9"
+kover = "0.9.11"
 playwright = "1.63.0"
 
 scim-server-sdk = "5.0.0"
