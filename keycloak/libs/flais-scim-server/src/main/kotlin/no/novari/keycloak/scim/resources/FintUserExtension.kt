@@ -1,4 +1,4 @@
-package no.novari.keycloak.scim.types
+package no.novari.keycloak.scim.resources
 
 import com.unboundid.scim2.common.annotations.Attribute
 import com.unboundid.scim2.common.annotations.Nullable

@@ -147,6 +147,7 @@ fun JvmTestSuite.commonTestSources() {
 fun JvmTestSuite.addSuiteSources(name: String) {
     sources {
         kotlin { srcDir("src/test/$name/kotlin") }
+        resources { srcDir("src/test/$name/resources") }
     }
 }
 
@@ -215,11 +216,23 @@ testing {
             commonTestSources()
             addSuiteSources("system")
 
+            dependencies {
+                implementation(libs.testcontainers.k6)
+            }
+
             targets {
                 all {
                     testTask.configure {
                         description = "Runs system tests."
                         group = "verification"
+
+                        systemProperty(
+                            "benchmark.reportDir",
+                            layout.buildDirectory
+                                .dir("reports/scim-search-benchmark")
+                                .get()
+                                .asFile.absolutePath,
+                        )
                     }
                 }
             }

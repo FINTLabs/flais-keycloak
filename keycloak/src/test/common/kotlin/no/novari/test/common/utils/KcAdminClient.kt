@@ -1,5 +1,11 @@
 package no.novari.test.common.utils
 
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.int
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
+import kotlinx.serialization.json.put
 import no.novari.test.common.config.KcConfig
 import no.novari.test.common.environment.kc.KcEnvironment
 import org.keycloak.admin.client.CreatedResponseUtil
@@ -13,7 +19,6 @@ import org.keycloak.representations.idm.ProtocolMapperRepresentation
 import org.keycloak.representations.idm.RealmRepresentation
 import org.keycloak.representations.idm.UserRepresentation
 import org.keycloak.util.JsonSerialization
-import java.nio.charset.StandardCharsets
 import java.util.UUID
 
 /**
@@ -213,6 +218,34 @@ object KcAdminClient {
         mappers.update(mapper.id, mapper)
     }
 
+    fun createScaleTestUser(
+        username: String,
+        externalId: String,
+        enabled: Boolean = true,
+        email: String = username,
+        roles: List<String> = listOf("reader"),
+    ): UserRepresentation =
+        UserRepresentation().apply {
+            id = UUID.randomUUID().toString()
+            this.username = username
+            this.email = email
+            isEnabled = enabled
+            isEmailVerified = true
+            realmRoles = listOf("scim-managed")
+            attributes =
+                mapOf(
+                    "externalId" to listOf(externalId),
+                    "roles" to roles,
+                    "rawRoles" to
+                        roles.map { role ->
+                            buildJsonObject {
+                                put("value", role)
+                                put("display", role)
+                            }.toString()
+                        },
+                )
+        }
+
     fun addScaleTestUsers(
         env: KcEnvironment,
         kcConfig: KcConfig,
@@ -222,96 +255,96 @@ object KcAdminClient {
         importBatchSize: Int = 500,
         membershipBatchSize: Int = 50,
         failureThresholdPercent: Double = 5.0,
-    ) {
+    ): List<UserRepresentation> {
+        require(userCount > 0) { "userCount must be positive" }
+        require(importBatchSize > 0) { "importBatchSize must be positive" }
+        require(membershipBatchSize > 0) { "membershipBatchSize must be positive" }
+        require(failureThresholdPercent in 0.0..100.0) { "failureThresholdPercent must be between 0 and 100" }
         val organizationId = kcConfig.requireOrg(orgAlias).id
         val users =
-            List(userCount) {
+            List(userCount) { index ->
                 createScaleTestUser(
-                    index = it,
-                    realmName = realmName,
-                    organizationId = organizationId,
-                    organizationAlias = orgAlias,
+                    username = "benchmark-${index.toString().padStart(7, '0')}@$orgAlias.no",
+                    externalId = "benchmark-$index",
+                    enabled = index % 2 == 0,
                 )
             }
-
-        val failedImports =
-            users.chunked(importBatchSize).sumOf { batch ->
-                val (kc, realm) = connect(env, realmName)
-
-                kc.use {
-                    runCatching {
-                        realm.partialImport(
-                            PartialImportRepresentation().apply {
-                                this.users = batch
-                                ifResourceExists = PartialImportRepresentation.Policy.SKIP.name
-                            },
-                        )
-                    }.fold(
-                        onSuccess = { 0 },
-                        onFailure = {
-                            println("Failed importing ${batch.first().username}–${batch.last().username}: ${it.message}")
-                            batch.size
-                        },
-                    )
-                }
-            }
-
-        val failedMemberships =
-            users.chunked(membershipBatchSize).sumOf { batch ->
-                val (kc, realm) = connect(env, realmName)
-
-                kc.use {
-                    batch.count { user ->
-                        runCatching {
-                            realm
-                                .organizations()
-                                .get(organizationId)
-                                .members()
-                                .addMember(user.id)
-                        }.onFailure {
-                            println("Failed adding ${user.username} to organization: ${it.message}")
-                        }.isFailure
-                    }
-                }
-            }
+        val imported = mutableListOf<UserRepresentation>()
 
         fun checkFailures(
             name: String,
             failures: Int,
         ) {
             val percentage = failures * 100.0 / userCount
-            check(percentage < failureThresholdPercent) {
+            check(percentage <= failureThresholdPercent) {
                 "$name failed for $failures/$userCount users ($percentage%)"
             }
         }
 
-        checkFailures("User import", failedImports)
-        checkFailures("Organization membership", failedMemberships)
+        try {
+            users.chunked(importBatchSize).forEach { batch ->
+                val (admin, realm) = connect(env, realmName)
+                admin.use {
+                    runCatching {
+                        val request =
+                            PartialImportRepresentation().apply {
+                                this.users = batch
+                                ifResourceExists = PartialImportRepresentation.Policy.FAIL.name
+                            }
+                        realm.partialImport(request).use { response ->
+                            val body = response.readEntity(String::class.java)
+                            check(response.status == 200) { "User import failed: HTTP ${response.status}: $body" }
+                            val result = Json.parseToJsonElement(body).jsonObject
+                            check(result.getValue("added").jsonPrimitive.int == batch.size) { "Incomplete import: $body" }
+                        }
+                    }.onSuccess {
+                        imported.addAll(batch)
+                    }.onFailure {
+                        System.err.println("Failed importing ${batch.first().username} to ${batch.last().username}: ${it.message}")
+                    }
+                }
+            }
+            checkFailures("User import", userCount - imported.size)
+
+            val failedMemberships =
+                imported.chunked(membershipBatchSize).sumOf { batch ->
+                    val (admin, realm) = connect(env, realmName)
+                    admin.use {
+                        batch.count { user ->
+                            runCatching {
+                                realm.organizations().get(organizationId).members().addMember(user.id).use { response ->
+                                    check(response.status in 200..299) { "HTTP ${response.status}" }
+                                }
+                            }.onFailure {
+                                System.err.println("Failed adding ${user.username} to organization: ${it.message}")
+                            }.isFailure
+                        }
+                    }
+                }
+            checkFailures("Organization membership", failedMemberships)
+            println("Imported ${imported.size}/$userCount test users; $failedMemberships membership failures")
+            return users
+        } catch (failure: Exception) {
+            // The caller cannot clean up until this method has returned its users.
+            runCatching {
+                val (admin, realm) = connect(env, realmName)
+                admin.use { deleteUsers(realm, users) }
+            }.onFailure { failure.addSuppressed(it) }
+            throw failure
+        }
     }
 
-    private fun createScaleTestUser(
-        index: Int,
-        realmName: String,
-        organizationId: String,
-        organizationAlias: String,
-    ): UserRepresentation {
-        val suffix = index.toString().padStart(5, '0')
-        val username = "scale-test-user-$suffix"
-
-        return UserRepresentation().apply {
-            id =
-                UUID
-                    .nameUUIDFromBytes(
-                        "$realmName:$organizationId:$username"
-                            .toByteArray(StandardCharsets.UTF_8),
-                    ).toString()
-            this.username = username
-            email = "$username@$organizationAlias.no"
-            firstName = "ScaleTest"
-            lastName = suffix
-            isEnabled = true
-            isEmailVerified = true
-            realmRoles = listOf("scim-managed")
+    /** Attempts every deletion without hiding a failure from the test itself. */
+    fun deleteUsers(
+        realm: RealmResource,
+        users: List<UserRepresentation>,
+    ) {
+        users.forEach { user ->
+            runCatching {
+                realm.users().delete(user.id).use { response ->
+                    check(response.status in 200..299 || response.status == 404) { "HTTP ${response.status}" }
+                }
+            }.onFailure { System.err.println("Could not delete test user ${user.id}: ${it.message}") }
         }
     }
 }

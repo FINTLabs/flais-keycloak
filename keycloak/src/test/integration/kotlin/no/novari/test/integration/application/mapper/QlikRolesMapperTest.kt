@@ -37,7 +37,7 @@ class QlikRolesMapperTest {
         val client = KcHttpClient.create(followRedirects = true)
         val redirectUri = Uris.redirectCallback(env.flaisKeycloakDemoUrl())
         val idpAlias = Idps.entra(orgAlias)
-        val username = Users.qlikBasic(orgAlias)
+        val username = Users.qlik(orgAlias)
         val (authUrl, codeVerifier) =
             KcUrl.authUrl(
                 env = env,
@@ -121,7 +121,7 @@ class QlikRolesMapperTest {
         val client = KcHttpClient.create(followRedirects = true)
         val redirectUri = Uris.redirectCallback(env.flaisKeycloakDemoUrl())
         val idpAlias = Idps.entra(orgAlias)
-        val username = Users.qlikBasic(orgAlias)
+        val username = Users.qlik(orgAlias)
         val (authUrl, codeVerifier) =
             KcUrl.authUrl(
                 env = env,

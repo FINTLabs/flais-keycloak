@@ -1,4 +1,4 @@
-package no.novari.test.integration.utils
+package no.novari.test.common.utils
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
