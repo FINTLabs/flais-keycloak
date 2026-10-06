@@ -32,7 +32,6 @@ class PublicClientTokenTest {
         val orgAlias = Orgs.TELEMARK
         val idpAlias = Idps.ENTRA_TELEMARK
         val username = Users.ALICE_TELEMARK
-        val password = Users.PASSWORD
         val (authUrl, codeVerifier) =
             KcUrl.authUrl(
                 env = env,
@@ -48,7 +47,6 @@ class PublicClientTokenTest {
             orgAlias,
             idpAlias,
             username,
-            password,
             client,
             authUrl,
         ).use { resp ->

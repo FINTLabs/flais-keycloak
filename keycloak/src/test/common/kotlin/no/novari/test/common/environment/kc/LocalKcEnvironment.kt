@@ -57,11 +57,11 @@ class LocalKcEnvironment(
             )
 
             withExposedService(
-                "authentik",
-                9000,
+                "mock-idp",
+                8080,
                 Wait
-                    .forHttp("/-/health/ready/")
-                    .forPort(9000)
+                    .forHttp("/isalive")
+                    .forPort(8080)
                     .withStartupTimeout(Duration.ofMinutes(15)),
             )
 
@@ -115,9 +115,9 @@ class LocalKcEnvironment(
         return "http://$host:$port"
     }
 
-    override fun authentikUrl(): String {
-        val host = compose.getServiceHost("authentik", 9000)
-        val port = compose.getServicePort("authentik", 9000)
+    override fun mockIdpUrl(): String {
+        val host = compose.getServiceHost("mock-idp", 8080)
+        val port = compose.getServicePort("mock-idp", 8080)
         return "http://$host:$port"
     }
 

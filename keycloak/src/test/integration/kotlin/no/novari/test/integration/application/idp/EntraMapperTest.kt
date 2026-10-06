@@ -19,12 +19,11 @@ class EntraMapperTest {
     fun `map_roles_to_user_attribute maps roles from claim to attribute`(env: KcEnvironment) {
         val realm = Realms.EXTERNAL
         val username = Users.ALICE_TELEMARK
-        val password = Users.PASSWORD
         val clientId = Clients.FLAIS_KEYCLOAK_DEMO
         val orgAlias = Orgs.TELEMARK
         val idpAlias = Idps.ENTRA_TELEMARK
 
-        loginWithUser(env, clientId, orgAlias, idpAlias, username, password).use { resp ->
+        loginWithUser(env, clientId, orgAlias, idpAlias, username).use { resp ->
             assertEquals(200, resp.code)
 
             val (kc, realmRes) = KcAdminClient.connect(env, realm)

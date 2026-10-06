@@ -17,14 +17,13 @@ import org.junit.jupiter.api.extension.ExtendWith
 @ExtendWith(KcEnvironmentExtension::class)
 class FlaisBrowserFlowTest {
     private val username = Users.ALICE_TELEMARK
-    private val password = Users.PASSWORD
     private val clientId = Clients.FLAIS_KEYCLOAK_DEMO
     private val orgAlias = Orgs.TELEMARK
     private val idpAlias = Idps.ENTRA_TELEMARK
 
     @Test
     fun `flow returns code after login`(env: KcEnvironment) {
-        loginWithUser(env, clientId, orgAlias, idpAlias, username, password).use { resp ->
+        loginWithUser(env, clientId, orgAlias, idpAlias, username).use { resp ->
             assertEquals(200, resp.code)
 
             assertNotNull(resp.request.url.queryParameter("code"))
@@ -35,7 +34,7 @@ class FlaisBrowserFlowTest {
     fun `with SSO cookie, org and idp selector is skipped and returns code after login`(env: KcEnvironment) {
         val client = KcHttpClient.create(followRedirects = true)
 
-        loginWithUser(env, clientId, orgAlias, idpAlias, username, password, client).use { resp ->
+        loginWithUser(env, clientId, orgAlias, idpAlias, username, client).use { resp ->
             assertEquals(200, resp.code)
 
             openAuthUrl(env = env, clientId = clientId, httpClient = client).use { resp ->

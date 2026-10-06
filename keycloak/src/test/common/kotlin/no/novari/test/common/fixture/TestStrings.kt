@@ -55,7 +55,6 @@ object TestStrings {
         const val QLIK_TELEMARK = "7bc2790b-c829-419d-903e-99c4409213dd"
 
         const val BASIC_LAST_NAME = "Basic"
-        const val PASSWORD = "password"
 
         fun alice(orgAlias: String): String =
             when (orgAlias) {

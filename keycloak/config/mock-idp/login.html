@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Test identity provider</title>
+    <style>
+        body {
+            font: 16px system-ui, sans-serif;
+            max-width: 36rem;
+            margin: 4rem auto;
+            padding: 1rem;
+        }
+
+        label,
+        input,
+        textarea {
+            display: block;
+            box-sizing: border-box;
+            width: 100%;
+        }
+
+        input,
+        textarea,
+        button {
+            font: inherit;
+            padding: .6rem;
+            margin: .4rem 0 1rem;
+        }
+
+        textarea {
+            min-height: 8rem;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Test identity provider</h1>
+    <p>Enter a fixture username from config/mock-idp/config.json. No password is
+        required.</p>
+    <form method="post">
+        <label for="username">Username / subject</label>
+        <input id="username" name="username" required autofocus autocomplete="off">
+        <label for="claims">Additional claims (optional JSON object)</label>
+        <textarea id="claims" name="claims" placeholder='{"groups": ["test-group"]}'></textarea>
+        <p>Configured fixture claims take precedence over additional claims.</p>
+        <button type="submit">Sign in</button>
+    </form>
+</body>
+
+</html>
