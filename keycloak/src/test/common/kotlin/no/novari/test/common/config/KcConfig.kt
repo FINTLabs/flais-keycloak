@@ -2,6 +2,8 @@ package no.novari.test.common.config
 
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.jsonObject
 import java.nio.file.Files
 import java.nio.file.Path
 
@@ -10,6 +12,7 @@ import java.nio.file.Path
  */
 class KcConfig private constructor(
     private val realm: RealmExport,
+    private val source: JsonObject,
 ) {
     @Serializable
     data class RealmExport(
@@ -67,14 +70,29 @@ class KcConfig private constructor(
     )
 
     companion object {
-        private val json = Json { ignoreUnknownKeys = true }
+        private val json =
+            Json {
+                ignoreUnknownKeys = true
+                prettyPrint = true
+            }
 
-        fun fromString(raw: String): KcConfig = KcConfig(json.decodeFromString(RealmExport.serializer(), raw))
+        fun fromString(raw: String): KcConfig {
+            val source = json.parseToJsonElement(raw).jsonObject
+            val realm =
+                json.decodeFromJsonElement(
+                    RealmExport.serializer(),
+                    source,
+                )
+
+            return KcConfig(realm, source)
+        }
 
         fun fromFile(path: Path): KcConfig = fromString(Files.readString(path))
     }
 
     val realmName: String get() = realm.realm
+
+    fun toJson(): String = json.encodeToString(JsonObject.serializer(), source)
 
     fun orgAliases(): Set<String> = realm.organizations.map { it.alias }.toSet()
 

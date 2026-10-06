@@ -4,6 +4,8 @@ import no.novari.test.common.config.KcConfig
 import no.novari.test.common.environment.SharedExtensionStore.KC_CFG
 import no.novari.test.common.environment.SharedExtensionStore.KC_ENV
 import no.novari.test.common.environment.SharedExtensionStore.NS
+import no.novari.test.common.fixture.TestStrings.Realms
+import no.novari.test.common.utils.ConfigLoader
 import no.novari.test.common.utils.KcAdminClient
 import org.junit.jupiter.api.extension.AfterAllCallback
 import org.junit.jupiter.api.extension.BeforeAllCallback
@@ -12,9 +14,6 @@ import org.junit.jupiter.api.extension.ExtensionContext
 import org.junit.jupiter.api.extension.ParameterContext
 import org.junit.jupiter.api.extension.ParameterResolutionException
 import org.junit.jupiter.api.extension.ParameterResolver
-import java.nio.file.Files
-import java.nio.file.Path
-import java.nio.file.Paths
 
 /**
  * JUnit 5 extension that manages the lifecycle of a Keycloak environment for tests.
@@ -44,37 +43,11 @@ class KcEnvironmentExtension :
                 it.start()
                 store.put(KC_ENV, it)
             }
-
-        val requested = "config/kc/external-realm.json"
-        val resolved =
-            resolveConfigPath(requested)
-                ?: throw ExtensionConfigurationException(
-                    "Could not find config. Tried '$requested' from various roots.",
-                )
-
-        val kcConfig =
-            try {
-                KcConfig.fromFile(resolved)
-            } catch (t: Throwable) {
-                throw ExtensionConfigurationException(
-                    "Failed to load Keycloak config from '$resolved'",
-                    t,
-                )
-            }
+        val kcConfig = ConfigLoader.loadKeycloakRealm(Realms.EXTERNAL)
         store.put(KC_CFG, kcConfig)
 
-        val kcJson =
-            try {
-                Files.readString(resolved)
-            } catch (t: Throwable) {
-                throw ExtensionConfigurationException(
-                    "Failed to read Keycloak realm JSON from '$resolved'",
-                    t,
-                )
-            }
-
-        KcAdminClient.resetRealmFromJson(env, kcJson)
-        KcAdminClient.patchIdpAuthorizationUrls(env, "external", env.authentikUrl())
+        KcAdminClient.resetRealmFromJson(env, kcConfig.toJson())
+        KcAdminClient.patchIdpAuthorizationUrls(env, Realms.EXTERNAL, env.authentikUrl())
     }
 
     override fun afterAll(context: ExtensionContext) = Unit
@@ -108,18 +81,6 @@ class KcEnvironmentExtension :
                 throw ParameterResolutionException("Unsupported parameter: $t")
             }
         }
-    }
-
-    private fun resolveConfigPath(requested: String): Path? {
-        val p = Paths.get(requested)
-        if (p.isAbsolute && Files.isRegularFile(p)) return p
-
-        System.getProperty("project.rootDir")?.let { root ->
-            val candidate = Paths.get(root).resolve(requested).normalize()
-            if (Files.isRegularFile(candidate)) return candidate
-        }
-
-        return null
     }
 
     private fun store(context: ExtensionContext): ExtensionContext.Store = context.root.getStore(NS)
