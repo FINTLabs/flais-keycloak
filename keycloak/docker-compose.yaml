@@ -1,121 +1,77 @@
 services:
-    # ----------------------
-    # Keycloak and its Postgres database
-    # ----------------------
-    keycloak:
-        build:
-            context: .
-            dockerfile: Dockerfile
-            args:
-                KEYCLOAK_VERSION: ${KEYCLOAK_VERSION}
-        command: >
-            start-dev
-            --import-realm
-            --log-level="INFO,org.keycloak.authentication.authenticators:DEBUG,no.novari:DEBUG"
-        environment:
-            KC_HTTP_ENABLED: "true"
-            KC_HEALTH_ENABLED: "true"
-            KC_DB: postgres
-            KC_DB_URL_HOST: keycloak-pg
-            KC_DB_URL_DATABASE: keycloak
-            KC_DB_USERNAME: keycloak
-            KC_DB_PASSWORD: password
-            KC_DB_SCHEMA: public
-            KC_BOOTSTRAP_ADMIN_USERNAME: admin
-            KC_BOOTSTRAP_ADMIN_PASSWORD: admin
-        depends_on:
-            keycloak-pg:
-                condition: service_healthy
-            authentik-ready:
-                condition: service_healthy
-        networks:
-            - keycloak
+  # ----------------------
+  # Keycloak and its Postgres database
+  # ----------------------
+  keycloak:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        KEYCLOAK_VERSION: ${KEYCLOAK_VERSION}
+    command: >
+      start-dev
+      --import-realm
+      --log-level="INFO,org.keycloak.authentication.authenticators:DEBUG,no.novari:DEBUG"
+    environment:
+      KC_HTTP_ENABLED: "true"
+      KC_HEALTH_ENABLED: "true"
+      KC_DB: postgres
+      KC_DB_URL_HOST: keycloak-pg
+      KC_DB_URL_DATABASE: keycloak
+      KC_DB_USERNAME: keycloak
+      KC_DB_PASSWORD: password
+      KC_DB_SCHEMA: public
+      KC_BOOTSTRAP_ADMIN_USERNAME: admin
+      KC_BOOTSTRAP_ADMIN_PASSWORD: admin
+    depends_on:
+      keycloak-pg:
+        condition: service_healthy
+      mock-idp:
+        condition: service_healthy
+    networks:
+      - keycloak
 
-    keycloak-pg:
-        image: postgres:18-alpine
-        environment:
-            POSTGRES_DB: keycloak
-            POSTGRES_USER: keycloak
-            POSTGRES_PASSWORD: password
-        healthcheck:
-            test: [ "CMD-SHELL", "sh -c 'pg_isready -U keycloak -d keycloak'" ]
-            interval: 10s
-            timeout: 3s
-            retries: 5
-            start_period: 10s
-        networks:
-            - keycloak
+  keycloak-pg:
+    image: postgres:18-alpine
+    environment:
+      POSTGRES_DB: keycloak
+      POSTGRES_USER: keycloak
+      POSTGRES_PASSWORD: password
+    healthcheck:
+      test: ["CMD-SHELL", "sh -c 'pg_isready -U keycloak -d keycloak'"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 10s
+    networks:
+      - keycloak
 
-    # ----------------------
-    # Authentik
-    # ----------------------
-    authentik-pg:
-        image: postgres:18-alpine
-        environment:
-            POSTGRES_USER: postgres
-            POSTGRES_PASSWORD: devpass
-            POSTGRES_DB: authentik
-        tmpfs:
-            - /var/lib/postgresql
-        networks:
-            - keycloak
-
-    authentik:
-        image: ghcr.io/goauthentik/server:2026.8.3
-        command: server
-        environment:
-            AUTHENTIK_SECRET_KEY: "authentik"
-            AUTHENTIK_POSTGRESQL__HOST: authentik-pg
-            AUTHENTIK_POSTGRESQL__USER: postgres
-            AUTHENTIK_POSTGRESQL__PASSWORD: devpass
-            AUTHENTIK_POSTGRESQL__NAME: authentik
-        depends_on: [ authentik-pg ]
-        networks:
-            - keycloak
-
-    authentik-worker:
-        image: ghcr.io/goauthentik/server:2026.8.3
-        command: worker
-        environment:
-            AUTHENTIK_SECRET_KEY: "authentik"
-            AUTHENTIK_POSTGRESQL__HOST: authentik-pg
-            AUTHENTIK_POSTGRESQL__USER: postgres
-            AUTHENTIK_POSTGRESQL__PASSWORD: devpass
-            AUTHENTIK_POSTGRESQL__NAME: authentik
-            AUTHENTIK_BOOTSTRAP_EMAIL: "admin@admin.no"
-            AUTHENTIK_BOOTSTRAP_PASSWORD: "admin"
-        depends_on: [ authentik-pg ]
-        volumes: [ "./config/authentik/:/blueprints/custom/:ro" ]
-        networks:
-            - keycloak
-
-    authentik-ready:
-      image: curlimages/curl:8.22.0
-      entrypoint: ["/bin/sh"]
-      command: ["-c", "while true; do sleep 3600; done"]
-      healthcheck:
-          test: >
-              /bin/sh -c '
-              set -e;
-              curl -fsS http://authentik:9000/-/health/ready/ >/dev/null;
-              curl -fsS http://authentik:9000/application/o/entra-telemark-app/.well-known/openid-configuration >/dev/null;
-              curl -fsS http://authentik:9000/application/o/entra-telemark-alt-app/.well-known/openid-configuration >/dev/null;
-              curl -fsS http://authentik:9000/application/o/entra-rogaland-app/.well-known/openid-configuration >/dev/null;
-              curl -fsS http://authentik:9000/application/o/idporten-app/.well-known/openid-configuration >/dev/null;
-              '
-          interval: 10s
-          timeout: 5s
-          retries: 30
-          start_period: 10s
-      depends_on:
-        authentik:
-          condition: service_healthy
-        authentik-worker:
-          condition: service_healthy
-      networks:
-        - keycloak
+  # ----------------------
+  # Helper services
+  # ----------------------
+  mock-idp:
+    image: ghcr.io/navikt/mock-oauth2-server:6.0.4
+    healthcheck:
+      test:
+        - CMD
+        - wget
+        - --no-verbose
+        - --tries=1
+        - --spider
+        - http://localhost:8080/isalive
+      interval: 2s
+      timeout: 3s
+      retries: 30
+      start_period: 5s
+    environment:
+      SERVER_PORT: "8080"
+      JSON_CONFIG_PATH: /config/config.json
+    volumes:
+      - ./config/mock-idp:/config:ro
+    networks:
+      - keycloak
 
 networks:
-    keycloak:
-        driver: bridge
-        name: keycloak
+  keycloak:
+    driver: bridge
+    name: keycloak

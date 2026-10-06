@@ -219,7 +219,6 @@ class ProvisionedTest {
                 orgAlias,
                 idpAlias,
                 user.userName,
-                Users.PASSWORD,
                 hasIdpSelector = (orgAlias == Orgs.TELEMARK),
             ).use { resp ->
                 assertEquals(200, resp.code)

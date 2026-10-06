@@ -19,6 +19,7 @@ import org.keycloak.representations.idm.ProtocolMapperRepresentation
 import org.keycloak.representations.idm.RealmRepresentation
 import org.keycloak.representations.idm.UserRepresentation
 import org.keycloak.util.JsonSerialization
+import java.net.URI
 import java.util.UUID
 
 /**
@@ -159,7 +160,7 @@ object KcAdminClient {
         }
     }
 
-    fun patchIdpAuthorizationUrls(
+    fun patchIdpBrowserUrls(
         env: KcEnvironment,
         realmName: String,
         newBaseUrl: String,
@@ -176,12 +177,13 @@ object KcAdminClient {
                     val rep = res.toRepresentation()
 
                     val cfg = (rep.config ?: emptyMap()).toMutableMap()
-                    val oldAuth = cfg["authorizationUrl"] ?: return@forEach
-
-                    val idx = oldAuth.indexOf("/application")
-                    val newAuth = newBaseUrl.trimEnd('/') + oldAuth.substring(idx)
-
-                    cfg["authorizationUrl"] = newAuth
+                    listOf("authorizationUrl", "logoutUrl").forEach { key ->
+                        cfg[key]?.let { oldUrl ->
+                            val uri = URI(oldUrl)
+                            cfg[key] = newBaseUrl.trimEnd('/') + uri.rawPath +
+                                (uri.rawQuery?.let { "?$it" } ?: "")
+                        }
+                    }
                     rep.config = cfg
                     res.update(rep)
                 }

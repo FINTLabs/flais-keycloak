@@ -37,7 +37,6 @@ class OrgSpecificAttributeMapperTest {
         val scope = Scopes.PROFILE_EMAIL_ORGANIZATION
         val idpAlias = Idps.entra(orgAlias)
         val username = Users.alice(orgAlias)
-        val password = Users.PASSWORD
         val (authUrl, codeVerifier) =
             KcUrl.authUrl(
                 env = env,
@@ -53,7 +52,6 @@ class OrgSpecificAttributeMapperTest {
             orgAlias,
             idpAlias,
             username,
-            password,
             client,
             authUrl,
             hasIdpSelector = (orgAlias == Orgs.TELEMARK),

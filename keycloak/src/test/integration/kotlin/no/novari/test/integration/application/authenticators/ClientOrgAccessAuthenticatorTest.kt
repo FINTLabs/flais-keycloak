@@ -8,8 +8,8 @@ import no.novari.test.common.fixture.TestStrings.Orgs
 import no.novari.test.common.fixture.TestStrings.Pages
 import no.novari.test.common.fixture.TestStrings.Users
 import no.novari.test.integration.utils.KcContextParser
-import no.novari.test.integration.utils.KcFlow.continueFromAuthentikIdp
 import no.novari.test.integration.utils.KcFlow.continueFromIdpSelector
+import no.novari.test.integration.utils.KcFlow.continueFromMockIdp
 import no.novari.test.integration.utils.KcFlow.loginWithUser
 import no.novari.test.integration.utils.KcFlow.openAuthUrl
 import no.novari.test.integration.utils.KcHttpClient
@@ -30,7 +30,6 @@ class ClientOrgAccessAuthenticatorTest {
             orgAlias = Orgs.ROGALAND,
             idpAlias = Idps.ENTRA_ROGALAND,
             username = Users.ALICE_ROGALAND,
-            password = Users.PASSWORD,
             hasIdpSelector = false,
         ).use { resp ->
             assertEquals(200, resp.code)
@@ -67,7 +66,7 @@ class ClientOrgAccessAuthenticatorTest {
                 client.newCall(req).execute().use { resp ->
                     assertEquals(200, resp.code)
 
-                    continueFromAuthentikIdp(resp.request.url, Users.ALICE_ROGALAND, Users.PASSWORD, client).use { resp ->
+                    continueFromMockIdp(resp.request.url, Users.ALICE_ROGALAND, client).use { resp ->
                         assertEquals(200, resp.code)
 
                         val html = resp.body.string()
