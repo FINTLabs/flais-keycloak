@@ -9,5 +9,5 @@ identities between systems. Provisioning includes creating, updating, and deleti
 users and supplying user attributes.
 
 SCIM handles identity lifecycle management, not interactive authentication.
-Identity providers handle authentication; Keycloak resolves identities and issues
+Identity providers handle authentication. Keycloak resolves identities and issues
 tokens during login.

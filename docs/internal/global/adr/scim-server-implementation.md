@@ -1,6 +1,6 @@
 # SCIM server implementation
 
-[Back: Architecture Decision Records](../README.md)
+[Back: Architecture Decision Records](README.md)
 
 ## Status
 
