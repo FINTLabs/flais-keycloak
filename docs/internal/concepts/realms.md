@@ -1,5 +1,7 @@
 # Realms
 
+[Back: Core Concepts](README.md) · [Documentation overview](../../README.md)
+
 ## What is a realm?
 
 A realm is an isolated instance boundary in Keycloak.
@@ -34,8 +36,6 @@ config:
 flowchart TD
   KC[Keycloak instance]
 
-  KC --> fint[Realm: fint]
-  KC --> other[Realm: other]
 
 
   subgraph fint[Realm: fint]
@@ -52,5 +52,7 @@ flowchart TD
     end
   end
 
+  KC --> fint
+  KC --> other
   fint -. "isolated boundary" .- other
 ```

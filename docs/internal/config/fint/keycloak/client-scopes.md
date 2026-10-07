@@ -1,14 +1,16 @@
 # Client scopes
 
+[Back: Keycloak](README.md) · [Documentation overview](../../../../README.md)
+
 Configuration of the **Client Scopes**.
 
 > **Assigned type: None** means the scope is not in use and will not be automatically added to clients.
 
 > Protocols other than OpenID Connect are removed.
 
-# Active scopes
+## Active scopes
 
-## acr
+### acr
 
 | Setting                             | Value                                                                                     |
 | ----------------------------------- | ----------------------------------------------------------------------------------------- |
@@ -21,7 +23,7 @@ Configuration of the **Client Scopes**.
 | Include in OpenID Provider Metadata | On                                                                                        |
 | Display order                       | Not specified                                                                             |
 
-### Mappers
+#### Mappers
 
 | Name            | Mapper type                                  | Tokens                                      | Priority |
 | --------------- | -------------------------------------------- | ------------------------------------------- | -------- |
@@ -29,7 +31,7 @@ Configuration of the **Client Scopes**.
 
 ---
 
-## basic
+### basic
 
 | Setting                             | Value                                                     |
 | ----------------------------------- | --------------------------------------------------------- |
@@ -42,7 +44,7 @@ Configuration of the **Client Scopes**.
 | Include in OpenID Provider Metadata | On                                                        |
 | Display order                       | Not specified                                             |
 
-### Mappers
+#### Mappers
 
 | Name        | Mapper type       | Claim / Attribute       | Tokens                                                | Priority |
 | ----------- | ----------------- | ----------------------- | ----------------------------------------------------- | -------- |
@@ -51,7 +53,7 @@ Configuration of the **Client Scopes**.
 
 ---
 
-## email
+### email
 
 | Setting                             | Value                         |
 | ----------------------------------- | ----------------------------- |
@@ -65,7 +67,7 @@ Configuration of the **Client Scopes**.
 | Include in OpenID Provider Metadata | On                            |
 | Display order                       | Not specified                 |
 
-### Mappers
+#### Mappers
 
 | Name             | Mapper type    | Source          | Claim            | Tokens                                                |
 | ---------------- | -------------- | --------------- | ---------------- | ----------------------------------------------------- |
@@ -74,7 +76,7 @@ Configuration of the **Client Scopes**.
 
 ---
 
-## 	external-id
+### 	external-id
 
 | Setting                             | Value                                                                                            |
 | ----------------------------------- | ------------------------------------------------------------------------------------------------ |
@@ -86,7 +88,7 @@ Configuration of the **Client Scopes**.
 | Include in token scope              | On                                                                                               |
 | Include in OpenID Provider Metadata | On                                                                                               |
 
-### Mappers
+#### Mappers
 
 | Name               | Mapper type    | Source attribute | Claim              | Tokens                                                |
 | ------------------ | -------------- | ---------------- | ------------------ | ----------------------------------------------------- |
@@ -94,7 +96,7 @@ Configuration of the **Client Scopes**.
 
 ---
 
-## profile
+### profile
 
 | Setting                             | Value                         |
 | ----------------------------------- | ----------------------------- |
@@ -108,7 +110,7 @@ Configuration of the **Client Scopes**.
 | Include in OpenID Provider Metadata | On                            |
 | Display order                       | Not specified                 |
 
-### Mappers
+#### Mappers
 
 | Name          | Mapper type      | Source      | Claim                | Tokens                                                |
 | ------------- | ---------------- | ----------- | -------------------- | ----------------------------------------------------- |
@@ -119,7 +121,7 @@ Configuration of the **Client Scopes**.
 
 ---
 
-## roles
+### roles
 
 | Setting                             | Value                               |
 | ----------------------------------- | ----------------------------------- |
@@ -132,7 +134,7 @@ Configuration of the **Client Scopes**.
 | Include in token scope              | Off                                 |
 | Include in OpenID Provider Metadata | On                                  |
 
-### Mappers
+#### Mappers
 
 | Name         | Mapper type    | Source  | Claim   | Tokens       |
 | ------------ | -------------- | ------- | ------- | ------------ |
@@ -140,7 +142,7 @@ Configuration of the **Client Scopes**.
 
 ---
 
-## web-origins
+### web-origins
 
 | Setting                             | Value                                        |
 | ----------------------------------- | -------------------------------------------- |
@@ -153,7 +155,7 @@ Configuration of the **Client Scopes**.
 | Include in token scope              | Off                                          |
 | Include in OpenID Provider Metadata | On                                           |
 
-### Mappers
+#### Mappers
 
 | Name                  | Mapper type         | Tokens                            |
 | --------------------- | ------------------- | --------------------------------- |
@@ -161,7 +163,7 @@ Configuration of the **Client Scopes**.
 
 ---
 
-## organization
+### organization
 
 | Setting                             | Value                                                                |
 | ----------------------------------- | -------------------------------------------------------------------- |
@@ -174,7 +176,7 @@ Configuration of the **Client Scopes**.
 | Include in token scope              | On                                                                   |
 | Include in OpenID Provider Metadata | On                                                                   |
 
-### Mappers
+#### Mappers
 
 | Name                  | Mapper type                     | Source attribute      | Claim                | Tokens                                      |
 | --------------------- | ------------------------------- | --------------------- | -------------------- | ------------------------------------------- |
@@ -185,7 +187,7 @@ Configuration of the **Client Scopes**.
 
 ---
 
-# Built-in scopes (not in use)
+## Built-in scopes (not in use)
 
 These scopes exist in the realm but are not assigned (`Type: None`).
 

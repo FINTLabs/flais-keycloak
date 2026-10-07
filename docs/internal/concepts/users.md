@@ -1,10 +1,15 @@
 # Users
 
+[Back: Core Concepts](README.md) · [Documentation overview](../../README.md)
+
 ## What is a user?
 
 A user represents a single identity within a realm.
 
-## Restrictions
+## FINT restrictions
+
+The following restrictions describe the FINT setup; see
+[FINT system constraints](../constraints/fint/constraints.md).
 
 -   A user belongs to exactly one organization
 -   User identifier must be unique within a realm
@@ -13,7 +18,7 @@ A user represents a single identity within a realm.
 ## Identity providers
 
 -   A user may have linked multiple IDPs
--   All linked IDPs must belong to the users organization
+-   All linked IDPs must belong to the user's organization
 
 ## Diagram
 
@@ -24,7 +29,7 @@ config:
         defaultRenderer: elk
 ---
 flowchart TD
-    subgraph Realm: fint
+    subgraph realm["Realm: fint"]
         subgraph orgs[Organizations]
             org_1[Org 1]
             org_2[Org 2]

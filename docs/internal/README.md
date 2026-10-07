@@ -1,5 +1,7 @@
 # Keycloak Architecture Overview
 
+[Back: Documentation](../README.md)
+
 This documentation describes how Keycloak is used to support
 multi-tenancy, organizations, external identity providers (IDPs),
 and role management.
@@ -30,8 +32,9 @@ If you are new to this setup, start with these pages:
 
 ## Document structure
 
--   `concepts/` – what the main entities are and how they relate
--   `config/` – documents how *projects* (like FINT) is configured in the different platforms that are used.
--   `auth-flows/` – custom Keycloak authentication flows (as seen in the Admin UI)
--   `processes/` – high-level system behavior (login, provisioning, role lifecycle)
--   `constraints.md` – rules and invariants that apply across the system
+-   [Core concepts](concepts/README.md) – what the main entities are and how they relate
+-   [Configuration](config/README.md) – documents how *realms* (like FINT) are configured in the different platforms that are used.
+-   [Authentication flows](auth-flows/README.md) – custom Keycloak authentication flows (as seen in the Admin UI)
+-   [Processes](processes/README.md) – high-level system behavior (login, provisioning, role lifecycle)
+-   [Constraints](constraints/README.md) – rules and invariants that apply to realms and globally
+-   [Microsoft Entra ID](entra/README.md) – Entra-specific configuration

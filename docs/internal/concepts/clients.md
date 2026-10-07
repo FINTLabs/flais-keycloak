@@ -1,5 +1,7 @@
 # Clients
 
+[Back: Core Concepts](README.md) · [Documentation overview](../../README.md)
+
 ## What is a client?
 
 A client represents an application or service that uses Keycloak

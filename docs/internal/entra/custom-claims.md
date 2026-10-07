@@ -1,5 +1,7 @@
 # Configure Custom Claims with Claims Mapping Policy (Microsoft Graph)
 
+[Back: Microsoft Entra ID](README.md) · [Documentation overview](../../README.md)
+
 This guide explains how to:
 
 - Create a Claims Mapping Policy
@@ -9,9 +11,9 @@ This guide explains how to:
 
 The goal is to emit custom claims (e.g., `employeeId`, `studentNumber`) in issued tokens.
 
-# 1. Prerequisites
+## 1. Prerequisites
 
-## 1.1 Required Microsoft Graph API Permissions
+### 1.1 Required Microsoft Graph API Permissions
 
 The Service Principal used to configure the policy must have the following permissions:
 
@@ -21,7 +23,7 @@ The Service Principal used to configure the policy must have the following permi
 
 > ⚠️ These permissions require admin consent.
 
-## 1.2 Software Requirements
+### 1.2 Software Requirements
 
 - PowerShell 7
 - Microsoft Graph PowerShell SDK
@@ -29,7 +31,7 @@ The Service Principal used to configure the policy must have the following permi
 More information on Graph SDK:
 https://learn.microsoft.com/en-us/powershell/microsoftgraph/installation?view=graph-powershell-1.0
 
-# 2. Connect to Microsoft Graph
+## 2. Connect to Microsoft Graph
 
 Import the required module and authenticate.
 
@@ -60,7 +62,7 @@ Verify the connection:
 Get-MgContext
 ```
 
-# 3. Create and Assign a Claims Mapping Policy
+## 3. Create and Assign a Claims Mapping Policy
 
 This process:
 
@@ -74,7 +76,7 @@ This process:
 > - `SERVICE_PRINCIPAL_ID_HERE` with the Object ID of the Enterprise Application
 > - `extensionAttributeXX` with correct user attributes
 
-## 3.1 Script
+### 3.1 Script
 
 ```powershell
 # ==========================
@@ -159,11 +161,11 @@ if (-not $Assigned) {
 }
 ```
 
-# 4. Update an Existing Claims Mapping Policy
+## 4. Update an Existing Claims Mapping Policy
 
 You can update the definition without removing it from the Service Principal.
 
-## 4.1 Retrieve the Policy
+### 4.1 Retrieve the Policy
 
 We need the Policy ID to update the existing definition. We can search for the Policy using the DisplayName property:
 
@@ -176,7 +178,7 @@ Get-MgPolicyClaimMappingPolicy `
 Select-Object Id,DisplayName
 ```
 
-## 4.2 Modify the Claims Definition
+### 4.2 Modify the Claims Definition
 
 Example adding a `department` claim:
 
@@ -216,7 +218,7 @@ $UpdatedClaimsMapping = @{
 } | ConvertTo-Json -Depth 10 -Compress
 ```
 
-## 4.3 Apply the Update
+### 4.3 Apply the Update
 
 ```powershell
 $PolicyId = "POLICY_ID_HERE"
@@ -226,11 +228,11 @@ Update-MgPolicyClaimMappingPolicy `
     -Definition @($UpdatedClaimsMapping)
 ```
 
-# 5. Remove a Policy from a Service Principal
+## 5. Remove a Policy from a Service Principal
 
 This removes the assignment only (the policy remains in the tenant).
 
-## 5.1 Check Assigned Policy
+### 5.1 Check Assigned Policy
 
 ```powershell
 $ServicePrincipalId = "SERVICE_PRINCIPAL_ID_HERE"
@@ -239,7 +241,7 @@ Get-MgServicePrincipalClaimMappingPolicy `
     -ServicePrincipalId $ServicePrincipalId
 ```
 
-## 5.2 Remove the Assignment
+### 5.2 Remove the Assignment
 
 ```powershell
 $ServicePrincipalId = "SERVICE_PRINCIPAL_ID_HERE"
@@ -250,7 +252,7 @@ Remove-MgServicePrincipalClaimMappingPolicyByRef `
     -ClaimsMappingPolicyId $PolicyId
 ```
 
-# 6. Delete a Claims Mapping Policy
+## 6. Delete a Claims Mapping Policy
 
 This permanently removes the policy from the tenant.
 
@@ -263,21 +265,21 @@ Remove-MgPolicyClaimMappingPolicy `
     -ClaimsMappingPolicyId $PolicyId
 ```
 
-# 7. Important Notes
+## 7. Important Notes
 
-## 7.1 One Policy Per Service Principal
+### 7.1 One Policy Per Service Principal
 
 A Service Principal can have **only one Claims Mapping Policy assigned at a time**.
 
-## 7.2 Token Configuration
+### 7.2 Token Configuration
 
 The application must request a token type that supports custom claims (ID token or Access token depending on scenario).
 
-## 7.3 Propagation Time
+### 7.3 Propagation Time
 
 Changes may take several minutes before appearing in newly issued tokens.
 
-# 8. Quick Command Reference
+## 8. Quick Command Reference
 
 | Action            | Command                                            |
 | ----------------- | -------------------------------------------------- |

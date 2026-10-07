@@ -1,12 +1,14 @@
 # ID-Porten
 
+[Back: Identity Providers](README.md) · [Documentation overview](../../../../../README.md)
+
 Configuration of **ID-Porten**.
 
 This configuration is based on an OpenID Connect v1.0 for ID-Porten and serves as a template.
 
-# Settings
+## Settings
 
-## General settings
+### General settings
 
 | Setting       | Value / Guidance |
 | ------------- | ---------------- |
@@ -14,7 +16,7 @@ This configuration is based on an OpenID Connect v1.0 for ID-Porten and serves a
 | Display name  | ID-Porten        |
 | Display order | Not specified    |
 
-## OpenID Connect settings
+### OpenID Connect settings
 
 | Setting                               | Value                              |
 | ------------------------------------- | ---------------------------------- |
@@ -31,7 +33,7 @@ This configuration is based on an OpenID Connect v1.0 for ID-Porten and serves a
 >
 > Add the following query params to the `authorize` url: `?acr_values=idporten-loa-substantial`
 
-## OpenID Connect – Advanced
+### OpenID Connect – Advanced
 
 | Setting                                  | Value     |
 | ---------------------------------------- | --------- |
@@ -60,7 +62,7 @@ This configuration is based on an OpenID Connect v1.0 for ID-Porten and serves a
 > - [ID-porten: Validering av `logout_token`](https://docs.digdir.no/docs/idporten/oidc/oidc_func_backchannel_logout.html#validering-av-logout_token)
 > - [Microsoft: `TokenValidationParameters.DefaultClockSkew`](https://learn.microsoft.com/en-us/dotnet/api/microsoft.identitymodel.tokens.tokenvalidationparameters.defaultclockskew)
 
-## Advanced settings
+### Advanced settings
 
 | Setting                   | Value                       |
 | ------------------------- | --------------------------- |
@@ -72,7 +74,7 @@ This configuration is based on an OpenID Connect v1.0 for ID-Porten and serves a
 | Hide on login page        | On                          |
 | Show in account console   | Always                      |
 | Verify essential claim    | Off                         |
-| First login flow override | `First login flow override` |
+| First login flow override | Not confirmed in these docs |
 | Post login flow           | `flais-post-login-flow`     |
 | Sync mode                 | Force                       |
 | Case-sensitive username   | Off                         |
@@ -81,11 +83,11 @@ This configuration is based on an OpenID Connect v1.0 for ID-Porten and serves a
 > Set **Post login flow** to `flais-post-login-flow` for every IDP.
 >
 > This runs `ClientOrgAccessAuthenticator` after each broker callback and helps prevent broker URL tampering attacks.
-> See [flais-post-login-flow](../../../auth-flows/flais-post-login-flow.md).
+> See [flais-post-login-flow](../../../../auth-flows/flais-post-login-flow.md).
 
-# Mappers
+## Mappers
 
-## Username mapping
+### Username mapping
 
 | Name                         | Mapper type                | Template       | Target            | Sync mode |
 | ---------------------------- | -------------------------- | -------------- | ----------------- | --------- |

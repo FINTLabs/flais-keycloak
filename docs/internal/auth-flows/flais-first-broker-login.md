@@ -1,6 +1,8 @@
 # Authentication Flow: flais-first-broker-login
 
-This document describes the Keycloak Authentication Flow**flais-first-broker-login**,
+[Back: Authentication Flows](README.md) · [Documentation overview](../../README.md)
+
+This document describes the Keycloak Authentication Flow **flais-first-broker-login**,
 which is executed during first login via an external Identity Provider (IDP).
 
 This flow is responsible for:
@@ -69,4 +71,4 @@ This flow ensures that:
 -   Organization onboarding only happens once
 -   Organization membership is applied consistently
 -   Existing users are not re-onboarded
--   User will never be prompted to setup account
+-   Users are not prompted to set up an account by this flow

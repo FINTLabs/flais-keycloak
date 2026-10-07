@@ -1,6 +1,8 @@
 # Microsoft Entra ID
 
-This directory documents how components for the FINT realm is configured in Microsoft Entra ID.
+[Back: FINT](../README.md) · [Documentation overview](../../../../README.md)
+
+This directory documents how components for the FINT realm are configured in Microsoft Entra ID.
 
 ## Components
 

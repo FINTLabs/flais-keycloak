@@ -1,5 +1,7 @@
 # SCIM
 
+[Back: Core Concepts](README.md) · [Documentation overview](../../README.md)
+
 ## What is SCIM?
 
 SCIM (System for Cross-domain Identity Management) is used as the
@@ -23,7 +25,7 @@ SCIM operates alongside authentication flows and identity providers:
 - **IDPs** → authentication
 - **Keycloak** → identity resolution/management and token issuance
 
-SCIM does not participate in interactive login, but to provision users before they login.
+SCIM does not participate in interactive login. It provisions users before they log in.
 
 ## User provisioning model
 

@@ -1,5 +1,7 @@
 # Authentication Flow: flais-browser
 
+[Back: Authentication Flows](README.md) · [Documentation overview](../../README.md)
+
 This document describes the Keycloak Authentication Flow **flais-browser**.
 
 This flow is the entry point for browser-based login.

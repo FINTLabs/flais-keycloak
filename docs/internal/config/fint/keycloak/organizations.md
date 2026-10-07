@@ -1,11 +1,13 @@
 # Organizations
 
+[Back: Keycloak](README.md) · [Documentation overview](../../../../README.md)
+
 Configuration of a single **Organization**.
 
 This configuration is based on a single County organization and serves as a template.
 Some settings may differ depending on the vendor or specific integration.
 
-# Settings
+## Settings
 
 | Setting      | Value / Guidance                                                |
 | ------------ | --------------------------------------------------------------- |
@@ -15,9 +17,9 @@ Some settings may differ depending on the vendor or specific integration.
 | Redirect URL | Not specified                                                   |
 | Description  | Any                                                             |
 
-# Attributes
+## Attributes
 
-## SCIM attributes
+### SCIM attributes
 
 Required for **SCIM integration**.
 
@@ -29,7 +31,7 @@ Required for **SCIM integration**.
 | `SCIM_EXTERNAL_ISSUER`     | Vendor specific  |
 | `SCIM_AUTHENTICATION_MODE` | `EXTERNAL`       |
 
-## Organization-specific attributes
+### Organization-specific attributes
 
 | Attribute             | Description                            |
 | --------------------- | -------------------------------------- |
@@ -37,7 +39,7 @@ Required for **SCIM integration**.
 | `ORGANIZATION_ID`     | Internal organization identifier       |
 | `ORGANIZATION_NUMBER` | Official organization number           |
 
-# Identity providers
+## Identity providers
 
 Associated Identity Providers (IDPs) must be linked to the organization.
 

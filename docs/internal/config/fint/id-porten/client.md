@@ -1,5 +1,7 @@
 # Client
 
+[Back: ID-porten](README.md) · [Documentation overview](../../../../README.md)
+
 Configuration for **ID-Porten**.
 
 This configuration is used by the Keycloak **ID-Porten** identity provider.

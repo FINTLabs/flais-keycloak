@@ -1,11 +1,13 @@
 # Clients
 
+[Back: Keycloak](README.md) · [Documentation overview](../../../../README.md)
+
 Configuration of the **Clients**.
 
 Configuration for a single Client serves as a template.
 Some settings may differ depending on the use-case.
 
-# Default clients
+## Default clients
 
 All default clients are disabled.
 
@@ -18,11 +20,11 @@ All default clients are disabled.
 | `security-admin-console` | Disabled |
 | `_system`                | Disabled |
 
-# Client (Public)
+## Client (Public)
 
 Example configuration for a public client.
 
-## General settings
+### General settings
 
 | Setting                  | Value / Guidance      |
 | ------------------------ | --------------------- |
@@ -31,7 +33,7 @@ Example configuration for a public client.
 | Description              | Any                   |
 | Always display in the UI | Off                   |
 
-## Access settings
+### Access settings
 
 | Setting                         | Value / Guidance                               |
 | ------------------------------- | ---------------------------------------------- |
@@ -42,7 +44,7 @@ Example configuration for a public client.
 | Web origins                     | `+` (same as redirect URIs) or specify origins |
 | Admin URL                       | Not specified                                  |
 
-## Capability configuration
+### Capability configuration
 
 | Setting                   | Value         |
 | ------------------------- | ------------- |
@@ -52,7 +54,7 @@ Example configuration for a public client.
 | PKCE Method               | `S256`        |
 | Require DPoP bound tokens | Off           |
 
-## Login settings
+### Login settings
 
 | Setting                  | Value         |
 | ------------------------ | ------------- |
@@ -61,7 +63,7 @@ Example configuration for a public client.
 | Display client on screen | Off           |
 | Consent screen text      | Not specified |
 
-## Logout settings
+### Logout settings
 
 | Setting                               | Value         |
 | ------------------------------------- | ------------- |
@@ -70,13 +72,13 @@ Example configuration for a public client.
 | Front-channel logout session required | On            |
 | Logout confirmation                   | Off           |
 
-## Roles
+### Roles
 
 | Setting      | Value |
 | ------------ | ----- |
 | Client roles | None  |
 
-## Client scopes
+### Client scopes
 
 The client uses the default scopes defined in the `Client scopes` configuration.
 
@@ -84,11 +86,11 @@ The client uses the default scopes defined in the `Client scopes` configuration.
 | ----------------------- | ------------------ | ----- |
 | `<client-id>-dedicated` | Full scope allowed | Off   |
 
-## Organisation access attributes
+### Organisation access attributes
 
 Client access to organisations is controlled through two custom client attributes.
 These are evaluated by `ClientOrgAccessAuthenticator` in the
-[flais-post-login-flow](../../../auth-flows/flais-post-login.md) after every
+[flais-post-login-flow](../../../auth-flows/flais-post-login-flow.md) after every
 broker login, and by `OrgSelectionUiAuthenticator` and `OrgCookieAuthenticator`
 during the browser flow to filter which organisations are shown to the user.
 

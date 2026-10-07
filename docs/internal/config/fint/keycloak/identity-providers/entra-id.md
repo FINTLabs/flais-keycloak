@@ -1,14 +1,16 @@
 # Entra ID
 
+[Back: Identity Providers](README.md) · [Documentation overview](../../../../../README.md)
+
 Configuration of a single **Identity Provider (IDP)**.
 
 This configuration is based on an OpenID Connect v1.0 for Entra ID and serves as
 a template.
 Some settings may differ depending on the vendor or specific integration.
 
-# Settings
+## Settings
 
-## General settings
+### General settings
 
 | Setting       | Value / Guidance                                                |
 | ------------- | --------------------------------------------------------------- |
@@ -16,7 +18,7 @@ Some settings may differ depending on the vendor or specific integration.
 | Display name  | Example: `Novari IKS`                                           |
 | Display order | Not specified                                                   |
 
-## OpenID Connect settings
+### OpenID Connect settings
 
 | Setting                               | Value                              |
 | ------------------------------------- | ---------------------------------- |
@@ -28,7 +30,7 @@ Some settings may differ depending on the vendor or specific integration.
 | Client authentication                 | Client secret sent in request body |
 | Client assertion signature algorithm  | Not specified                      |
 
-## OpenID Connect – Advanced
+### OpenID Connect – Advanced
 
 | Setting                                  | Value     |
 | ---------------------------------------- | --------- |
@@ -54,12 +56,10 @@ Some settings may differ depending on the vendor or specific integration.
 > This matches Microsoft’s default token validation clock skew.
 >
 > References:
-> - [ID-porten: Validering av
-    `logout_token`](https://docs.digdir.no/docs/idporten/oidc/oidc_func_backchannel_logout.html#validering-av-logout_token)
-> - [Microsoft:
-    `TokenValidationParameters.DefaultClockSkew`](https://learn.microsoft.com/en-us/dotnet/api/microsoft.identitymodel.tokens.tokenvalidationparameters.defaultclockskew)
+> - [ID-porten: Validering av `logout_token`](https://docs.digdir.no/docs/idporten/oidc/oidc_func_backchannel_logout.html#validering-av-logout_token)
+> - [Microsoft: `TokenValidationParameters.DefaultClockSkew`](https://learn.microsoft.com/en-us/dotnet/api/microsoft.identitymodel.tokens.tokenvalidationparameters.defaultclockskew)
 
-## Advanced settings
+### Advanced settings
 
 | Setting                   | Value                       |
 | ------------------------- | --------------------------- |
@@ -71,7 +71,7 @@ Some settings may differ depending on the vendor or specific integration.
 | Hide on login page        | On                          |
 | Show in account console   | Always                      |
 | Verify essential claim    | Off                         |
-| First login flow override | `First login flow override` |
+| First login flow override | Not confirmed in these docs |
 | Post login flow           | `flais-post-login-flow`     |
 | Sync mode                 | Force                       |
 | Case-sensitive username   | Off                         |
@@ -81,11 +81,11 @@ Some settings may differ depending on the vendor or specific integration.
 >
 > This runs `ClientOrgAccessAuthenticator` after each broker callback and helps
 > prevent broker URL tampering attacks.
-> See [flais-post-login-flow](../../../auth-flows/flais-post-login-flow.md).
+> See [flais-post-login-flow](../../../../auth-flows/flais-post-login-flow.md).
 
-# Mappers
+## Mappers
 
-## Username mapping
+### Username mapping
 
 | Name                         | Mapper type                | Template       | Target            | Sync mode |
 | ---------------------------- | -------------------------- | -------------- | ----------------- | --------- |
@@ -93,7 +93,7 @@ Some settings may differ depending on the vendor or specific integration.
 | `map_oid_as_broker_id`       | Username Template Importer | `${CLAIM.oid}` | `BROKER_ID`       | Inherit   |
 | `map_oid_as_broker_username` | Username Template Importer | `${CLAIM.oid}` | `BROKER_USERNAME` | Inherit   |
 
-## Attribute mapping
+### Attribute mapping
 
 | Name                             | Mapper type        | Claim   | Target attribute    | Sync mode |
 | -------------------------------- | ------------------ | ------- | ------------------- | --------- |

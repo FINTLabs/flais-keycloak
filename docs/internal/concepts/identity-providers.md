@@ -1,5 +1,7 @@
 # Identity Providers (IDPs)
 
+[Back: Core Concepts](README.md) · [Documentation overview](../../README.md)
+
 ## What is an IDP?
 
 An identity provider is an external system used for authentication

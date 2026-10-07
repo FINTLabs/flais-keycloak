@@ -1,17 +1,19 @@
 # App registration
 
+[Back: Microsoft Entra ID](README.md) · [Documentation overview](../../../../README.md)
+
 Configuration for **Microsoft Entra App Registration**.
 
 > The App Registration is automatically created when creating an **Enterprise Application** (required for SCIM provisioning).
 
-## Tenant model
+### Tenant model
 
 Use a **single-tenant** application. Create one App Registration and its corresponding Enterprise Application (service principal) in each Microsoft Entra tenant.
 
 We chose single-tenant because a [multi-tenant application has no built-in allowlist in GA](https://learn.microsoft.com/en-us/entra/identity-platform/howto-convert-app-to-be-multi-tenant). An [allowlist capability is available in preview](https://learn.microsoft.com/en-us/graph/api/resources/allowedtenantsaudience?view=graph-rest-beta). Any Microsoft Entra tenant can create a local service principal for it, typically through user or admin consent or by using the client ID directly, and restricting that would require the application itself to validate the token's `tid` claim. Single-tenant avoids that trust boundary entirely — [each tenant only ever sees its own registration](https://learn.microsoft.com/en-us/entra/identity-platform/single-and-multi-tenant-apps).
 
 
-# Authentication
+## Authentication
 
 | Setting                 | Value                         |
 | ----------------------- | ----------------------------- |
@@ -19,7 +21,7 @@ We chose single-tenant because a [multi-tenant application has no built-in allow
 | Platform                | `Web`                         |
 | Redirect URI            | Keycloak redirect URI for IDP |
 
-# Certificates & Secrets
+## Certificates & Secrets
 
 A client secret must be created for Keycloak authentication.
 
@@ -31,7 +33,7 @@ A client secret must be created for Keycloak authentication.
 
 > The secret value must be shared over a secure channel.
 
-# Token Configuration
+## Token Configuration
 
 Add an optional claim.
 
@@ -41,7 +43,7 @@ Add an optional claim.
 
 We add this because the [UPN isn't included in the ID token by default](https://learn.microsoft.com/en-us/entra/identity-platform/optional-claims) — it has to be requested explicitly as an optional claim, which is how Keycloak gets it.
 
-# API Permissions
+## API Permissions
 
 Add the following Microsoft Graph delegated permissions.
 
@@ -52,7 +54,7 @@ Add the following Microsoft Graph delegated permissions.
 
 After adding the permissions, grant admin consent for the tenant.
 
-# App Roles
+## App Roles
 
 The default User role must be updated.
 
@@ -65,9 +67,9 @@ This role is required to have a value for SCIM provisioning.
 
 Additional roles required by the application will also be defined here.
 
-# Custom Claims
+## Custom Claims
 
-To add custom claims to a token, see [Entra Claims Mapping Policy](/docs/entra/custom-claims.md).
+To add custom claims to a token, see [Entra Claims Mapping Policy](../../../entra/custom-claims.md).
 
 For the default setup, we rely on SCIM to provision users with the correct attributes. A custom claims mapper is only needed when importing custom attributes from the token during login.
 

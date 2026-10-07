@@ -1,5 +1,7 @@
 # Authentication Overview
 
+[Back: Processes](README.md) · [Documentation overview](../../README.md)
+
 This section describes the high-level authentication flow.
 
 ## Summary

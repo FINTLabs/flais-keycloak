@@ -1,13 +1,18 @@
 # Roles
 
+[Back: Core Concepts](README.md) · [Documentation overview](../../README.md)
+
 ## Design choice
 
-Roles are currently implemented as user attributes instead of native Keycloak roles and gives:
+Application roles are currently implemented as user attributes instead of native Keycloak roles. This provides:
 
 - Integration with external role sources
 - Flexible role formats
 - Consistent internal representation
 - Flexibility with SCIM implementation
+
+The internal `scim-managed` realm role is used by the SCIM integration; see
+[realm roles](../config/fint/keycloak/realm-roles.md).
 
 ## User attributes
 

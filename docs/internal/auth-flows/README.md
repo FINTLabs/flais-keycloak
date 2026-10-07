@@ -1,5 +1,7 @@
 # Authentication Flows
 
+[Back: Keycloak Architecture Overview](../README.md) · [Documentation overview](../../README.md)
+
 This directory documents all **custom Keycloak Authentication Flows**
 configured under **Authentication → Flows** in the Keycloak Admin UI.
 

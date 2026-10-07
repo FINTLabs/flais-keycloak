@@ -1,8 +1,10 @@
 # Enterprise application
 
+[Back: Microsoft Entra ID](README.md) · [Documentation overview](../../../../README.md)
+
 Configuration for **Microsoft Entra Enterprise Application**, with support for SCIM provisioning.
 
-# Create Enterprise Application
+## Create Enterprise Application
 
 1. Navigate to Microsoft Entra ID
 2. Go to Enterprise applications
@@ -13,7 +15,7 @@ Configuration for **Microsoft Entra Enterprise Application**, with support for S
 | Application type | Create your own application                                                 |
 | Integration type | Integrate any other application you don't find in the gallery (Non-gallery) |
 
-## Properties
+### Properties
 
 | Setting                       | Value |
 | ----------------------------- | ----- |
@@ -21,7 +23,7 @@ Configuration for **Microsoft Entra Enterprise Application**, with support for S
 | Assignment required           | Yes   |
 | Visible to users              | No    |
 
-# Users and groups
+## Users and groups
 
 Users and groups must be assigned to any application role.
 
@@ -31,9 +33,9 @@ This assignment controls:
 - Which users are provisioned via SCIM
 - What roles the user have
 
-# Provisioning
+## Provisioning
 
-## Setup
+### Setup
 
 | Setting               | Value                                                                                 |
 | --------------------- | ------------------------------------------------------------------------------------- |
@@ -41,16 +43,16 @@ This assignment controls:
 | Tenant URL            | `https://keycloak.prod.infra.flais.no/realms/fint/scim/v2/<org-id>/?aadOptscim062020` |
 | Secret token          | Not specified                                                                         |
 
-## Settings
+### Settings
 
-### Mappings
+#### Mappings
 
 | Setting                             | Value |
 | ----------------------------------- | ----- |
 | Provision Microsoft Entra ID Users  | Yes   |
 | Provision Microsoft Entra ID Groups | No    |
 
-### Configuration
+#### Configuration
 
 | Setting                       | Value                               |
 | ----------------------------- | ----------------------------------- |
@@ -59,7 +61,7 @@ This assignment controls:
 | Scope                         | Sync only assigned users and groups |
 | Provisioning status           | On                                  |
 
-## Attribute List
+### Attribute List
 
 | Attribute                                                                | Type    | PK  | Required | Multi-value |
 | ------------------------------------------------------------------------ | ------- | --- | -------- | ----------- |
@@ -75,7 +77,7 @@ This assignment controls:
 | `urn:ietf:params:scim:schemas:extension:fint:2.0:User:employeeId`        | String  |     |          |             |
 | `urn:ietf:params:scim:schemas:extension:fint:2.0:User:studentNumber`     | String  |     |          |             |
 
-## Attribute Mapping
+### Attribute Mapping
 
 > `extensionAttributeXX` values may vary between Entra tenants.
 
@@ -92,9 +94,9 @@ This assignment controls:
 | `urn:ietf:params:scim:schemas:extension:fint:2.0:User:employeeId`        | `extensionAttribute10`                                        |
 | `urn:ietf:params:scim:schemas:extension:fint:2.0:User:studentNumber`     | `extensionAttribute9`                                         |
 
-## Known issues
+### Known issues
 
-### Entra ID
+#### Entra ID
 
 - Does not support the `remove` operation in `PATCH` when clearing an attribute value. The field is silently skipped.
     - Source: https://learn.microsoft.com/en-us/answers/questions/223936/sending-an-empty-value-with-user-provisioning-%28sci?page=1&orderby=Helpful&comment=answer-224218&translated=false
