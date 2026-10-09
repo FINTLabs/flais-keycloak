@@ -2,7 +2,7 @@
 
 [Back: Global documentation](../README.md)
 
-General Keycloak concepts.
+General Keycloak concepts and the related SCIM provisioning standard.
 These pages explain what the concepts mean. Realm documentation describes how
 they are used and configured in a particular realm.
 

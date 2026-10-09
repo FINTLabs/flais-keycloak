@@ -4,19 +4,28 @@
 
 ## What is a realm?
 
-A realm is an isolated boundary in Keycloak. Users, organizations, identity
-providers, clients, and configuration are scoped to a realm.
+A realm is an isolated identity and configuration boundary in Keycloak. It owns
+its users, clients, roles, organizations, identity providers, and login settings.
+The same person can have separate user accounts in different realms.
 
-## Master realm
+## Realm settings
 
-Keycloak ships with a built-in `master` realm used for administration.
-It is separate from the realms used by applications.
+A realm defines shared policies such as authentication flows, required actions,
+session and token lifetimes, and signing keys. Clients can have additional
+settings and supported overrides.
 
-## Application realms
+For OpenID Connect, each realm has its own issuer and discovery document at
+`/realms/{realm-name}/.well-known/openid-configuration`, relative to the Keycloak
+base URL. Applications use this metadata to locate endpoints and signing keys.
+A token issued by one realm is not automatically trusted by another realm's
+applications.
 
-A service or project can have its own realm with its own settings and integrations.
+## Master and application realms
 
-Examples:
+The built-in `master` realm is used for administration. Application identities
+belong in application realms, such as `fint` or `flais`.
 
-- `fint`
-- `flais`
+An [organization](organizations.md) represents a tenant inside a realm; it does
+not create a separate issuer or a separate set of realm policies. Choosing
+between multiple realms and organizations within one realm is an architecture
+decision.
