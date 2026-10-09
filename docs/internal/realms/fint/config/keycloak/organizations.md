@@ -1,6 +1,6 @@
 # Organizations
 
-[Back: Keycloak](README.md) · [FINT realm](../../README.md) · [Documentation overview](../../../../../README.md)
+[Back: Keycloak](README.md)
 
 Configuration of a single **Organization**.
 

@@ -1,6 +1,6 @@
 # Keycloak
 
-[Back: FINT configuration](../README.md) · [FINT realm](../../README.md) · [Documentation overview](../../../../../README.md)
+[Back: FINT configuration](../README.md)
 
 This directory documents how the FINT realm is configured in Keycloak.
 
