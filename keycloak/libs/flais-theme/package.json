@@ -16,7 +16,7 @@
   },
   "dependencies": {
     "@tailwindcss/vite": "4.3.3",
-    "keycloakify": "11.16.0",
+    "keycloakify": "11.16.1",
     "react": "19.3.0",
     "react-dom": "19.3.0",
     "tailwindcss": "4.3.3"
@@ -26,12 +26,12 @@
     "@storybook/react-vite": "10.6.1",
     "@types/react": "19.3.0",
     "@types/react-dom": "19.3.0",
-    "@vitejs/plugin-react": "6.1.1",
-    "oxfmt": "0.71.0",
-    "oxlint": "1.86.0",
+    "@vitejs/plugin-react": "6.1.2",
+    "oxfmt": "0.72.0",
+    "oxlint": "1.87.0",
     "storybook": "10.6.1",
     "typescript": "7.0.2",
-    "vite": "8.3.2"
+    "vite": "8.3.4"
   },
   "engines": {
     "node": "26"
