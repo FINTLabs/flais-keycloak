@@ -1,6 +1,7 @@
 package no.novari.application.authenticator.client
 
 import io.mockk.every
+import io.mockk.justRun
 import io.mockk.mockk
 import io.mockk.mockkStatic
 import io.mockk.verify
@@ -12,6 +13,7 @@ import org.keycloak.authentication.AuthenticationFlowContext
 import org.keycloak.authentication.authenticators.broker.util.PostBrokerLoginConstants
 import org.keycloak.authentication.authenticators.broker.util.SerializedBrokeredIdentityContext
 import org.keycloak.models.ClientModel
+import org.keycloak.models.KeycloakContext
 import org.keycloak.models.KeycloakSession
 import org.keycloak.models.OrganizationModel
 import org.keycloak.organization.OrganizationProvider
@@ -164,6 +166,17 @@ class ClientOrgAccessAuthenticatorTest {
         val orgProvider = mockk<OrganizationProvider>()
         val serializedCtx = mockk<SerializedBrokeredIdentityContext>()
         val organization = mockOrganizationWithIdp()
+        val orgId = "org-id-1"
+        val orgKey = OrganizationModel.ORGANIZATION_ATTRIBUTE
+        val keycloakContext = mockk<KeycloakContext>()
+
+        every { organization.id } returns orgId
+        every { session.context } returns keycloakContext
+
+        justRun { authSession.setAuthNote(orgKey, orgId) }
+        justRun { authSession.setClientNote(orgKey, orgId) }
+        justRun { authSession.setUserSessionNote(orgKey, orgId) }
+        justRun { keycloakContext.organization = organization }
 
         mockSessionProviders(context, session, orgProvider)
         every { orgProvider.allStream } returns Stream.of(organization)

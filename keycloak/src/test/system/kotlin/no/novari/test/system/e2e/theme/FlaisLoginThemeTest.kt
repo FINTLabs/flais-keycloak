@@ -28,7 +28,7 @@ class FlaisLoginThemeTest {
         PwFlow.continueFromOrgSelector(page, Orgs.ROGALAND_DISPLAY_NAME)
         PwFlow.submit(page)
 
-        PwAutoLogin.login(page, Users.ALICE_ROGALAND, Users.PASSWORD)
+        PwAutoLogin.login(page, Users.ALICE_ROGALAND)
 
         assertCallback(env, page)
     }
@@ -45,7 +45,7 @@ class FlaisLoginThemeTest {
         PwFlow.submit(page)
 
         PwFlow.continueFromIdpSelector(page, Idps.ENTRA_TELEMARK)
-        PwAutoLogin.login(page, Users.ALICE_TELEMARK, Users.PASSWORD)
+        PwAutoLogin.login(page, Users.ALICE_TELEMARK)
 
         assertCallback(env, page)
     }

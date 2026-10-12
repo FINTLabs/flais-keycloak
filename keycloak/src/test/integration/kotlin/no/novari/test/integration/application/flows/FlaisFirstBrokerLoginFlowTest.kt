@@ -26,7 +26,6 @@ class FlaisFirstBrokerLoginFlowTest {
     private val email = Users.ALICE_TELEMARK_EMAIL
     private val firstname = Users.ALICE_FIRST_NAME
     private val lastname = Users.BASIC_LAST_NAME
-    private val password = Users.PASSWORD
     private val clientId = Clients.FLAIS_KEYCLOAK_DEMO
 
     @BeforeEach
@@ -53,7 +52,7 @@ class FlaisFirstBrokerLoginFlowTest {
         val (kc, realmRes) = KcAdminClient.connect(env, realm)
 
         kc.use {
-            loginWithUser(env, clientId, orgAlias, idpAlias, username, password).use { resp ->
+            loginWithUser(env, clientId, orgAlias, idpAlias, username).use { resp ->
                 assertEquals(200, resp.code)
 
                 val user = KcAdminClient.findUserByUsername(realmRes, username)
@@ -99,7 +98,7 @@ class FlaisFirstBrokerLoginFlowTest {
 
             KcAdminClient.addUserToOrg(realmRes, userId, kcConfig.requireOrg(orgAlias).id)
 
-            loginWithUser(env, clientId, orgAlias, idpAlias, username, password).use { resp ->
+            loginWithUser(env, clientId, orgAlias, idpAlias, username).use { resp ->
                 assertEquals(200, resp.code)
 
                 val user = KcAdminClient.findUserByUsername(realmRes, username)
@@ -131,7 +130,7 @@ class FlaisFirstBrokerLoginFlowTest {
             val member = KcAdminClient.getOrgMember(realmRes, kcConfig.requireOrg(orgAlias).id, userId)
             assertNull(member)
 
-            loginWithUser(env, clientId, orgAlias, idpAlias, username, password).use { resp ->
+            loginWithUser(env, clientId, orgAlias, idpAlias, username).use { resp ->
                 assertEquals(200, resp.code)
 
                 val user = KcAdminClient.findUserByUsername(realmRes, username)

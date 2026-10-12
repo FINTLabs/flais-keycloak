@@ -13,7 +13,7 @@
     "license": "ISC",
     "description": "",
     "devDependencies": {
-        "@types/node": "26.6.3",
+        "@types/node": "26.6.4",
         "ts-node": "10.9.2",
         "typescript": "7.0.2"
     },
@@ -21,6 +21,6 @@
         "@types/express": "5.0.6",
         "express": "5.2.1",
         "jose": "6.2.12",
-        "nanoid": "6.0.1"
+        "nanoid": "6.0.2"
     }
 }
