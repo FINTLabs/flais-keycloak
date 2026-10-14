@@ -1,5 +1,3 @@
-Set-StrictMode -Version Latest
-
 function Assert-MgContextHasExactlyRequiredScopes {
     param(
         [Parameter(Mandatory = $true)]

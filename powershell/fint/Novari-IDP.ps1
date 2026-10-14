@@ -1,8 +1,7 @@
-Import-Module Microsoft.Graph.Authentication -ErrorAction Stop
-Import-Module Microsoft.Graph.Applications -ErrorAction Stop
-
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
+
+. "$PSScriptRoot/helpers/GraphModules.ps1"
 
 . "$PSScriptRoot/helpers/GenericHelpers.ps1"
 . "$PSScriptRoot/helpers/ConsoleHelpers.ps1"

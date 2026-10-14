@@ -1,11 +1,7 @@
-Set-StrictMode -Version Latest
-
 function Connect-ToGraph {
     Write-Host ""
     Write-Host "Microsoft Graph app-only login" -ForegroundColor Cyan
     Write-Host "------------------------------"
-
-    Import-Module Microsoft.Graph.Authentication -ErrorAction Stop
 
     Disconnect-MgGraph -ErrorAction SilentlyContinue | Out-Null
 

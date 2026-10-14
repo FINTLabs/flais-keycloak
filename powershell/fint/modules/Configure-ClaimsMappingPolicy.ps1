@@ -18,12 +18,6 @@ param(
     [int]$RetryDelaySeconds = 5
 )
 
-Set-StrictMode -Version Latest
-$ErrorActionPreference = "Stop"
-
-. "$PSScriptRoot/../helpers/GraphRetry.ps1"
-. "$PSScriptRoot/../helpers/RequiredScopes.ps1"
-
 Assert-MgContextHasExactlyRequiredScopes -RequiredScopes @(
     "Application.ReadWrite.All",
     "Policy.Read.All",
