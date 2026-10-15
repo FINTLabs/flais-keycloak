@@ -27,6 +27,22 @@ Run the main script:
 
 The script connects to Microsoft Graph, lets you create or select an Enterprise Application, and then shows a menu of setup actions.
 
+## Microsoft Graph module versions
+
+All entry points use **2.39.0** of `Microsoft.Graph.Authentication` and
+`Microsoft.Graph.Applications`. The shared `helpers/GraphModules.ps1` bootstrap
+installs that exact version from PSGallery for the current user if it is missing,
+then imports it with `-RequiredVersion`. Other installed versions are left in place.
+
+The first installation requires internet access, PowerShellGet (`Install-Module`),
+and the PSGallery repository. PowerShellGet may prompt to install its NuGet provider.
+If another Graph SDK version is already loaded, open a fresh PowerShell session
+before running the tool. Installation or import failures stop execution.
+Individual action scripts use the same bootstrap, but still require a Graph login
+with their required permissions.
+
+To change the pin later, edit `$requiredVersion` in `helpers/GraphModules.ps1`.
+
 ## Files
 
 ### `Novari-IDP.ps1`
@@ -57,6 +73,7 @@ Shared helper scripts used by the main script and modules.
 | `ConsoleHelpers.ps1` | Formats console output. |
 | `EnterpriseApplicationHelpers.ps1` | Validates and displays the selected Enterprise Application. |
 | `GenericHelpers.ps1` | Handles common prompts. |
+| `GraphModules.ps1` | Installs and imports the pinned Graph SDK modules. |
 | `GraphContext.ps1` | Connects to Microsoft Graph and shows the active context. |
 | `GraphRetry.ps1` | Adds retry handling around Graph operations. |
 | `Header.ps1` | Prints the startup header. |
