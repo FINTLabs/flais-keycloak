@@ -15,11 +15,6 @@ param(
     [bool]$AcceptMappedClaims = $true
 )
 
-Set-StrictMode -Version Latest
-$ErrorActionPreference = "Stop"
-
-. "$PSScriptRoot/../helpers/GraphRetry.ps1"
-
 Assert-MgContextHasExactlyRequiredScopes -RequiredScopes @(
     "Application.ReadWrite.OwnedBy",
     "Synchronization.ReadWrite.All"

@@ -1,5 +1,3 @@
-Set-StrictMode -Version Latest
-
 function Write-NovariLogo {
     $logoPath = Join-Path $PSScriptRoot "novari_logo_primaer.svg"
 

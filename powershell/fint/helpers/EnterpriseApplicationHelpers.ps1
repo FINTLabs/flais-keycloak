@@ -38,8 +38,6 @@ function Assert-NovariServicePrincipalByObjectId {
         [string]$ServicePrincipalObjectId
     )
 
-    Import-Module Microsoft.Graph.Applications -ErrorAction Stop
-
     $servicePrincipal = Get-MgServicePrincipal `
         -ServicePrincipalId $ServicePrincipalObjectId `
         -Property "id,displayName" `
