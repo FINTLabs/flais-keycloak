@@ -34,12 +34,9 @@ All entry points use **2.39.0** of `Microsoft.Graph.Authentication` and
 installs that exact version from PSGallery for the current user if it is missing,
 then imports it with `-RequiredVersion`. Other installed versions are left in place.
 
-The first installation requires internet access, PowerShellGet (`Install-Module`),
-and the PSGallery repository. PowerShellGet may prompt to install its NuGet provider.
+PowerShellGet may prompt to install its NuGet provider.
 If another Graph SDK version is already loaded, open a fresh PowerShell session
 before running the tool. Installation or import failures stop execution.
-Individual action scripts use the same bootstrap, but still require a Graph login
-with their required permissions.
 
 To change the pin later, edit `$requiredVersion` in `helpers/GraphModules.ps1`.
 
@@ -55,30 +52,30 @@ Use this file to start the tool, connect to Microsoft Graph, select an Enterpris
 
 Setup actions used by the main script.
 
-| File | Purpose |
-|---|---|
-| `Create-EnterpriseApplication.ps1` | Creates the Enterprise Application in Entra. |
-| `Configure-Application.ps1` | Configures the Enterprise Application and App Registration. |
-| `Configure-ClaimsMappingPolicy.ps1` | Configures claims sent to Keycloak. |
-| `Configure-ScimProvisioning.ps1` | Configures SCIM provisioning. |
-| `Configure-AppRoles.ps1` | Configures application roles. |
-| `Create-ClientSecret.ps1` | Creates a new client secret and prints the one-time value. |
+| File                                | Purpose                                                     |
+| ----------------------------------- | ----------------------------------------------------------- |
+| `Create-EnterpriseApplication.ps1`  | Creates the Enterprise Application in Entra.                |
+| `Configure-Application.ps1`         | Configures the Enterprise Application and App Registration. |
+| `Configure-ClaimsMappingPolicy.ps1` | Configures claims sent to Keycloak.                         |
+| `Configure-ScimProvisioning.ps1`    | Configures SCIM provisioning.                               |
+| `Configure-AppRoles.ps1`            | Configures application roles.                               |
+| `Create-ClientSecret.ps1`           | Creates a new client secret and prints the one-time value.  |
 
 ### `helpers/`
 
 Shared helper scripts used by the main script and modules.
 
-| File | Purpose |
-|---|---|
-| `ConsoleHelpers.ps1` | Formats console output. |
+| File                               | Purpose                                                     |
+| ---------------------------------- | ----------------------------------------------------------- |
+| `ConsoleHelpers.ps1`               | Formats console output.                                     |
 | `EnterpriseApplicationHelpers.ps1` | Validates and displays the selected Enterprise Application. |
-| `GenericHelpers.ps1` | Handles common prompts. |
-| `GraphModules.ps1` | Installs and imports the pinned Graph SDK modules. |
-| `GraphContext.ps1` | Connects to Microsoft Graph and shows the active context. |
-| `GraphRetry.ps1` | Adds retry handling around Graph operations. |
-| `Header.ps1` | Prints the startup header. |
-| `Menu.ps1` | Defines the setup menu. |
-| `RequiredScopes.ps1` | Checks required Microsoft Graph permissions. |
+| `GenericHelpers.ps1`               | Handles common prompts.                                     |
+| `GraphModules.ps1`                 | Installs and imports the pinned Graph SDK modules.          |
+| `GraphContext.ps1`                 | Connects to Microsoft Graph and shows the active context.   |
+| `GraphRetry.ps1`                   | Adds retry handling around Graph operations.                |
+| `Header.ps1`                       | Prints the startup header.                                  |
+| `Menu.ps1`                         | Defines the setup menu.                                     |
+| `RequiredScopes.ps1`               | Checks required Microsoft Graph permissions.                |
 
 ### `app-roles.json`
 
@@ -86,18 +83,18 @@ Role catalogue used when configuring application roles.
 
 ## Menu actions
 
-| Option | Action |
-|---|---|
-| 1 | Create Enterprise Application, shown only when no application is connected in the current session. |
-| 2 | Create and assign Claims Mapping Policy. |
-| 3 | Configure Enterprise Application and App Registration settings. |
-| 4 | Configure SCIM Provisioning. |
-| 5 | Configure Application Roles. |
-| 6 | Configure Application Owner. |
-| 7 | Create Client Secret. |
-| 8 | Show Active Graph Context. |
-| 9 | Show Current Enterprise Application. |
-| 0 | Exit. |
+| Option | Action                                                                                             |
+| ------ | -------------------------------------------------------------------------------------------------- |
+| 1      | Create Enterprise Application, shown only when no application is connected in the current session. |
+| 2      | Create and assign Claims Mapping Policy.                                                           |
+| 3      | Configure Enterprise Application and App Registration settings.                                    |
+| 4      | Configure SCIM Provisioning.                                                                       |
+| 5      | Configure Application Roles.                                                                       |
+| 6      | Configure Application Owner.                                                                       |
+| 7      | Create Client Secret.                                                                              |
+| 8      | Show Active Graph Context.                                                                         |
+| 9      | Show Current Enterprise Application.                                                               |
+| 0      | Exit.                                                                                              |
 
 ## Before running
 
