@@ -92,3 +92,9 @@ This configuration is based on an OpenID Connect v1.0 for ID-Porten and serves a
 | `map_pid_as_username`        | Username Template Importer | `${CLAIM.pid}` | `LOCAL`           | Inherit   |
 | `map_pid_as_brokerid`        | Username Template Importer | `${CLAIM.pid}` | `BROKER_ID`       | Inherit   |
 | `map_pid_as_broker_username` | Username Template Importer | `${CLAIM.pid}` | `BROKER_USERNAME` | Inherit   |
+
+## Attribute mapping
+
+| Name                     | Mapper type        | Claim | Target attribute | Sync mode |
+| ------------------------ | ------------------ | ----- | ---------------- | --------- |
+| `map_pid_to_external_id` | Attribute Importer | `pid` | `externalId`     | Inherit   |
