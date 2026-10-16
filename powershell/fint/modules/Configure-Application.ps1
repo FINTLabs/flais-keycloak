@@ -16,10 +16,8 @@ param(
 )
 
 Assert-MgContextHasExactlyRequiredScopes -RequiredScopes @(
-    "Application.ReadWrite.OwnedBy",
-    "Synchronization.ReadWrite.All"
+    "Application.ReadWrite.OwnedBy"
 )
-
 function Set-ApplicationRegistrationConfig {
     param(
         [Parameter(Mandatory = $true)]
