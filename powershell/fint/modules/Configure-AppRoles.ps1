@@ -7,8 +7,7 @@ param(
 )
 
 Assert-MgContextHasExactlyRequiredScopes -RequiredScopes @(
-    "Application.ReadWrite.OwnedBy",
-    "Synchronization.ReadWrite.All"
+    "Application.ReadWrite.OwnedBy"
 )
 
 $RolesJsonPath = Join-Path -Path $PSScriptRoot -ChildPath "../app-roles.json"

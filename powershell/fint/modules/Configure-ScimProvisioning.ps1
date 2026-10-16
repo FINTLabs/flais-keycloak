@@ -33,8 +33,7 @@ param(
 )
 
 Assert-MgContextHasExactlyRequiredScopes -RequiredScopes @(
-    "Application.ReadWrite.OwnedBy",
-    "Synchronization.ReadWrite.All"
+    "Application.ReadWrite.OwnedBy"
 )
 
 function Assert-SafeProvisioningExpressionValue {
