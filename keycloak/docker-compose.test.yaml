@@ -32,7 +32,7 @@ services:
       - "8080"
 
   flais-keycloak-demo:
-    image: nginx:1.31.6-alpine-slim
+    image: nginx:1.31.7-alpine-slim
     ports:
       - "80"
     volumes:
