@@ -22,7 +22,6 @@
 2. Add the following API permissions:
 
    * `Application.ReadWrite.OwnedBy`
-   * `Synchronization.ReadWrite.All`
 3. Grant admin consent for the permissions.
 4. Create the initial client secret.
 
