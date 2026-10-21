@@ -422,17 +422,18 @@ class ScimUserEndpoint(
             externalId = user.getExternalId()
             userName = user.username
             active = user.isEnabled
-            emails = user.email
-                ?.takeIf { it.isNotBlank() }
-                ?.let { address ->
-                    mutableListOf(
-                        Email().apply {
-                            primary = true
-                            type = "work" // We only support work
-                            value = address
-                        },
-                    )
-                }
+            emails =
+                user.email
+                    ?.takeIf { it.isNotBlank() }
+                    ?.let { address ->
+                        mutableListOf(
+                            Email().apply {
+                                primary = true
+                                type = "work" // We only support work
+                                value = address
+                            },
+                        )
+                    }
             roles =
                 user
                     .getAttributeStream("rawRoles")
