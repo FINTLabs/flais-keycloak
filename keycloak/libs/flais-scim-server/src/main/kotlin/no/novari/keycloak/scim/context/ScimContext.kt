@@ -1,7 +1,6 @@
 package no.novari.keycloak.scim.context
 
 import jakarta.ws.rs.NotFoundException
-import jakarta.ws.rs.core.UriBuilder
 import jakarta.ws.rs.core.UriInfo
 import no.novari.keycloak.scim.config.OrganizationScimConfig
 import no.novari.keycloak.scim.config.ScimConfig
@@ -27,7 +26,7 @@ private val logger: Logger = Logger.getLogger(ScimContext::class.java)
 fun createScimContext(
     session: KeycloakSession,
     organizationId: String,
-    uriInfo: UriInfo
+    uriInfo: UriInfo,
 ): ScimContext {
     val kcContext =
         requireNotNull(session.context) {

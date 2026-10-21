@@ -12,12 +12,9 @@ import com.unboundid.scim2.common.types.ServiceProviderConfigResource
 import com.unboundid.scim2.common.types.SortConfig
 import com.unboundid.scim2.common.utils.ApiConstants.MEDIA_TYPE_SCIM
 import com.unboundid.scim2.server.annotations.ResourceType
-import com.unboundid.scim2.server.utils.ResourcePreparer
 import jakarta.ws.rs.GET
 import jakarta.ws.rs.Produces
-import jakarta.ws.rs.core.Context
 import jakarta.ws.rs.core.MediaType
-import jakarta.ws.rs.core.UriInfo
 import no.novari.keycloak.scim.context.ScimContext
 import no.novari.keycloak.scim.utils.ResourcePath
 import no.novari.keycloak.scim.utils.ResourceTypeDefinitionUtil.createResourceTypeDefinition

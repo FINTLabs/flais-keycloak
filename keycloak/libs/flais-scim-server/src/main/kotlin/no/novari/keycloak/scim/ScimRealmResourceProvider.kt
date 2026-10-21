@@ -10,7 +10,6 @@ import no.novari.keycloak.scim.context.ScimUriInfo
 import no.novari.keycloak.scim.context.createScimContext
 import no.novari.keycloak.scim.endpoints.ScimRootEndpoint
 import org.keycloak.models.KeycloakSession
-import org.keycloak.models.KeycloakUriInfo
 import org.keycloak.services.resource.RealmResourceProvider
 
 class ScimRealmResourceProvider(

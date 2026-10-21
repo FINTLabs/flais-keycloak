@@ -1,13 +1,11 @@
 package no.novari.keycloak.scim.application.utils
 
+import com.unboundid.scim2.common.GenericScimResource
 import com.unboundid.scim2.common.types.EnterpriseUserExtension
 import com.unboundid.scim2.common.types.SchemaResource
 import com.unboundid.scim2.common.utils.SchemaUtils
-import com.unboundid.scim2.common.GenericScimResource
 import com.unboundid.scim2.server.annotations.ResourceType
 import com.unboundid.scim2.server.utils.ResourceTypeDefinition
-import jakarta.ws.rs.core.MultivaluedHashMap
-import jakarta.ws.rs.core.UriInfo
 import no.novari.keycloak.scim.context.ScimUriInfo
 import no.novari.keycloak.scim.utils.ResourcePath
 import no.novari.keycloak.scim.utils.ResourceTypeDefinitionUtil
@@ -101,10 +99,11 @@ class ResourceTypeDefinitionUtilTest {
         val baseUri = java.net.URI("http://localhost/realms/test/scim/v2/tenant-42")
         val prepInfo = ScimUriInfo(TestUriInfo(URI("http://localhost/realms/test/scim/v2/tenant-42")), baseUri)
 
-        val preparer = ResourceTypeDefinitionUtil.scimResourcePreparer<GenericScimResource>(
-            ResourceTypeDefinitionUtil.createResourceTypeDefinition(AnnotatedResource::class),
-            prepInfo,
-        )
+        val preparer =
+            ResourceTypeDefinitionUtil.scimResourcePreparer<GenericScimResource>(
+                ResourceTypeDefinitionUtil.createResourceTypeDefinition(AnnotatedResource::class),
+                prepInfo,
+            )
 
         assertNotNull(preparer)
         assertEquals(baseUri, prepInfo.baseUri)

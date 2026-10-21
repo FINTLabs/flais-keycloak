@@ -12,7 +12,6 @@ import com.unboundid.scim2.common.types.Role
 import com.unboundid.scim2.common.utils.ApiConstants
 import com.unboundid.scim2.common.utils.JsonUtils
 import com.unboundid.scim2.server.annotations.ResourceType
-import com.unboundid.scim2.server.utils.ResourcePreparer
 import com.unboundid.scim2.server.utils.SchemaChecker
 import jakarta.ws.rs.Consumes
 import jakarta.ws.rs.DELETE
@@ -26,11 +25,9 @@ import jakarta.ws.rs.PUT
 import jakarta.ws.rs.Path
 import jakarta.ws.rs.PathParam
 import jakarta.ws.rs.Produces
-import jakarta.ws.rs.core.Context
 import jakarta.ws.rs.core.MediaType
 import jakarta.ws.rs.core.Response
 import jakarta.ws.rs.core.UriBuilder
-import jakarta.ws.rs.core.UriInfo
 import no.novari.keycloak.scim.context.ScimContext
 import no.novari.keycloak.scim.resources.FintUserExtension
 import no.novari.keycloak.scim.resources.SearchHandler
@@ -247,9 +244,7 @@ class ScimUserEndpoint(
     @POST
     @Produces(ApiConstants.MEDIA_TYPE_SCIM, MediaType.APPLICATION_JSON)
     @Consumes(ApiConstants.MEDIA_TYPE_SCIM, MediaType.APPLICATION_JSON)
-    fun createUser(
-        scimUser: UserResource,
-    ): Response {
+    fun createUser(scimUser: UserResource): Response {
         val resourcePreparer =
             scimResourcePreparer<UserResource>(
                 RESOURCE_TYPE_DEFINITION,
