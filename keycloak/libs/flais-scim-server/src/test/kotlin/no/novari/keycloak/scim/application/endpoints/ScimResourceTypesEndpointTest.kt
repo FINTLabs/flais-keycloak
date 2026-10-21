@@ -5,6 +5,9 @@ import com.unboundid.scim2.common.ScimResource
 import com.unboundid.scim2.common.exceptions.ForbiddenException
 import com.unboundid.scim2.common.exceptions.ResourceNotFoundException
 import com.unboundid.scim2.common.messages.ListResponse
+import io.mockk.every
+import io.mockk.mockk
+import no.novari.keycloak.scim.context.ScimContext
 import no.novari.keycloak.scim.endpoints.ScimResourceTypesEndpoint
 import no.novari.keycloak.scim.endpoints.ScimUserEndpoint
 import no.novari.keycloak.scim.utils.TestUriInfo
@@ -15,19 +18,24 @@ import org.junit.jupiter.api.assertThrows
 import java.net.URI
 
 class ScimResourceTypesEndpointTest {
-    private var uriInfo = TestUriInfo(URI("http://localhost/scim/v2/ResourceTypes"))
-    private val endpoint = ScimResourceTypesEndpoint(listOf(ScimUserEndpoint::class))
+    private val scimContext = mockk<ScimContext>(relaxed = true)
+    private var uriInfo = TestUriInfo(URI("http://localhost/realms/test/scim/v2/test-org/ResourceTypes"))
+    private val endpoint = ScimResourceTypesEndpoint(scimContext, listOf(ScimUserEndpoint::class))
+
+    init {
+        every { scimContext.uriInfo } returns uriInfo
+    }
 
     @Test
     fun `search throws ForbiddenException when filter is provided`() {
         assertThrows<ForbiddenException> {
-            endpoint.search(uriInfo, "name eq \"User\"")
+            endpoint.search("name eq \"User\"")
         }
     }
 
     @Test
     fun `search returns resource types when no filter`() {
-        val response: ListResponse<ScimResource> = endpoint.search(uriInfo, null)
+        val response: ListResponse<ScimResource> = endpoint.search(null)
 
         val userResourceType =
             response.resources
@@ -45,7 +53,7 @@ class ScimResourceTypesEndpointTest {
         val id = first.id
         val name = first.name
 
-        val node = endpoint.get(id, uriInfo).objectNode
+        val node = endpoint.get(id).objectNode
 
         assertEquals(id, node["id"].asText())
         assertEquals(name, node["name"].asText())
@@ -59,7 +67,7 @@ class ScimResourceTypesEndpointTest {
         val id = first.id
         val name = first.name
 
-        val node = endpoint.get(name, uriInfo).objectNode
+        val node = endpoint.get(name).objectNode
 
         assertEquals(id, node["id"].asText())
         assertEquals(name, node["name"].asText())
@@ -68,7 +76,7 @@ class ScimResourceTypesEndpointTest {
     @Test
     fun `get throws ResourceNotFoundException when resource type does not exist`() {
         assertThrows<ResourceNotFoundException> {
-            endpoint.get("not-a-real-resource-type", uriInfo)
+            endpoint.get("not-a-real-resource-type")
         }
     }
 }

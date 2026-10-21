@@ -1,6 +1,8 @@
 package no.novari.keycloak.scim.context
 
 import jakarta.ws.rs.NotFoundException
+import jakarta.ws.rs.core.UriBuilder
+import jakarta.ws.rs.core.UriInfo
 import no.novari.keycloak.scim.config.OrganizationScimConfig
 import no.novari.keycloak.scim.config.ScimConfig
 import org.jboss.logging.Logger
@@ -8,6 +10,7 @@ import org.keycloak.models.KeycloakSession
 import org.keycloak.models.OrganizationModel
 import org.keycloak.models.RealmModel
 import org.keycloak.organization.OrganizationProvider
+import java.net.URI
 
 class ScimContext internal constructor(
     val config: ScimConfig,
@@ -15,6 +18,8 @@ class ScimContext internal constructor(
     val realm: RealmModel,
     val orgProvider: OrganizationProvider,
     val organization: OrganizationModel,
+    val baseUri: URI,
+    val uriInfo: UriInfo,
 )
 
 private val logger: Logger = Logger.getLogger(ScimContext::class.java)
@@ -22,6 +27,7 @@ private val logger: Logger = Logger.getLogger(ScimContext::class.java)
 fun createScimContext(
     session: KeycloakSession,
     organizationId: String,
+    uriInfo: UriInfo
 ): ScimContext {
     val kcContext =
         requireNotNull(session.context) {
@@ -51,5 +57,7 @@ fun createScimContext(
         kcContext.realm,
         orgProvider,
         organization,
+        uriInfo.baseUri,
+        uriInfo,
     )
 }
