@@ -11,6 +11,7 @@ import no.novari.keycloak.scim.context.createScimContext
 import no.novari.keycloak.scim.endpoints.ScimRootEndpoint
 import org.keycloak.models.KeycloakSession
 import org.keycloak.services.resource.RealmResourceProvider
+import org.keycloak.services.resources.RealmsResource
 
 class ScimRealmResourceProvider(
     private val session: KeycloakSession,
@@ -22,11 +23,11 @@ class ScimRealmResourceProvider(
         @PathParam("organizationId") organizationId: String,
     ): ScimRootEndpoint {
         val baseUri =
-            uriInfo.baseUriBuilder
-                .path("scim")
-                .path("v2")
-                .path(organizationId)
-                .build()
+            session.context.uri.baseUriBuilder
+                .path(RealmsResource::class.java)
+                .path("{realm}/scim")
+                .path(ScimRealmResourceProvider::class.java, "scimOrganization")
+                .buildFromMap(mapOf("realm" to session.context.realm.name, "organizationId" to organizationId))
 
         val context = createScimContext(session, organizationId, ScimUriInfo(uriInfo, baseUri))
         verifyAuthenticated(context, authValidatorRegistry)
