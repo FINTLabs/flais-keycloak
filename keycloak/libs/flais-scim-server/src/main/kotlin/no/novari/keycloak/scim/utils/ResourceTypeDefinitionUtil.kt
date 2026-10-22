@@ -1,8 +1,11 @@
 package no.novari.keycloak.scim.utils
 
+import com.unboundid.scim2.common.ScimResource
 import com.unboundid.scim2.common.utils.SchemaUtils
 import com.unboundid.scim2.server.annotations.ResourceType
+import com.unboundid.scim2.server.utils.ResourcePreparer
 import com.unboundid.scim2.server.utils.ResourceTypeDefinition
+import jakarta.ws.rs.core.UriInfo
 import kotlin.reflect.KClass
 
 object ResourceTypeDefinitionUtil {
@@ -29,6 +32,11 @@ object ResourceTypeDefinitionUtil {
                 }
             }.build()
     }
+
+    fun <T : ScimResource> scimResourcePreparer(
+        resourceType: ResourceTypeDefinition,
+        uriInfo: UriInfo,
+    ): ResourcePreparer<T> = ResourcePreparer(resourceType, uriInfo)
 
     inline fun <reified T : Any> createResourceTypeDefinition() = createResourceTypeDefinition(T::class)
 }
