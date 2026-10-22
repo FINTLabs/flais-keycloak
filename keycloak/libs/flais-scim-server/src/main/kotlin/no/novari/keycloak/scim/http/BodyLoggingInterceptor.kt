@@ -1,27 +1,54 @@
 package no.novari.keycloak.scim.http
 
-import jakarta.ws.rs.WebApplicationException
+import jakarta.annotation.Priority
+import jakarta.ws.rs.Priorities
 import jakarta.ws.rs.ext.Provider
-import jakarta.ws.rs.ext.ReaderInterceptor
-import jakarta.ws.rs.ext.ReaderInterceptorContext
+import jakarta.ws.rs.ext.WriterInterceptor
+import jakarta.ws.rs.ext.WriterInterceptorContext
 import org.jboss.logging.Logger
-import java.io.ByteArrayInputStream
-import java.io.IOException
 
+/** Captures the bytes produced by the real message body writer without buffering the response. */
 @Provider
-class BodyLoggingInterceptor : ReaderInterceptor {
-    companion object {
-        private val logger: Logger = Logger.getLogger(BodyLoggingInterceptor::class.java.name)
-    }
+@Priority(Priorities.ENTITY_CODER + 100)
+class BodyLoggingInterceptor internal constructor(
+    private val logger: Logger,
+) : WriterInterceptor {
+    constructor() : this(HttpLogging.logger)
 
-    @Throws(IOException::class, WebApplicationException::class)
-    override fun aroundReadFrom(context: ReaderInterceptorContext): Any {
-        val entityBytes = context.inputStream.readAllBytes()
+    override fun aroundWriteTo(context: WriterInterceptorContext) {
+        val exchange = context.getProperty(HttpLogging.EXCHANGE_PROPERTY) as? HttpExchangeLog
+        if (exchange == null || exchange.responseHasNoBody) {
+            context.proceed()
+            return
+        }
 
-        logger.debug(String(entityBytes))
-
-        context.inputStream = ByteArrayInputStream(entityBytes)
-
-        return context.proceed()
+        val original = context.outputStream
+        val capture = HttpBodyCapture(exchange.maxBodyBytes)
+        context.outputStream = CapturingOutputStream(original, capture)
+        var completed = false
+        try {
+            context.proceed()
+            completed = true
+        } catch (exception: Exception) {
+            logger.debugf(
+                "SCIM HTTP RESPONSE WRITE FAILED id=%s status=%d error=%s elapsedMs=%d",
+                exchange.id,
+                exchange.status,
+                exception.javaClass.name,
+                exchange.elapsedMillis(),
+            )
+            throw exception
+        } finally {
+            context.outputStream = original
+            logger.debugf(
+                "SCIM HTTP RESPONSE BODY id=%s status=%d bytesWritten=%d completed=%s elapsedMs=%d body=%s",
+                exchange.id,
+                exchange.status,
+                capture.totalBytes,
+                completed,
+                exchange.elapsedMillis(),
+                capture.describe(context.mediaType, context.headers.getFirst("Content-Encoding")?.toString(), completed),
+            )
+        }
     }
 }
