@@ -20,7 +20,7 @@
     "dependencies": {
         "@types/express": "5.0.6",
         "express": "5.3.0",
-        "jose": "6.2.12",
+        "jose": "6.2.13",
         "nanoid": "6.0.2"
     }
 }
