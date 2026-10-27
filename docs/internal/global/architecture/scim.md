@@ -2,7 +2,7 @@
 
 [Back: Shared architecture](README.md)
 
-SCIM is a provisioning standard. see the [SCIM concept](../concepts/scim.md)
+SCIM is a provisioning standard. See the [SCIM concept](../concepts/scim.md)
 for its purpose and terminology.
 
 SCIM support in our setup is provided by a custom provider, `flais-scim-server`,
