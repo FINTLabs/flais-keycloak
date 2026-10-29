@@ -451,13 +451,16 @@ class ScimUserEndpoint(
 
         user.setExternalId(scimUser.externalId)
 
-        val primaryEmail =
-            scimUser.emails
-                ?.find { it.primary }
-                ?.value
-                ?.takeIf { it.isNotBlank() }
-        user.email = primaryEmail
-        user.isEmailVerified = primaryEmail != null
+        val email =
+            scimUser.emails?.let { emails ->
+                emails.firstOrNull { it.primary == true }
+                    ?: emails.firstOrNull {
+                        it.type.equals("work", ignoreCase = true)
+                    }
+            }
+
+        user.email = email?.value
+        user.isEmailVerified = email?.value != null
 
         scimUser.roles?.let {
             user.removeAttribute("rawRoles")
