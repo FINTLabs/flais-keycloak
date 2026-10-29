@@ -36,5 +36,12 @@ object Authenticator {
             )
             throw NotAuthorizedException("Invalid token")
         }
+
+        // TEMPORARY!
+        logger.debugf(
+            "TEMP SCIM bearer token org=%s token=%s",
+            scimContext.organization.id,
+            token,
+        )
     }
 }
