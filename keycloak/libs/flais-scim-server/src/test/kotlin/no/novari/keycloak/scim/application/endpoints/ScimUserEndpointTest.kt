@@ -531,13 +531,20 @@ class ScimUserEndpointTest {
     }
 
     @Test
-    fun `deleteUser throws NotFoundException when member lookup fails`() {
+    fun `deleteUser throws NotFoundException when member lookup returns null`() {
         every {
             orgProvider.getMemberById(scimContext.organization, userId)
-        } throws NotFoundException()
+        } returns null
 
-        assertThrows<NotFoundException> {
-            endpoint.deleteUser(userId)
+        val ex =
+            assertThrows<NotFoundException> {
+                endpoint.deleteUser(userId)
+            }
+
+        assertEquals("No user found with id $userId", ex.message)
+
+        verify(exactly = 0) {
+            orgProvider.removeMember(any(), any())
         }
     }
 
