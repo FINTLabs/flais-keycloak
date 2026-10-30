@@ -461,7 +461,7 @@ class ScimUserEndpoint(
 
         user.setExternalId(scimUser.externalId)
 
-        scimUser.emails?.find { it.primary }?.let { email ->
+        scimUser.emails?.find { it.primary ?: false }?.let { email ->
             user.email = email.value
             user.isEmailVerified = true
         } ?: run {
