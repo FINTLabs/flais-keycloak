@@ -51,8 +51,8 @@ class ScimUserEndpointTest {
 
     private val extId = "any-ext-id"
     private val userId = "any-id"
-    private val userUriInfo = TestUriInfo(URI("http://localhost/scim/v2/Users/$userId"))
-    private val usersUriInfo = TestUriInfo(URI("http://localhost/scim/v2/Users"))
+    private val userUriInfo = TestUriInfo(URI("http://localhost/realms/test/scim/v2/test-org/Users/$userId"))
+    private val usersUriInfo = TestUriInfo(URI("http://localhost/realms/test/scim/v2/test-org/Users"))
 
     @MockK(relaxed = true)
     lateinit var keycloakSession: KeycloakSession
@@ -81,6 +81,7 @@ class ScimUserEndpointTest {
     fun setup() {
         every { scimContext.orgProvider } returns orgProvider
         every { scimContext.realm } returns realm
+        every { scimContext.uriInfo } returns usersUriInfo
 
         every { scimContext.session } returns keycloakSession
         every { keycloakSession.users() } returns userProvider
@@ -148,7 +149,7 @@ class ScimUserEndpointTest {
         every { userProvider.getFederatedIdentitiesStream(realm, user) } returns Stream.empty()
         every { userProvider.getFederatedIdentity(realm, user, any()) } returns null
 
-        return endpoint.createUser(usersUriInfo, scimUser)
+        return endpoint.createUser(scimUser)
     }
 
     @Test
@@ -160,7 +161,7 @@ class ScimUserEndpointTest {
             }
         every { userProvider.getUserById(realm, USERNAME) } returns user
 
-        val response = endpoint.createUser(usersUriInfo, scimUser)
+        val response = endpoint.createUser(scimUser)
 
         assertEquals(409, response.status)
         assertEquals(ApiConstants.MEDIA_TYPE_SCIM, response.mediaType.toString())
@@ -176,8 +177,9 @@ class ScimUserEndpointTest {
         every {
             orgProvider.getMemberById(scimContext.organization, userId)
         } returns null
+        every { scimContext.uriInfo } returns userUriInfo
 
-        val response = endpoint.getUser(userId, userUriInfo)
+        val response = endpoint.getUser(userId)
         assertEquals(Response.Status.NOT_FOUND.statusCode, response.status)
         assertEquals(ApiConstants.MEDIA_TYPE_SCIM, response.mediaType.toString())
         val error = response.entity as ErrorResponse
@@ -195,8 +197,9 @@ class ScimUserEndpointTest {
             orgProvider.getMemberById(scimContext.organization, userId)
         } returns user
         every { realm.getRole(ScimRoles.SCIM_MANAGED_ROLE) } returns scimRole
+        every { scimContext.uriInfo } returns userUriInfo
 
-        val response = endpoint.getUser(userId, userUriInfo)
+        val response = endpoint.getUser(userId)
 
         assertEquals(Response.Status.OK.statusCode, response.status)
         assertTrue(response.entity is GenericScimResource)
@@ -289,7 +292,7 @@ class ScimUserEndpointTest {
         every { orgProvider.getIdentityProviders(scimContext.organization) } returns
             emptyList<IdentityProviderModel>().stream()
 
-        val response = endpoint.createUser(usersUriInfo, scimUser)
+        val response = endpoint.createUser(scimUser)
 
         assertEquals(Response.Status.CREATED.statusCode, response.status)
         assertTrue(response.location.toString().contains(userId))
@@ -319,7 +322,7 @@ class ScimUserEndpointTest {
         every { realm.getRole(ScimRoles.SCIM_MANAGED_ROLE) } returns scimRole
         every { orgProvider.addManagedMember(scimContext.organization, user) } returns true
 
-        val response = endpoint.createUser(usersUriInfo, scimUser)
+        val response = endpoint.createUser(scimUser)
 
         assertEquals(Response.Status.CREATED.statusCode, response.status)
 
@@ -510,7 +513,7 @@ class ScimUserEndpointTest {
         } throws RuntimeException()
 
         assertThrows<NotFoundException> {
-            endpoint.updateUser(userUriInfo, userId, UserResource())
+            endpoint.updateUser(userId, UserResource())
         }
     }
 
@@ -526,7 +529,7 @@ class ScimUserEndpointTest {
         } returns false
 
         assertThrows<ForbiddenException> {
-            endpoint.updateUser(userUriInfo, userId, UserResource())
+            endpoint.updateUser(userId, UserResource())
         }
     }
 
@@ -617,7 +620,6 @@ class ScimUserEndpointTest {
 
         val response =
             endpoint.patchUser(
-                userUriInfo,
                 userId,
                 PatchRequest(
                     listOf(
@@ -665,7 +667,6 @@ class ScimUserEndpointTest {
 
         val response =
             endpoint.patchUser(
-                userUriInfo,
                 userId,
                 PatchRequest(
                     listOf(
@@ -694,7 +695,6 @@ class ScimUserEndpointTest {
 
         val response =
             endpoint.patchUser(
-                userUriInfo,
                 userId,
                 PatchRequest(
                     listOf(
@@ -725,7 +725,6 @@ class ScimUserEndpointTest {
 
         val response =
             endpoint.patchUser(
-                userUriInfo,
                 userId,
                 PatchRequest(
                     listOf(
@@ -763,7 +762,7 @@ class ScimUserEndpointTest {
                 externalId = extId
             }
 
-        val response = endpoint.updateUser(userUriInfo, userId, updatedScimUser)
+        val response = endpoint.updateUser(userId, updatedScimUser)
 
         assertEquals(Response.Status.OK.statusCode, response.status)
 
@@ -784,7 +783,6 @@ class ScimUserEndpointTest {
 
         val response =
             endpoint.patchUser(
-                userUriInfo,
                 userId,
                 PatchRequest(
                     listOf(
@@ -824,8 +822,9 @@ class ScimUserEndpointTest {
 
         every { orgProvider.getMemberById(scimContext.organization, userId) } returns user
         every { realm.getRole(ScimRoles.SCIM_MANAGED_ROLE) } returns scimRole
+        every { scimContext.uriInfo } returns userUriInfo
 
-        val response = endpoint.getUser(userId, userUriInfo)
+        val response = endpoint.getUser(userId)
         assertEquals(Response.Status.OK.statusCode, response.status)
 
         val resource = response.entity as GenericScimResource
@@ -899,7 +898,7 @@ class ScimUserEndpointTest {
                 setExtension(ext)
             }
 
-        val response = endpoint.updateUser(userUriInfo, userId, updatedScimUser)
+        val response = endpoint.updateUser(userId, updatedScimUser)
         assertEquals(Response.Status.OK.statusCode, response.status)
 
         stringExtensionFields.forEach { attr ->
@@ -933,7 +932,6 @@ class ScimUserEndpointTest {
 
         val response =
             endpoint.patchUser(
-                userUriInfo,
                 userId,
                 PatchRequest(
                     listOf(

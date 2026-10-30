@@ -7,6 +7,7 @@ import jakarta.ws.rs.NotFoundException
 import no.novari.keycloak.scim.config.OrganizationScimConfig
 import no.novari.keycloak.scim.config.ScimConfig
 import no.novari.keycloak.scim.context.createScimContext
+import no.novari.keycloak.scim.utils.TestUriInfo
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertSame
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -18,6 +19,7 @@ import org.keycloak.models.KeycloakSession
 import org.keycloak.models.OrganizationModel
 import org.keycloak.models.RealmModel
 import org.keycloak.organization.OrganizationProvider
+import java.net.URI
 
 @ExtendWith(MockKExtension::class)
 class ScimContextTest {
@@ -39,6 +41,7 @@ class ScimContextTest {
     @Test
     fun `createScimContext returns ScimContext when organization exists and config is valid`() {
         val orgId = "any-org"
+        val uriInfo = TestUriInfo(URI("http://localhost/realms/test/scim/v2/any-org"))
 
         every { session.context } returns kcContext
         every { kcContext.realm } returns realm
@@ -48,9 +51,11 @@ class ScimContextTest {
 
         every { organization.attributes } returns emptyMap()
 
-        val scimContext = createScimContext(session, orgId)
+        val scimContext = createScimContext(session, orgId, uriInfo)
 
         assertSame(session, scimContext.session)
+        assertEquals(uriInfo.baseUri, scimContext.baseUri)
+        assertSame(uriInfo, scimContext.uriInfo)
         assertSame(realm, scimContext.realm)
         assertSame(orgProvider, scimContext.orgProvider)
         assertSame(organization, scimContext.organization)
@@ -64,12 +69,13 @@ class ScimContextTest {
     @Test
     fun `createScimContext throws IllegalArgumentException when Keycloak context is null`() {
         val orgId = "any-org"
+        val uriInfo = TestUriInfo(URI("http://localhost/realms/test/scim/v2/any-org"))
 
         every { session.context } returns null
 
         val ex =
             assertThrows<IllegalArgumentException> {
-                createScimContext(session, orgId)
+                createScimContext(session, orgId, uriInfo)
             }
         assertEquals("Keycloak context is not set", ex.message)
     }
@@ -77,6 +83,7 @@ class ScimContextTest {
     @Test
     fun `createScimContext throws NotFoundException when organization is not found`() {
         val orgId = "missing-org"
+        val uriInfo = TestUriInfo(URI("http://localhost/realms/test/scim/v2/missing-org"))
 
         every { session.context } returns kcContext
         every { kcContext.realm } returns realm
@@ -86,7 +93,7 @@ class ScimContextTest {
 
         val ex =
             assertThrows<NotFoundException> {
-                createScimContext(session, orgId)
+                createScimContext(session, orgId, uriInfo)
             }
         assertEquals("Organization not found", ex.message)
     }

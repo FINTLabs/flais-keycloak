@@ -86,6 +86,7 @@ class ScimUserEndpointSearchTest {
 
         every { scimContext.orgProvider } returns orgProvider
         every { scimContext.realm } returns realm
+        every { scimContext.uriInfo } returns usersUriInfo()
         mockkConstructor(JpaScimUserSearch::class)
         every { anyConstructed<JpaScimUserSearch>().search(any()) } answers {
             userSearch.search(firstArg())
@@ -106,7 +107,8 @@ class ScimUserEndpointSearchTest {
         stubUser()
         stubSearchPage(totalResults = 57, users = listOf(user))
 
-        val response = endpoint.getUsers(usersUriInfo())
+        every { scimContext.uriInfo } returns usersUriInfo()
+        val response = endpoint.getUsers()
 
         val result = response.assertListResponse()
         assertEquals(57, result.totalResults)
@@ -118,7 +120,8 @@ class ScimUserEndpointSearchTest {
         stubUser()
         stubSearchPage(totalResults = 1, users = listOf(user))
 
-        endpoint.getUsers(usersUriInfo())
+        every { scimContext.uriInfo } returns usersUriInfo()
+        endpoint.getUsers()
 
         verifyNoOrganizationScan()
     }
@@ -128,12 +131,12 @@ class ScimUserEndpointSearchTest {
         stubUser()
         stubSearchPage(totalResults = 57, users = listOf(user))
 
-        endpoint.getUsers(
+        every { scimContext.uriInfo } returns
             usersUriInfo(
                 ApiConstants.QUERY_PARAMETER_PAGE_START_INDEX to "3",
                 ApiConstants.QUERY_PARAMETER_PAGE_SIZE to "2",
-            ),
-        )
+            )
+        endpoint.getUsers()
 
         // startIndex is 1-based in SCIM, firstResult is 0-based in JPA.
         val page = userSearch.criteria.page as ScimPage.Index
@@ -145,8 +148,9 @@ class ScimUserEndpointSearchTest {
     fun `getUsers pushes a supported filter into the database instead of scanning`() {
         stubUser()
         stubSearchPage(totalResults = 1, users = listOf(user))
+        every { scimContext.uriInfo } returns usersUriInfo(filter("userName eq \"$USERNAME\""))
 
-        val response = endpoint.getUsers(usersUriInfo(filter("""userName eq "$USERNAME"""")))
+        val response = endpoint.getUsers()
 
         val result = response.assertListResponse()
         assertEquals(1, result.totalResults)
@@ -159,13 +163,13 @@ class ScimUserEndpointSearchTest {
     fun `getUsers pushes a supported sort into the database`() {
         stubUser()
         stubSearchPage(totalResults = 1, users = listOf(user))
-
-        endpoint.getUsers(
+        every { scimContext.uriInfo } returns
             usersUriInfo(
                 ApiConstants.QUERY_PARAMETER_SORT_BY to "userName",
                 ApiConstants.QUERY_PARAMETER_SORT_ORDER to "descending",
-            ),
-        )
+            )
+
+        endpoint.getUsers()
 
         assertEquals("userName", userSearch.criteria.sortBy.toString())
         assertEquals(false, userSearch.criteria.sortAscending)
@@ -175,14 +179,13 @@ class ScimUserEndpointSearchTest {
     fun `getUsers can start cursor pagination with a blank cursor`() {
         stubUser()
         stubSearchPage(totalResults = 57, users = listOf(user), hasMore = true)
-
-        val response =
-            endpoint.getUsers(
-                usersUriInfo(
-                    ApiConstants.QUERY_PARAMETER_PAGE_CURSOR to "",
-                    ApiConstants.QUERY_PARAMETER_PAGE_SIZE to "1",
-                ),
+        every { scimContext.uriInfo } returns
+            usersUriInfo(
+                ApiConstants.QUERY_PARAMETER_PAGE_CURSOR to "",
+                ApiConstants.QUERY_PARAMETER_PAGE_SIZE to "1",
             )
+
+        val response = endpoint.getUsers()
 
         val result = response.assertListResponse()
         val page = userSearch.criteria.page as ScimPage.Keyset
@@ -221,13 +224,13 @@ class ScimUserEndpointSearchTest {
         stubUser()
         stubSearchPage(totalResults = 57, users = listOf(user))
         val cursor = ScimCursor(ScimCursor.queryHash(null, GROUP_ID), "previous-user-id").encode()
-
-        endpoint.getUsers(
+        every { scimContext.uriInfo } returns
             usersUriInfo(
                 ApiConstants.QUERY_PARAMETER_PAGE_CURSOR to cursor,
                 ApiConstants.QUERY_PARAMETER_PAGE_SIZE to "1",
-            ),
-        )
+            )
+
+        endpoint.getUsers()
 
         val page = userSearch.criteria.page as ScimPage.Keyset
         assertEquals("previous-user-id", page.after)
@@ -239,14 +242,14 @@ class ScimUserEndpointSearchTest {
         stubUser()
         stubOrganizationLookup()
         val cursor = ScimCursor(ScimCursor.queryHash(null, GROUP_ID), "previous-user-id").encode()
+        every { scimContext.uriInfo } returns
+            usersUriInfo(
+                filter("userName eq \"$USERNAME\""),
+                ApiConstants.QUERY_PARAMETER_PAGE_CURSOR to cursor,
+            )
 
         assertThrows<BadRequestException> {
-            endpoint.getUsers(
-                usersUriInfo(
-                    filter("""userName eq "$USERNAME""""),
-                    ApiConstants.QUERY_PARAMETER_PAGE_CURSOR to cursor,
-                ),
-            )
+            endpoint.getUsers()
         }
     }
 
@@ -255,14 +258,14 @@ class ScimUserEndpointSearchTest {
         stubUser()
         stubOrganizationLookup()
         val cursor = ScimCursor(ScimCursor.queryHash(null, "another-org-group-id"), "previous-user-id").encode()
+        every { scimContext.uriInfo } returns
+            usersUriInfo(
+                ApiConstants.QUERY_PARAMETER_PAGE_CURSOR to cursor,
+                ApiConstants.QUERY_PARAMETER_PAGE_SIZE to "1",
+            )
 
         assertThrows<BadRequestException> {
-            endpoint.getUsers(
-                usersUriInfo(
-                    ApiConstants.QUERY_PARAMETER_PAGE_CURSOR to cursor,
-                    ApiConstants.QUERY_PARAMETER_PAGE_SIZE to "1",
-                ),
-            )
+            endpoint.getUsers()
         }
     }
 
@@ -271,8 +274,9 @@ class ScimUserEndpointSearchTest {
         stubUser()
         stubOrganizationLookup()
         userSearch.result = ScimUserSearchResult.Unsupported(UNSUPPORTED_FILTER)
+        every { scimContext.uriInfo } returns usersUriInfo(filter("roles.value co \"read\""))
 
-        val response = endpoint.getUsers(usersUriInfo(filter("""roles.value co "read"""")))
+        val response = endpoint.getUsers()
 
         assertEquals(Response.Status.BAD_REQUEST.statusCode, response.status)
         assertEquals(UNSUPPORTED_FILTER, (response.entity as ErrorResponse).detail)
@@ -284,15 +288,15 @@ class ScimUserEndpointSearchTest {
         stubUser()
         stubOrganizationLookup()
         userSearch.result = ScimUserSearchResult.Unsupported(UNSUPPORTED_FILTER)
+        every { scimContext.uriInfo } returns
+            usersUriInfo(
+                filter("roles.value co \"read\""),
+                ApiConstants.QUERY_PARAMETER_PAGE_CURSOR to "",
+            )
 
         val exception =
             assertThrows<BadRequestException> {
-                endpoint.getUsers(
-                    usersUriInfo(
-                        filter("""roles.value co "read""""),
-                        ApiConstants.QUERY_PARAMETER_PAGE_CURSOR to "",
-                    ),
-                )
+                endpoint.getUsers()
             }
 
         assertEquals("cursor pagination cannot be used for this query: $UNSUPPORTED_FILTER", exception.message)
@@ -304,8 +308,9 @@ class ScimUserEndpointSearchTest {
         stubUser()
         stubOrganizationLookup()
         userSearch.result = ScimUserSearchResult.Unsupported("roles cannot be sorted in the database")
+        every { scimContext.uriInfo } returns usersUriInfo(ApiConstants.QUERY_PARAMETER_SORT_BY to "roles")
 
-        val response = endpoint.getUsers(usersUriInfo(ApiConstants.QUERY_PARAMETER_SORT_BY to "roles"))
+        val response = endpoint.getUsers()
 
         assertEquals(Response.Status.BAD_REQUEST.statusCode, response.status)
         assertEquals("roles cannot be sorted in the database", (response.entity as ErrorResponse).detail)
@@ -348,7 +353,7 @@ class ScimUserEndpointSearchTest {
     private fun usersUriInfo(vararg params: Pair<String, String>): UriInfo {
         val query = MultivaluedHashMap<String, String>()
         params.forEach { (key, value) -> query.add(key, value) }
-        return TestUriInfo(URI("http://localhost/scim/v2/Users"), query)
+        return TestUriInfo(URI("http://localhost/realms/test/scim/v2/test-org/Users"), query)
     }
 
     private fun filter(expression: String) = ApiConstants.QUERY_PARAMETER_FILTER to expression

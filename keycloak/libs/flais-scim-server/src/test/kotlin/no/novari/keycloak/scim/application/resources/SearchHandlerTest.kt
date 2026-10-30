@@ -37,7 +37,7 @@ class SearchHandlerTest {
         params.forEach { (key, value) -> query.add(key, value) }
 
         return TestUriInfo(
-            URI("http://localhost/scim/v2/Users"),
+            URI("http://localhost/realms/test/scim/v2/test-org/Users"),
             query,
         )
     }

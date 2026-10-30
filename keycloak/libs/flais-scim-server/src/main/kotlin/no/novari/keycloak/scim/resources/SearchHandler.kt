@@ -12,6 +12,7 @@ import com.unboundid.scim2.common.utils.ApiConstants
 import com.unboundid.scim2.server.utils.ResourcePreparer
 import com.unboundid.scim2.server.utils.ResourceTypeDefinition
 import jakarta.ws.rs.core.UriInfo
+import no.novari.keycloak.scim.utils.ResourceTypeDefinitionUtil.scimResourcePreparer
 
 class SearchHandler<T : ScimResource> {
     @NotNull
@@ -43,7 +44,7 @@ class SearchHandler<T : ScimResource> {
         resourceType: ResourceTypeDefinition,
         uriInfo: UriInfo,
     ) {
-        responsePreparer = ResourcePreparer(resourceType, uriInfo)
+        responsePreparer = scimResourcePreparer(resourceType, uriInfo)
 
         val qp = uriInfo.queryParameters
 

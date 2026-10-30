@@ -10,18 +10,17 @@ import com.unboundid.scim2.common.types.SchemaResource
 import com.unboundid.scim2.common.utils.ApiConstants.MEDIA_TYPE_SCIM
 import com.unboundid.scim2.common.utils.ApiConstants.QUERY_PARAMETER_FILTER
 import com.unboundid.scim2.server.annotations.ResourceType
-import com.unboundid.scim2.server.utils.ResourcePreparer
 import com.unboundid.scim2.server.utils.SchemaAwareFilterEvaluator
 import jakarta.ws.rs.GET
 import jakarta.ws.rs.Path
 import jakarta.ws.rs.PathParam
 import jakarta.ws.rs.Produces
 import jakarta.ws.rs.QueryParam
-import jakarta.ws.rs.core.Context
 import jakarta.ws.rs.core.MediaType
-import jakarta.ws.rs.core.UriInfo
+import no.novari.keycloak.scim.context.ScimContext
 import no.novari.keycloak.scim.utils.ResourcePath
 import no.novari.keycloak.scim.utils.ResourceTypeDefinitionUtil.createResourceTypeDefinition
+import no.novari.keycloak.scim.utils.ResourceTypeDefinitionUtil.scimResourcePreparer
 import kotlin.reflect.KClass
 
 @ResourceType(
@@ -32,19 +31,19 @@ import kotlin.reflect.KClass
 )
 @ResourcePath("Schemas")
 class ScimSchemaEndpoint(
+    private val scimContext: ScimContext,
     private val resourceClasses: List<KClass<*>>,
 ) {
     @GET
     @Produces(MEDIA_TYPE_SCIM, MediaType.APPLICATION_JSON)
     fun search(
-        @Context uriInfo: UriInfo,
         @QueryParam(QUERY_PARAMETER_FILTER) filterString: String?,
     ): ListResponse<GenericScimResource> {
         if (!filterString.isNullOrEmpty()) {
             throw ForbiddenException("Filtering is not allowed")
         }
 
-        val preparer = ResourcePreparer<GenericScimResource>(RESOURCE_TYPE_DEFINITION, uriInfo)
+        val preparer = scimResourcePreparer<GenericScimResource>(RESOURCE_TYPE_DEFINITION, scimContext.uriInfo)
 
         return ListResponse(
             getSchemas()
@@ -64,7 +63,6 @@ class ScimSchemaEndpoint(
     @Produces(MEDIA_TYPE_SCIM, MediaType.APPLICATION_JSON)
     fun get(
         @PathParam("id") id: String,
-        @Context uriInfo: UriInfo,
     ): GenericScimResource {
         val filter =
             Filter.or(
@@ -72,7 +70,7 @@ class ScimSchemaEndpoint(
                 Filter.eq("name", id),
             )
         val filterEvaluator = SchemaAwareFilterEvaluator(RESOURCE_TYPE_DEFINITION)
-        val preparer = ResourcePreparer<GenericScimResource>(RESOURCE_TYPE_DEFINITION, uriInfo)
+        val preparer = scimResourcePreparer<GenericScimResource>(RESOURCE_TYPE_DEFINITION, scimContext.uriInfo)
         getSchemas().forEach { schema ->
             val resource = schema.asGenericScimResource()
             if (filter.visit(filterEvaluator, resource.objectNode)) {

@@ -10,12 +10,13 @@ import java.net.URI
 class TestUriInfo(
     private val requestUri: URI,
     private val queryParams: MultivaluedMap<String, String> = MultivaluedHashMap(),
+    private val baseUri: URI = URI("http://localhost"),
 ) : UriInfo {
     override fun getRequestUri(): URI = requestUri
 
     override fun getAbsolutePath(): URI = requestUri
 
-    override fun getBaseUri(): URI = URI("http://localhost")
+    override fun getBaseUri(): URI = baseUri
 
     override fun getPath(): String = requestUri.path
 
