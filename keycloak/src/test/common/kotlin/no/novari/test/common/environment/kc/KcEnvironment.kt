@@ -17,7 +17,7 @@ interface KcEnvironment : AutoCloseable {
 
     fun flaisScimAuthUrl(): String
 
-    fun authentikUrl(): String
+    fun mockIdpUrl(): String
 
     fun flaisKeycloakDemoUrl(): String
 }

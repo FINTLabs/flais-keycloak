@@ -26,7 +26,6 @@ class QlikRolesMapperTest {
     val realm = Realms.EXTERNAL
     val clientId = Clients.QLIK
     val scope = Scopes.PROFILE_EMAIL
-    val password = Users.PASSWORD
 
     @ParameterizedTest(name = "qlik-roles-mapper for org ({0}) maps correctly ")
     @ValueSource(strings = [Orgs.TELEMARK, Orgs.ROGALAND])
@@ -65,7 +64,6 @@ class QlikRolesMapperTest {
             orgAlias,
             idpAlias,
             username,
-            password,
             client,
             authUrl,
             hasIdpSelector = (orgAlias == Orgs.TELEMARK),
@@ -149,7 +147,6 @@ class QlikRolesMapperTest {
             orgAlias,
             idpAlias,
             username,
-            password,
             client,
             authUrl,
             hasIdpSelector = (orgAlias == Orgs.TELEMARK),

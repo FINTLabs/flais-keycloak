@@ -37,7 +37,7 @@ jobs:
           echo "app_version=$version" >> $GITHUB_OUTPUT
 
       - name: Update Chart.yaml
-        uses: mikefarah/yq@v4.53.6
+        uses: mikefarah/yq@v4.54.1
         with:
           cmd: |
             yq e -i '.version = "${{ steps.versions.outputs.chart_version }}"' ./charts/${{ inputs.chart_name }}/Chart.yaml
@@ -63,7 +63,7 @@ jobs:
           fetch-depth: 0
 
       - name: Restore Chart Metadata
-        uses: actions/download-artifact@v8.0.1
+        uses: actions/download-artifact@v8.0.2
         with:
           name: ${{ inputs.chart_name }}-chart-metadata
           path: ./charts/${{ inputs.chart_name }}

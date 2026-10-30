@@ -1,15 +1,19 @@
-Import-Module Microsoft.Graph.Authentication -ErrorAction Stop
-Import-Module Microsoft.Graph.Applications -ErrorAction Stop
-
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 
-. "$PSScriptRoot/helpers/GenericHelpers.ps1"
-. "$PSScriptRoot/helpers/ConsoleHelpers.ps1"
-. "$PSScriptRoot/helpers/GraphRetry.ps1"
-. "$PSScriptRoot/helpers/RequiredScopes.ps1"
-. "$PSScriptRoot/helpers/GraphContext.ps1"
-. "$PSScriptRoot/helpers/EnterpriseApplicationHelpers.ps1"
+try {
+    . "$PSScriptRoot/helpers/GraphModules.ps1"
+    . "$PSScriptRoot/helpers/GenericHelpers.ps1"
+    . "$PSScriptRoot/helpers/ConsoleHelpers.ps1"
+    . "$PSScriptRoot/helpers/GraphRetry.ps1"
+    . "$PSScriptRoot/helpers/RequiredScopes.ps1"
+    . "$PSScriptRoot/helpers/GraphContext.ps1"
+    . "$PSScriptRoot/helpers/EnterpriseApplicationHelpers.ps1"
+}
+catch {
+    Write-Host $_.Exception.Message -ForegroundColor Red
+    return
+}
 
 $CreateEnterpriseAppScript = "$PSScriptRoot/modules/Create-EnterpriseApplication.ps1"
 $CreateClaimsMappingPolicyScript = "$PSScriptRoot/modules/Configure-ClaimsMappingPolicy.ps1"

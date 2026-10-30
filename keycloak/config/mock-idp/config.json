@@ -1,0 +1,207 @@
+{
+  "interactiveLogin": true,
+  "loginPagePath": "/config/login.html",
+  "tokenCallbacks": [
+    {
+      "issuerId": "entra-novari",
+      "tokenExpiry": 3600,
+      "requestMappings": [
+        {
+          "requestParam": "subject",
+          "match": "1bf0eeb7-7b63-4569-a5d3-10ad6fd0c440",
+          "claims": {
+            "sub": "1bf0eeb7-7b63-4569-a5d3-10ad6fd0c440",
+            "name": "Jon Admin",
+            "preferred_username": "1bf0eeb7-7b63-4569-a5d3-10ad6fd0c440",
+            "oid": "1bf0eeb7-7b63-4569-a5d3-10ad6fd0c440",
+            "given_name": "Jon",
+            "family_name": "Admin",
+            "roles": [
+              "read",
+              "write",
+              "admin"
+            ],
+            "email": "jon.admin@novari.no",
+            "email_verified": true,
+            "tid": "4d3bf7c9-a03c-5bde-bff1-cead9bcc584b"
+          }
+        }
+      ]
+    },
+    {
+      "issuerId": "entra-rogaland",
+      "tokenExpiry": 3600,
+      "requestMappings": [
+        {
+          "requestParam": "subject",
+          "match": "8b08335d-e716-4d45-8d40-f75aa7884083",
+          "claims": {
+            "sub": "8b08335d-e716-4d45-8d40-f75aa7884083",
+            "name": "Alice Basic",
+            "preferred_username": "8b08335d-e716-4d45-8d40-f75aa7884083",
+            "oid": "8b08335d-e716-4d45-8d40-f75aa7884083",
+            "given_name": "Alice",
+            "family_name": "Basic",
+            "roles": [
+              "read",
+              "write",
+              "admin"
+            ],
+            "email": "alice.basic@rogaland.no",
+            "email_verified": true,
+            "tid": "1d5cd080-32ad-5f88-8321-56b85a0deecc"
+          }
+        },
+        {
+          "requestParam": "subject",
+          "match": "84ad338c-b778-43f2-9636-1e2dda3d9f08",
+          "claims": {
+            "sub": "84ad338c-b778-43f2-9636-1e2dda3d9f08",
+            "name": "Jon Basic",
+            "preferred_username": "84ad338c-b778-43f2-9636-1e2dda3d9f08",
+            "oid": "84ad338c-b778-43f2-9636-1e2dda3d9f08",
+            "given_name": "Jon",
+            "family_name": "Basic",
+            "roles": [
+              "read",
+              "write",
+              "admin"
+            ],
+            "email": "jon.basic@rogaland.no",
+            "email_verified": true,
+            "tid": "1d5cd080-32ad-5f88-8321-56b85a0deecc"
+          }
+        },
+        {
+          "requestParam": "subject",
+          "match": "dc759da2-c412-47ba-b455-982d3f437ac5",
+          "claims": {
+            "sub": "dc759da2-c412-47ba-b455-982d3f437ac5",
+            "name": "Qlik Basic",
+            "preferred_username": "dc759da2-c412-47ba-b455-982d3f437ac5",
+            "oid": "dc759da2-c412-47ba-b455-982d3f437ac5",
+            "given_name": "Qlik",
+            "family_name": "Basic",
+            "roles": [
+              "read",
+              "https://role-catalog.vigoiks.no/vigo/qlik/qliksense/fk-fagopplaring",
+              "https://role-catalog.vigoiks.no/vigo/qlik/qliksense/fk-dokumentasjon",
+              "1_https://role-catalog.vigoiks.no/vigo/qlik/qliksense/fk-dokumentasjon"
+            ],
+            "email": "qlik.basic@rogaland.no",
+            "email_verified": true,
+            "tid": "1d5cd080-32ad-5f88-8321-56b85a0deecc"
+          }
+        }
+      ]
+    },
+    {
+      "issuerId": "entra-telemark-alt",
+      "tokenExpiry": 3600,
+      "requestMappings": [
+        {
+          "requestParam": "subject",
+          "match": "03e62a84-5ffd-4e09-9641-8488a52b84b6",
+          "claims": {
+            "sub": "03e62a84-5ffd-4e09-9641-8488a52b84b6",
+            "name": "Jon Basic",
+            "preferred_username": "03e62a84-5ffd-4e09-9641-8488a52b84b6",
+            "oid": "03e62a84-5ffd-4e09-9641-8488a52b84b6",
+            "given_name": "Jon",
+            "family_name": "Basic",
+            "roles": [
+              "read",
+              "write",
+              "admin"
+            ],
+            "email": "jon.basic@telemark-alt.no",
+            "email_verified": true,
+            "tid": "a47e076d-5fe0-5908-a0e6-342e73dc8764"
+          }
+        }
+      ]
+    },
+    {
+      "issuerId": "entra-telemark",
+      "tokenExpiry": 3600,
+      "requestMappings": [
+        {
+          "requestParam": "subject",
+          "match": "8123912f-9ea4-4f56-9c52-57f752332699",
+          "claims": {
+            "sub": "8123912f-9ea4-4f56-9c52-57f752332699",
+            "name": "Alice Basic",
+            "preferred_username": "8123912f-9ea4-4f56-9c52-57f752332699",
+            "oid": "8123912f-9ea4-4f56-9c52-57f752332699",
+            "given_name": "Alice",
+            "family_name": "Basic",
+            "roles": [
+              "read",
+              "write",
+              "admin"
+            ],
+            "email": "alice.basic@telemark.no",
+            "email_verified": true,
+            "tid": "12ebb90c-434d-5c81-aafe-aaf5524171d7"
+          }
+        },
+        {
+          "requestParam": "subject",
+          "match": "c463c343-76e6-4002-9b61-a47b77672021",
+          "claims": {
+            "sub": "c463c343-76e6-4002-9b61-a47b77672021",
+            "name": "Jon Basic",
+            "preferred_username": "c463c343-76e6-4002-9b61-a47b77672021",
+            "oid": "c463c343-76e6-4002-9b61-a47b77672021",
+            "given_name": "Jon",
+            "family_name": "Basic",
+            "roles": [
+              "read",
+              "write",
+              "admin"
+            ],
+            "email": "jon.basic@telemark.no",
+            "email_verified": true,
+            "tid": "12ebb90c-434d-5c81-aafe-aaf5524171d7"
+          }
+        },
+        {
+          "requestParam": "subject",
+          "match": "7bc2790b-c829-419d-903e-99c4409213dd",
+          "claims": {
+            "sub": "7bc2790b-c829-419d-903e-99c4409213dd",
+            "name": "Qlik Basic",
+            "preferred_username": "7bc2790b-c829-419d-903e-99c4409213dd",
+            "oid": "7bc2790b-c829-419d-903e-99c4409213dd",
+            "given_name": "Qlik",
+            "family_name": "Basic",
+            "roles": [
+              "read",
+              "https://role-catalog.vigoiks.no/vigo/qlik/qliksense/fk-fagopplaring",
+              "https://role-catalog.vigoiks.no/vigo/qlik/qliksense/fk-dokumentasjon",
+              "22_https://role-catalog.vigoiks.no/vigo/qlik/qliksense/fk-dokumentasjon"
+            ],
+            "email": "qlik.basic@telemark.no",
+            "email_verified": true,
+            "tid": "12ebb90c-434d-5c81-aafe-aaf5524171d7"
+          }
+        }
+      ]
+    },
+    {
+      "issuerId": "idporten",
+      "tokenExpiry": 3600,
+      "requestMappings": [
+        {
+          "requestParam": "subject",
+          "match": "12345678901",
+          "claims": {
+            "sub": "12345678901",
+            "name": "12345678901",
+            "preferred_username": "12345678901"
+          }
+        }
+      ]
+    }
+  ]
+}

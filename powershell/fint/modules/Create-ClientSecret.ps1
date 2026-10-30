@@ -9,16 +9,8 @@ param(
     [int]$ValidityDays
 )
 
-Set-StrictMode -Version Latest
-$ErrorActionPreference = "Stop"
-
-. "$PSScriptRoot/../helpers/GraphRetry.ps1"
-. "$PSScriptRoot/../helpers/RequiredScopes.ps1"
-. "$PSScriptRoot/../helpers/ConsoleHelpers.ps1"
-
 Assert-MgContextHasExactlyRequiredScopes -RequiredScopes @(
-    "Application.ReadWrite.OwnedBy",
-    "Synchronization.ReadWrite.All"
+    "Application.ReadWrite.OwnedBy"
 )
 
 if ([string]::IsNullOrWhiteSpace($DisplayName)) {

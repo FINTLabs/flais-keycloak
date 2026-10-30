@@ -1,5 +1,3 @@
-Set-StrictMode -Version Latest
-
 function Get-GraphExceptionDetails {
     param(
         [Parameter(Mandatory)]

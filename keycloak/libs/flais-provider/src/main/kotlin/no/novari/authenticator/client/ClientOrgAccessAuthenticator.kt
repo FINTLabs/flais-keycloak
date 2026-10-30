@@ -76,6 +76,14 @@ class ClientOrgAccessAuthenticator : Authenticator {
             organization.alias,
         )
 
+        val authSession = context.authenticationSession
+        val orgKey = OrganizationModel.ORGANIZATION_ATTRIBUTE
+
+        authSession.setAuthNote(orgKey, organization.id)
+        authSession.setClientNote(orgKey, organization.id)
+        authSession.setUserSessionNote(orgKey, organization.id)
+        context.session.context.organization = organization
+
         context.success()
     }
 

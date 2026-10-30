@@ -52,36 +52,7 @@ object KcHttpClient {
             .Builder()
             .followRedirects(followRedirects)
             .followSslRedirects(followSslRedirects)
-            .addInterceptor { chain ->
-                val request = chain.request()
-
-                if (request.url.encodedPath.startsWith("/api/v3/flows/executor/") &&
-                    request.method == "POST"
-                ) {
-                    val csrfCookie =
-                        cookieJar
-                            .loadForRequest(request.url)
-                            .find {
-                                it.name in
-                                    listOf(
-                                        "authentik_csrf",
-                                        "csrftoken",
-                                        "ak_csrf_token",
-                                    )
-                            }
-
-                    if (csrfCookie != null) {
-                        return@addInterceptor chain.proceed(
-                            request
-                                .newBuilder()
-                                .header("X-Authentik-Csrf", csrfCookie.value)
-                                .build(),
-                        )
-                    }
-                }
-
-                chain.proceed(request)
-            }.cookieJar(cookieJar)
+            .cookieJar(cookieJar)
             .build()
     }
 }

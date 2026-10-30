@@ -20,7 +20,6 @@ import org.junit.jupiter.api.extension.ExtendWith
 @ExtendWith(KcEnvironmentExtension::class)
 class OrgCookieAuthenticatorTest {
     private val username = Users.ALICE_TELEMARK
-    private val password = Users.PASSWORD
     private val clientId = Clients.FLAIS_KEYCLOAK_DEMO
     private val orgAlias = Orgs.TELEMARK
     private val idpAlias = Idps.ENTRA_TELEMARK
@@ -41,7 +40,7 @@ class OrgCookieAuthenticatorTest {
     fun `identity cookie with organization scope and allowed telemark org restores organization and returns code`(env: KcEnvironment) {
         val client = KcHttpClient.create(followRedirects = true)
 
-        loginWithUser(env, clientId, orgAlias, idpAlias, username, password, client, scope = Scopes.ORGANIZATION).use { resp ->
+        loginWithUser(env, clientId, orgAlias, idpAlias, username, client, scope = Scopes.ORGANIZATION).use { resp ->
             assertEquals(200, resp.code)
 
             openAuthUrl(env = env, clientId = clientId, httpClient = client, scope = Scopes.ORGANIZATION).use { resp ->
@@ -56,7 +55,7 @@ class OrgCookieAuthenticatorTest {
     fun `identity cookie with organization scope and client org access denied falls through to organization flow`(env: KcEnvironment) {
         val client = KcHttpClient.create(followRedirects = true)
 
-        loginWithUser(env, clientId, orgAlias, idpAlias, username, password, client, scope = Scopes.ORGANIZATION).use { resp ->
+        loginWithUser(env, clientId, orgAlias, idpAlias, username, client, scope = Scopes.ORGANIZATION).use { resp ->
             assertEquals(200, resp.code)
 
             openAuthUrl(

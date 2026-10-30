@@ -1,5 +1,3 @@
-Set-StrictMode -Version Latest
-
 function Show-Menu {
     Write-Host ""
     Write-Host "Menu" -ForegroundColor Cyan
