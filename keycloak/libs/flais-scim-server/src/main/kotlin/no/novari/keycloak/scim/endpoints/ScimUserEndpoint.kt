@@ -425,13 +425,17 @@ class ScimUserEndpoint(
             userName = user.username
             active = user.isEnabled
             emails =
-                mutableListOf(
-                    Email().apply {
-                        primary = true
-                        type = "work" // We only support work
-                        value = user.email
-                    },
-                )
+                user.email
+                    ?.takeIf { it.isNotBlank() }
+                    ?.let { address ->
+                        mutableListOf(
+                            Email().apply {
+                                primary = true
+                                type = "work" // We only support work
+                                value = address
+                            },
+                        )
+                    }
             roles =
                 user
                     .getAttributeStream("rawRoles")
@@ -459,7 +463,7 @@ class ScimUserEndpoint(
 
         user.setExternalId(scimUser.externalId)
 
-        scimUser.emails?.find { it.primary }?.let { email ->
+        scimUser.emails?.find { it.primary ?: false }?.let { email ->
             user.email = email.value
             user.isEmailVerified = true
         } ?: run {
