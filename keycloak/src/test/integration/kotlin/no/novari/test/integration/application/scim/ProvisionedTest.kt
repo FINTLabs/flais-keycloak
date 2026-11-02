@@ -242,7 +242,7 @@ class ProvisionedTest {
                 val user = templateUser.copy()
                 val newGivenName = "newgiven"
                 val newFamilyName = "newfamily"
-                val newEmails = listOf(ScimUser.Email("new-${user.emails.first().value}", primary = true))
+                val newEmails = listOf(ScimUser.Email("new-${user.emails?.first()?.value}", primary = true))
 
                 user.id = KcAdminClient.findUserByUsername(realmRes, user.userName)?.id
                 user.fintUserExtension?.givenName = newGivenName
@@ -263,7 +263,7 @@ class ProvisionedTest {
                 assertNotNull(kcUser)
                 assertEquals(user.fintUserExtension?.givenName, kcUser.firstName)
                 assertEquals(user.fintUserExtension?.familyName, kcUser.lastName)
-                assertEquals(user.emails.first().value, kcUser.email)
+                assertEquals(user.emails?.first()?.value, kcUser.email)
             }
         }
     }

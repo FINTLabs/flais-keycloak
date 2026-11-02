@@ -5,6 +5,7 @@ import com.unboundid.scim2.common.GenericScimResource
 import com.unboundid.scim2.common.messages.ErrorResponse
 import com.unboundid.scim2.common.messages.PatchOperation
 import com.unboundid.scim2.common.messages.PatchRequest
+import com.unboundid.scim2.common.types.Email
 import com.unboundid.scim2.common.utils.ApiConstants
 import com.unboundid.scim2.common.utils.JsonUtils
 import io.mockk.every
@@ -25,6 +26,7 @@ import no.novari.keycloak.scim.utils.ScimRoles
 import no.novari.keycloak.scim.utils.TestUriInfo
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -222,6 +224,47 @@ class ScimUserEndpointTest {
             """[{"value":"read","display":"read","type":"WindowsAzureActiveDirectoryRole","primary":false}]""",
             roleNode.toString(),
         )
+    }
+
+    @Test
+    fun `createUser treats null email primary as false and clears email`() {
+        val incomingEmail =
+            Email().apply {
+                type = "work"
+                value = "alice.unmarked@telemark.no"
+            }
+
+        assertNull(incomingEmail.primary)
+
+        val scimUser =
+            UserResource().apply {
+                userName = USERNAME
+                active = true
+                externalId = extId
+                emails = mutableListOf(incomingEmail)
+            }
+
+        templateUser(user)
+
+        every {
+            userProvider.getUserById(realm, scimUser.userName)
+        } returns null
+        every {
+            userProvider.addUser(realm, scimUser.userName)
+        } returns user
+        every { realm.getRole(ScimRoles.SCIM_MANAGED_ROLE) } returns scimRole
+        every { orgProvider.addManagedMember(scimContext.organization, user) } returns true
+        every { orgProvider.getIdentityProviders(scimContext.organization) } returns
+            emptyList<IdentityProviderModel>().stream()
+
+        val response = endpoint.createUser(usersUriInfo, scimUser)
+
+        assertEquals(Response.Status.CREATED.statusCode, response.status)
+
+        verify(exactly = 1) { user.email = null }
+        verify(exactly = 1) { user.isEmailVerified = false }
+        verify(exactly = 0) { user.email = incomingEmail.value }
+        verify(exactly = 0) { user.isEmailVerified = true }
     }
 
     @Test

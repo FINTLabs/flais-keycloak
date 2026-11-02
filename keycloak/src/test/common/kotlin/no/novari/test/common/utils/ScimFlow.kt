@@ -10,6 +10,8 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.Response
+import java.util.UUID
+import kotlin.random.Random
 
 /**
  * Utility functions to simplify SCIM flows in integration and system tests.
@@ -32,7 +34,7 @@ object ScimFlow {
         var externalId: String,
         var userName: String,
         var active: Boolean,
-        var emails: List<Email>,
+        var emails: List<Email>? = null,
         var roles: List<Role>? = null,
         @SerialName("urn:ietf:params:scim:schemas:extension:fint:2.0:User")
         var fintUserExtension: FintUserExtension? = null,
@@ -197,4 +199,46 @@ object ScimFlow {
 
         return client.newCall(request).execute()
     }
+
+    fun randomUser(
+        externalId: String = UUID.randomUUID().toString(),
+        userName: String = externalId,
+        givenName: String = listOf("Alice", "Jon", "Emma", "Lars").random(),
+        familyName: String = "Basic",
+        domain: String = listOf("rogaland.no", "telemark.no").random(),
+        email: String? =
+            "${givenName.lowercase()}.${familyName.lowercase()}.$externalId@$domain",
+        active: Boolean = true,
+        employeeId: String? = Random.nextInt(1000, 10000).toString(),
+        studentNumber: String? = employeeId,
+        userPrincipalName: String? = email,
+        roles: List<ScimUser.Role>? =
+            listOf(
+                ScimUser.Role("read", "read", "WindowsAzureActiveDirectoryRole", false),
+                ScimUser.Role("write", "write", "WindowsAzureActiveDirectoryRole", false),
+            ),
+        fintUserExtension: ScimUser.FintUserExtension? =
+            ScimUser.FintUserExtension(
+                givenName = givenName,
+                familyName = familyName,
+                employeeId = employeeId,
+                studentNumber = studentNumber,
+                userPrincipalName = userPrincipalName,
+            ),
+    ): ScimUser =
+        ScimUser(
+            schemas =
+                buildList {
+                    add("urn:ietf:params:scim:schemas:core:2.0:User")
+                    if (fintUserExtension != null) {
+                        add("urn:ietf:params:scim:schemas:extension:fint:2.0:User")
+                    }
+                },
+            externalId = externalId,
+            userName = userName,
+            active = active,
+            emails = email?.let { listOf(ScimUser.Email(it, primary = true)) },
+            roles = roles,
+            fintUserExtension = fintUserExtension,
+        )
 }

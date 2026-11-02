@@ -5,13 +5,17 @@ orchestrate multiple identity providers into a unified platform.
 It extends [Keycloak](https://www.keycloak.org/) with custom functionality,
 theming, and demo applications for testing.
 
+## 📚 Documentation
+
+See the [documentation](docs/README.md) for the full documentation.
+
 ## 📂 Project Structure
 
 ```
 flais-keycloak/
 ├── keycloak/                         # Keycloak
 │   ├── config/
-│   │   ├── authentik/                # Authentik configuration files
+│   │   ├── mock-idp/                 # Mock IDP configuration files
 │   │   ├── kc/                       # Keycloak configuration for dev/test
 │   │   ├── nginx/                    # NGINX configuration files
 │   │   └── scimverify/               # Config for scimverify (compliance tests)
@@ -28,6 +32,7 @@ flais-keycloak/
 │   └── flais-keycloak-demo/          # Public client to test Keycloak
 ├── charts/
 │   └── flais-keycloak/               # The Keycloak chart for FLAIS
+├── docs/                             # Internal and external documentation
 └── README.md                         # Project documentation
 ```
 
