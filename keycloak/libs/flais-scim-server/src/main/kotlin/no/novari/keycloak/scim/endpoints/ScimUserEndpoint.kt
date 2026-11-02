@@ -397,9 +397,11 @@ class ScimUserEndpoint(
         @PathParam("id") id: String,
     ): Response {
         val user =
-            runCatching { scimContext.orgProvider.getMemberById(scimContext.organization, id) }.getOrElse {
-                throw NotFoundException("No user found with id $id")
-            }
+            scimContext.orgProvider.getMemberById(
+                scimContext.organization,
+                id,
+            ) ?: throw NotFoundException("No user found with id $id")
+
         assertUserScimManaged(user)
 
         if (!scimContext.orgProvider.isManagedMember(scimContext.organization, user)) {
