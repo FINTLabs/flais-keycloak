@@ -9,9 +9,9 @@ import com.unboundid.scim2.common.filters.Filter
 import com.unboundid.scim2.common.messages.ListResponse
 import com.unboundid.scim2.common.messages.SortOrder
 import com.unboundid.scim2.common.utils.ApiConstants
-import com.unboundid.scim2.server.utils.ResourcePreparer
 import com.unboundid.scim2.server.utils.ResourceTypeDefinition
 import jakarta.ws.rs.core.UriInfo
+import no.novari.keycloak.scim.utils.ScimResourcePreparer
 
 class SearchHandler<T : ScimResource> {
     @NotNull
@@ -36,14 +36,14 @@ class SearchHandler<T : ScimResource> {
     val sortOrder: SortOrder
 
     @NotNull
-    val responsePreparer: ResourcePreparer<ScimResource>
+    val responsePreparer: ScimResourcePreparer<ScimResource>
 
     @Throws(BadRequestException::class)
     constructor(
         resourceType: ResourceTypeDefinition,
         uriInfo: UriInfo,
     ) {
-        responsePreparer = ResourcePreparer(resourceType, uriInfo)
+        responsePreparer = ScimResourcePreparer(resourceType, uriInfo)
 
         val qp = uriInfo.queryParameters
 

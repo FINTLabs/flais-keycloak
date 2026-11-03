@@ -1,5 +1,6 @@
 package no.novari.keycloak.scim.application.endpoints
 
+import com.unboundid.scim2.common.ScimResource
 import com.unboundid.scim2.common.exceptions.BadRequestException
 import com.unboundid.scim2.common.messages.ErrorResponse
 import com.unboundid.scim2.common.messages.ListResponse
@@ -111,6 +112,7 @@ class ScimUserEndpointSearchTest {
         val result = response.assertListResponse()
         assertEquals(57, result.totalResults)
         assertEquals(1, result.resources.size)
+        assertUserMeta(result)
     }
 
     @Test
@@ -190,6 +192,7 @@ class ScimUserEndpointSearchTest {
         assertEquals(1, page.maxResults)
         assertNull(result.startIndex)
         assertEquals(1, result.itemsPerPage)
+        assertUserMeta(result)
         assertEquals(ScimCursor(ScimCursor.queryHash(null, GROUP_ID), USER_ID).encode(), result.nextCursor)
         verify {
             logger.debugf(
@@ -348,10 +351,17 @@ class ScimUserEndpointSearchTest {
     private fun usersUriInfo(vararg params: Pair<String, String>): UriInfo {
         val query = MultivaluedHashMap<String, String>()
         params.forEach { (key, value) -> query.add(key, value) }
-        return TestUriInfo(URI("http://localhost/scim/v2/Users"), query)
+        return TestUriInfo(URI("http://localhost/realms/external/scim/v2/org-id/Users"), query)
     }
 
     private fun filter(expression: String) = ApiConstants.QUERY_PARAMETER_FILTER to expression
+
+    private fun assertUserMeta(result: ListResponse<*>) {
+        val resource = result.resources.single() as ScimResource
+        val meta = resource.asGenericScimResource().objectNode["meta"]
+        assertEquals("User", meta["resourceType"].asText())
+        assertEquals("http://localhost/realms/external/scim/v2/org-id/Users/$USER_ID", meta["location"].asText())
+    }
 
     private fun jakarta.ws.rs.core.Response.assertListResponse(): ListResponse<*> {
         assertEquals(Response.Status.OK.statusCode, status)
