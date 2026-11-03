@@ -1,6 +1,7 @@
 import React from "react";
 import { kcSanitize } from "keycloakify/lib/kcSanitize";
 import logo from "../assets/images/novari_logo.png";
+
 import type { KcContext } from "../KcContext";
 import type { I18n } from "../i18n";
 import { LoginCard } from "../components/LoginCard";
@@ -26,7 +27,7 @@ const FlaisErrorComponent = ({ kcContext, i18n }: FlaisErrorProps) => {
         <div
           id="kc-error-message"
           role="alert"
-          className="wrap-break-word rounded-lg border border-red-200 bg-pink p-4 text-sm text-accent sm:text-base"
+          className="wrap-break-word rounded-lg border border-error-surface-border bg-error-surface p-4 text-sm text-content sm:text-base"
         >
           <p
             className="[&_a]:underline [&_a]:underline-offset-2"
@@ -38,7 +39,7 @@ const FlaisErrorComponent = ({ kcContext, i18n }: FlaisErrorProps) => {
           <a
             id="backToApplication"
             href={client.baseUrl}
-            className="block w-full rounded-lg bg-primary px-4 py-3 text-center text-sm font-medium uppercase text-white hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 sm:py-3.5 sm:text-base"
+            className="block w-full rounded-lg bg-primary px-4 py-3 text-center text-sm font-medium uppercase text-on-primary hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-focus focus:ring-offset-2 focus:ring-offset-focus-offset sm:py-3.5 sm:text-base"
           >
             {i18n.msg("backToApplication")}
           </a>
