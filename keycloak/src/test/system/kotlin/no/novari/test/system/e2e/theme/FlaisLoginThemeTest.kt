@@ -1,6 +1,7 @@
 package no.novari.test.system.e2e.theme
 
 import com.microsoft.playwright.Page
+import com.microsoft.playwright.Route
 import com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat
 import no.novari.test.common.annotations.PwTest
 import no.novari.test.common.environment.kc.KcEnvironment
@@ -10,15 +11,14 @@ import no.novari.test.common.fixture.TestStrings.Idps
 import no.novari.test.common.fixture.TestStrings.Orgs
 import no.novari.test.common.fixture.TestStrings.Uris
 import no.novari.test.common.fixture.TestStrings.Users
+import no.novari.test.common.utils.KcAdminClient
 import no.novari.test.system.utils.PwAutoLogin
 import no.novari.test.system.utils.PwFlow
 import org.junit.jupiter.api.TestTemplate
-import java.util.regex.Pattern
-import com.microsoft.playwright.Route
-import no.novari.test.common.utils.KcAdminClient
 import org.keycloak.admin.client.CreatedResponseUtil
 import org.keycloak.representations.idm.ClientRepresentation
 import java.util.UUID
+import java.util.regex.Pattern
 
 @PwTest
 class FlaisLoginThemeTest {
@@ -138,26 +138,30 @@ class FlaisLoginThemeTest {
         val (admin, realm) = KcAdminClient.connect(env, "external")
 
         admin.use {
-            val client = ClientRepresentation().apply {
-                clientId = testClientId
-                protocol = "openid-connect"
-                isEnabled = true
-                isPublicClient = true
-                isStandardFlowEnabled = true
-                baseUrl = applicationUrl
-                redirectUris = listOf(
-                    Uris.redirectCallback(env.flaisKeycloakDemoUrl()),
-                )
-            }
+            val client =
+                ClientRepresentation().apply {
+                    clientId = testClientId
+                    protocol = "openid-connect"
+                    isEnabled = true
+                    isPublicClient = true
+                    isStandardFlowEnabled = true
+                    baseUrl = applicationUrl
+                    redirectUris =
+                        listOf(
+                            Uris.redirectCallback(env.flaisKeycloakDemoUrl()),
+                        )
+                }
 
-            val clientUuid = realm.clients().create(client).use { response ->
-                CreatedResponseUtil.getCreatedId(response)
-            }
+            val clientUuid =
+                realm.clients().create(client).use { response ->
+                    CreatedResponseUtil.getCreatedId(response)
+                }
 
             try {
                 page.route(applicationUrl) { route ->
                     route.fulfill(
-                        Route.FulfillOptions()
+                        Route
+                            .FulfillOptions()
                             .setStatus(200)
                             .setContentType("text/html")
                             .setBody(
