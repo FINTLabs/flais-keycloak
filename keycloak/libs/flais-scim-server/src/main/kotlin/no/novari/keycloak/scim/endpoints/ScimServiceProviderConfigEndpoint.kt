@@ -12,12 +12,12 @@ import com.unboundid.scim2.common.types.ServiceProviderConfigResource
 import com.unboundid.scim2.common.types.SortConfig
 import com.unboundid.scim2.common.utils.ApiConstants.MEDIA_TYPE_SCIM
 import com.unboundid.scim2.server.annotations.ResourceType
-import com.unboundid.scim2.server.utils.ResourcePreparer
 import jakarta.ws.rs.GET
 import jakarta.ws.rs.Produces
 import jakarta.ws.rs.core.MediaType
 import no.novari.keycloak.scim.utils.ResourcePath
 import no.novari.keycloak.scim.utils.ResourceTypeDefinitionUtil.createResourceTypeDefinition
+import no.novari.keycloak.scim.utils.ScimResourcePreparer
 import org.keycloak.models.KeycloakSession
 import java.net.URI
 
@@ -35,7 +35,7 @@ class ScimServiceProviderConfigEndpoint(
     @Produces(MEDIA_TYPE_SCIM, MediaType.APPLICATION_JSON)
     fun get(): GenericScimResource =
         serviceProviderConfig().asGenericScimResource().apply {
-            ResourcePreparer<GenericScimResource>(RESOURCE_TYPE_DEFINITION, session.context.uri)
+            ScimResourcePreparer<GenericScimResource>(RESOURCE_TYPE_DEFINITION, session.context.uri)
                 .setResourceTypeAndLocation(this)
         }
 
