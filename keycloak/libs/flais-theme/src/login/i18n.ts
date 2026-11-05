@@ -7,6 +7,7 @@ const { useI18n, ofTypeI18n } = i18nBuilder
   .withThemeName<ThemeName>()
   .withCustomTranslations({
     no: {
+      errorSubtitle: "Vi kunne ikke fullføre innloggingen din",
       chooseIdp: "Velg identitetsleverandør",
       chooseIdpSubtitle: "Velg metoden du ønsker å bruke for å logge inn",
       chooseOrg: "Velg tilhørighet",
@@ -19,6 +20,7 @@ const { useI18n, ofTypeI18n } = i18nBuilder
       chooseOrgRequired: "Velg en tilhørighet for å fortsette",
     },
     en: {
+      errorSubtitle: "We could not complete your sign-in",
       chooseIdp: "Choose identity provider",
       chooseIdpSubtitle: "Choose the method you want to use to log in",
       chooseOrg: "Choose affiliation",

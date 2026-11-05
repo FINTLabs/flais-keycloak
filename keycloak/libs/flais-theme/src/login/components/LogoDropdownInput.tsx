@@ -203,7 +203,7 @@ const LogoDropdownInputComponent = ({
       {...rest}
     >
       {hasError && (
-        <p id={errorId} className="mt-1 text-sm text-red-600">
+        <p id={errorId} className="mt-1 text-sm text-error">
           {i18n.msgStr("chooseOrgRequired")}
         </p>
       )}
@@ -218,12 +218,12 @@ const LogoDropdownInputComponent = ({
         }}
         className={`
   flex min-h-12 w-full cursor-text items-center gap-2 rounded-md border
-  bg-white px-3 py-2 text-left text-base text-gray-700 hover:bg-gray-50
+  bg-surface px-3 py-2 text-left text-base text-content-muted hover:bg-surface-hover
   focus-within:z-10 focus-within:outline-none sm:min-h-14 sm:px-4
   ${
     hasError
-      ? "border-red-500 ring-1 ring-red-500 focus-within:border-red-500 focus-within:ring-red-500"
-      : "border-gray-300 focus-within:border-primary focus-within:ring-1 focus-within:ring-primary"
+      ? "border-error-border ring-1 ring-error-border focus-within:border-error-border focus-within:ring-error-border"
+      : "border-border-input focus-within:border-focus focus-within:ring-1 focus-within:ring-focus"
   }
 `}
       >
@@ -259,7 +259,7 @@ const LogoDropdownInputComponent = ({
           onChange={handleInputChange}
           onKeyDown={handleInputKeyDown}
           className="
-            min-w-0 flex-1 bg-transparent text-gray-700 placeholder:text-gray-400
+            min-w-0 flex-1 bg-transparent text-content-muted placeholder:text-placeholder
             focus:outline-none
           "
         />
@@ -289,7 +289,7 @@ const LogoDropdownInputComponent = ({
           <Chevron
             direction={open ? "up" : "down"}
             aria-hidden="true"
-            className="h-4 w-4 text-gray-500"
+            className="h-4 w-4 text-content-subtle"
           />
         </button>
       </div>
@@ -301,12 +301,12 @@ const LogoDropdownInputComponent = ({
           role="listbox"
           aria-labelledby={controlId}
           className="
-            absolute z-10 mt-1 max-h-50 w-full overflow-auto rounded-md bg-white
-            shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:max-h-56
+            absolute z-10 mt-1 max-h-50 w-full overflow-auto rounded-md bg-surface
+            shadow-lg shadow-shadow ring-1 ring-dropdown-ring focus:outline-none sm:max-h-56
           "
         >
           {filteredOptions.length === 0 ? (
-            <li className="px-3 py-2.5 text-base text-gray-500 sm:px-4 sm:py-3">
+            <li className="px-3 py-2.5 text-base text-content-subtle sm:px-4 sm:py-3">
               {i18n.msgStr("noResult")}
             </li>
           ) : (
@@ -331,10 +331,10 @@ const LogoDropdownInputComponent = ({
                     focus:outline-none sm:px-4 sm:py-3
                     ${
                       isSelected
-                        ? "bg-gray-100 font-semibold text-gray-900"
-                        : "text-gray-700 hover:bg-gray-50"
+                        ? "bg-surface-selected font-semibold text-content-selected"
+                        : "text-content-muted hover:bg-surface-hover"
                     }
-                    ${isActive && !isSelected ? "bg-gray-50" : ""}
+                    ${isActive && !isSelected ? "bg-surface-hover" : ""}
                   `}
                 >
                   {option.logosUrl && (
