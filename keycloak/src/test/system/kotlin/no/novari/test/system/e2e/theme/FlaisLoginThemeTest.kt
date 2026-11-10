@@ -209,12 +209,86 @@ class FlaisLoginThemeTest {
         }
     }
 
+    @TestTemplate
+    fun `logout displays FlaisLogoutConfirm without return link`(
+        env: KcEnvironment,
+        session: PwEnvironment.Session,
+    ) {
+        val page = session.page
+
+        navigateToLogout(env, page)
+
+        assertThat(page.locator("#login-title"))
+            .hasText("Log out")
+
+        assertThat(page.getByText("Do you want to log out?"))
+            .isVisible()
+
+        val logoutConfirm = page.locator("#kc-logout-confirm")
+        assertThat(logoutConfirm).isVisible()
+
+        val logoutButton = logoutConfirm.locator("#kc-logout")
+        assertThat(logoutButton).isVisible()
+        assertThat(logoutButton).isEnabled()
+        assertThat(logoutButton).hasText("Log out")
+
+        assertThat(page.locator("#backToApplication")).hasCount(0)
+    }
+
+    @TestTemplate
+    fun `confirming logout displays FlaisInfo`(
+        env: KcEnvironment,
+        session: PwEnvironment.Session,
+    ) {
+        val page = session.page
+
+        PwFlow.navigateToLogin(
+            env,
+            page,
+            clientId = Clients.FLAIS_KEYCLOAK_DEMO,
+        )
+        PwFlow.continueFromOrgSelector(page, Orgs.ROGALAND_DISPLAY_NAME)
+        PwFlow.submit(page)
+        PwAutoLogin.login(page, Users.ALICE_ROGALAND)
+
+        assertCallback(env, page)
+
+        navigateToLogout(env, page)
+
+        assertThat(page.locator("#kc-logout-confirm")).isVisible()
+        page.locator("#kc-logout").click()
+
+        assertThat(page.locator("#login-title"))
+            .hasText("You are logged out")
+
+        assertThat(page.locator("#kc-info-message"))
+            .isVisible()
+
+        assertThat(page.locator("#kc-info-message > p"))
+            .hasText("You are logged out")
+
+        assertThat(page.locator("#kc-logout-confirm")).hasCount(0)
+        assertThat(page.locator("#kc-error-message")).hasCount(0)
+    }
+
     private fun assertCallback(
         env: KcEnvironment,
         page: Page,
     ) {
         assertThat(page).hasURL(
             Pattern.compile(Uris.redirectCallback(env.flaisKeycloakDemoUrl())),
+        )
+    }
+
+    private fun navigateToLogout(
+        env: KcEnvironment,
+        page: Page,
+    ) {
+        val baseUrl = env.keycloakServiceUrl().trimEnd('/')
+
+        page.navigate(
+            "$baseUrl/realms/external/protocol/openid-connect/logout" +
+                "?client_id=${Clients.FLAIS_KEYCLOAK_DEMO}",
         )
     }
 }

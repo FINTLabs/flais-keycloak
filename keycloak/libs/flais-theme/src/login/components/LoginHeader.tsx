@@ -1,8 +1,8 @@
-import React from "react";
+import React, { type ReactNode } from "react";
 
 export interface LoginHeaderProps {
-  title: string;
-  subtitle: string;
+  title: ReactNode;
+  subtitle?: string;
 }
 
 const LoginHeaderComponent = ({ title, subtitle }: LoginHeaderProps) => {
@@ -14,7 +14,9 @@ const LoginHeaderComponent = ({ title, subtitle }: LoginHeaderProps) => {
       >
         {title}
       </h1>
-      <p className="text-sm text-content-muted sm:text-base">{subtitle}</p>
+      {subtitle && (
+        <p className="text-sm text-content-muted sm:text-base">{subtitle}</p>
+      )}
     </header>
   );
 };
