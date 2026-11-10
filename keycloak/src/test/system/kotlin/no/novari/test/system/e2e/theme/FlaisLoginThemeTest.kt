@@ -19,6 +19,8 @@ import org.keycloak.admin.client.CreatedResponseUtil
 import org.keycloak.representations.idm.ClientRepresentation
 import java.util.UUID
 import java.util.regex.Pattern
+import kotlin.collections.any
+import kotlin.collections.orEmpty
 
 @PwTest
 class FlaisLoginThemeTest {
@@ -253,8 +255,15 @@ class FlaisLoginThemeTest {
     fun `confirming logout displays FlaisInfo`(
         env: KcEnvironment,
         session: PwEnvironment.Session,
+        scimUsers: List<ScimUser>,
     ) {
         val page = session.page
+        val user =
+            scimUsers.single { user ->
+                user.emails.orEmpty().any {
+                    it.value.endsWith("@${Orgs.ROGALAND}.no")
+                }
+            }
 
         PwFlow.navigateToLogin(
             env,
@@ -263,7 +272,7 @@ class FlaisLoginThemeTest {
         )
         PwFlow.continueFromOrgSelector(page, Orgs.ROGALAND_DISPLAY_NAME)
         PwFlow.submit(page)
-        PwAutoLogin.login(page, Users.ALICE_ROGALAND)
+        PwAutoLogin.login(page, user)
 
         assertCallback(env, page)
 
