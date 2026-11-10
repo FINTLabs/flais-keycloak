@@ -42,7 +42,6 @@ flowchart LR
     bruker --> tjeneste
     tjeneste <-->|OIDC| keycloak
     keycloak <-->|Innlogging| idp
-
     keycloak -.-> ar
     ar -.-> ea
     identiteter --> ea
@@ -50,9 +49,9 @@ flowchart LR
 ```
 
 > [!NOTE]
-> Innlogging og SCIM-provisjonering er uavhengige prosesser. En bruker kan derfor logge inn før den første SCIM-provisjoneringen er fullført.
+> For oppsett som bruker SCIM, må brukeren være provisjonert til Keycloak før første innlogging. Keycloak oppretter ikke nye brukerobjekter ved innlogging. Hvis brukeren ikke er provisjonert, kan innloggingen ikke fullføres.
 >
-> Hvis brukeren ikke allerede finnes, oppretter Keycloak et brukerobjekt ved innlogging. Roller overføres fra OIDC-tokenet og gjøres tilgjengelige som en del av innloggingen. SCIM kompletterer senere det samme brukerobjektet med brukerattributter, blant annet ansattnummer eller studentnummer. Denne todelingen skyldes begrensninger i Microsofts implementasjon av SCIM-basert brukerprovisjonering.
+> SCIM oppretter brukerobjektet og overfører nødvendige brukerattributter, blant annet ansattnummer eller studentnummer. Ved innlogging overføres roller fra OIDC-tokenet til det eksisterende brukerobjektet. Kontroller at den første provisjoneringen er fullført før brukeren forsøker å logge inn.
 
 ## Brukerattributter
 
@@ -70,10 +69,10 @@ Applikasjonsrollene defineres i App Registration. Tilgang tildeles ved å koble 
 
 Applikasjonsrollene opprettes som en del av det tekniske førstegangsoppsettet og skal følge [rollekatalogen](https://role-catalog.vigoiks.no/).
 
->[!IMPORTANT]
+> [!IMPORTANT]
 > Roller og rolleverdier skal ikke opprettes, endres eller slettes manuelt i Microsoft Entra ID. Slike endringer skal utføres ved hjelp av verktøyet fra Novari. Se [`dokumentasjon`](https://github.com/FINTLabs/flais-keycloak/blob/main/powershell/fint/README.md) for mer informasjon.
 
-Applikasjonsrollene overføres til Keycloak gjennom SCIM, men overføres også ved innlogging. Dette gjør at en endret rolletildeling kan tre i kraft ved brukerens neste innlogging uten å måtte vente på neste SCIM-syklus.
+Applikasjonsrollene overføres til Keycloak gjennom SCIM, men overføres også ved innlogging. Dette gjør at en endret rolletildeling kan tre i kraft ved brukerens neste innlogging uten å måtte vente på neste SCIM-syklus. Dette forutsetter at brukeren allerede er provisjonert til Keycloak.
 
 Denne mekanismen er viktig ved fjerning av tilganger, siden SCIM-provisjonering kan ta opptil 40 minutter. Endringen påvirker ikke nødvendigvis en allerede aktiv sesjon eller et token som allerede er utstedt.
 
@@ -95,7 +94,7 @@ flowchart LR
 ```
 
 > [!NOTE]
-> Gruppene brukes til å styre hvilke brukere og roller som skal provisjoneres. Selve gruppeobjektene opprettes ikke i Keycloak.
+> Gruppene brukes til å styre hvilke brukere og roller som skal provisjoneres. Selve gruppeobjektene opprettes ikke i Keycloak. Microsoft Entra ID støtter kun provisjonering av brukere som er direkte medlemmer av den tildelte gruppen. Brukere som er medlemmer via en undergruppe (grupper i grupper), blir ikke provisjonert gjennom denne tildelingen.
 
 ## Ansvarsdeling
 
@@ -128,11 +127,11 @@ Tilgang tildeles ved å koble en Entra ID-gruppe (eller bruker direkte) til en a
 7. Søk etter og velg gruppen som skal få tilgang.
 8. Klikk **Select**.
 
-    ![Valg av gruppe.](./images/image5.png)
+   ![Valg av gruppe.](./images/image5.png)
 
 9. Klikk **None selected** under **Select a role**.
 
-    ![Bekreftelse av valgt gruppe og rolle før tildeling.](./images/image6.png)
+   ![Bekreftelse av valgt gruppe og rolle før tildeling.](./images/image6.png)
 
 10. Velg rollen gruppen skal ha.
 11. Klikk **Select**.
@@ -144,21 +143,19 @@ Tilgang tildeles ved å koble en Entra ID-gruppe (eller bruker direkte) til en a
 
     ![Bekreftelse av valgt gruppe og rolle før tildeling.](./images/image8.png)
 
-
 Gruppen vises nå i oversikten **Users and groups** med den tilknyttede rollen.
 
 ![Oversikt over tildelte grupper og roller.](./images/image9.png)
 
 En gruppe kan tildeles flere applikasjonsroller ved å opprette én tildeling per rolle. En bruker som er medlem av flere tildelte grupper, kan derfor motta flere roller.
 
-Medlemmene av gruppen får den valgte rollen overført til Keycloak. Rollen overførest ved innlogging og i tillegg gjennom SCIM-provisjoneringen.
+Medlemmene av gruppen får den valgte rollen overført til Keycloak. Rollen overføres ved innlogging og i tillegg gjennom SCIM-provisjoneringen. For oppsett som bruker SCIM, må nye brukere først provisjoneres til Keycloak før de kan logge inn.
 
 ```mermaid
 sequenceDiagram
     actor Administrator
     participant Entra as Entra ID
     participant Keycloak
-
     Administrator->>Entra: Tildeler gruppe og rolle
     Entra->>Keycloak: Provisjonerer brukere
     Keycloak-->>Entra: Returnerer resultat
@@ -196,6 +193,7 @@ Bruk **Provisioning logs** for å kontrollere at brukere, attributter og roller 
 
 Hvis brukeren ikke får logget inn:
 
+- For oppsett som bruker SCIM: Kontroller at brukeren er provisjonert til Keycloak. Brukeren opprettes ikke ved innlogging. Se **Provisioning logs** og avsnittet om provisjoneringskontroll.
 - Bekreft at brukeren er tildelt federeringsapplikasjonen, enten direkte eller gjennom en gruppe.
 - Gruppen eller brukeren må være koblet til en applikasjonsrolle.
 - Se etter feil i innloggingsloggen i Entra ID.
@@ -215,6 +213,6 @@ Hvis brukeren ikke blir provisjonert:
 Hvis brukeren mangler en rolle:
 
 - Verifiser at riktig rolle er tildelt brukeren eller brukerens gruppe.
-- Ved gruppetildeling må brukeren være medlem av den aktuelle gruppen.
+- Ved gruppetildeling må brukeren være direkte medlem av den aktuelle gruppen. Medlemskap via en undergruppe støttes ikke ved provisjonering.
 - Gruppen må være tildelt federeringsapplikasjonen.
 - Logg ut og inn igjen, slik at brukeren får et nytt OIDC-token med oppdaterte rolletildelinger.
