@@ -45,14 +45,50 @@ We add this because the [UPN isn't included in the ID token by default](https://
 
 ## API Permissions
 
-Add the following Microsoft Graph delegated permissions.
+Add the following permissions under **Microsoft Graph**.
 
-| Permission  | Type      | Admin consent |
-| ----------- | --------- | ------------- |
-| `User.Read` | Delegated | yes           |
-| `profile`   | Delegated | yes           |
+| Permission                      | Type        | Purpose                                                                                                                                                                                                                                           |
+| ------------------------------- | ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `User.Read`                     | Delegated   | Allows reading the signed-in user's profile through Microsoft Graph. Not required by the current login flow, but retained to support a potential alternative for retrieving user attributes if Microsoft's SCIM provisioning becomes unavailable. |
+| `profile`                       | Delegated   | Allows Keycloak to receive standard profile claims, including given name, surname, preferred username, and object ID.                                                                                                                             |
+| `Application.ReadWrite.OwnedBy` | Application | Allows our maintenance service to manage applications and service principals it owns without a signed-in user, so we can maintain the application configuration and credentials from our  side.                                                   |
 
-After adding the permissions, grant admin consent for the tenant.
+After adding the permissions, grant admin consent for the tenant. We grant
+consent centrally for the delegated permissions as well, so users do not need
+to consent individually.
+
+### Application.ReadWrite.OwnedBy
+
+Novari is responsible for operating and maintaining the integration with
+the county municipality's Microsoft Entra ID tenant. This setup allows us
+to perform routine maintenance and resolve configuration issues without
+involving the county municipality in every change.
+
+We use the same App Registration for user login and application maintenance.
+The application is granted `Application.ReadWrite.OwnedBy`, and its service
+principal is explicitly configured as an owner of its App Registration.
+
+This enables us to:
+
+- Update application configuration
+- Automate client secret rotation
+- Maintain and troubleshoot the integration
+
+The permission does not grant general tenant administrator privileges.
+Write access to existing applications and service principals is restricted
+to those the application owns. However, it does permit creating applications
+and listing applications and service principals throughout the tenant.
+
+This approach follows the principle of least privilege by using
+ownership-scoped access instead of tenant-wide write permissions.
+
+Microsoft documents `Application.ReadWrite.OwnedBy` as the least-privileged
+application permission for
+[adding client secrets](https://learn.microsoft.com/en-us/graph/api/application-addpassword?view=graph-rest-1.0)
+and
+[removing client secrets](https://learn.microsoft.com/en-us/graph/api/application-removepassword?view=graph-rest-1.0).
+Ownership requirements for provisioning operations are described in
+[Manage object connections](https://learn.microsoft.com/en-us/entra/identity/app-provisioning/manage-object-connections).
 
 ## App Roles
 

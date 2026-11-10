@@ -118,3 +118,5 @@ This assignment controls:
 - When a user is deleted from the source system, the delete request is sent after 30 days unless manually hard-deleted.
     - The deletion process in Microsoft Entra ID is considered a soft delete, where the user is disabled or marked as deleted in Entra ID first. Users are hard-deleted 30 days after they're soft-deleted.
     - Source: https://learn.microsoft.com/en-us/answers/questions/2157177/azure-scim-deleted-user-from-microsoft-entra-id-do
+- Nested groups are not supported. Only immediate members of an explicitly assigned group are provisioned.
+  - Source: https://learn.microsoft.com/en-us/entra/identity/app-provisioning/how-provisioning-works

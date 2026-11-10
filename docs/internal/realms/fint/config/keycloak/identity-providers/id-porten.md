@@ -64,20 +64,20 @@ This configuration is based on an OpenID Connect v1.0 for ID-Porten and serves a
 
 ### Advanced settings
 
-| Setting                   | Value                       |
-| ------------------------- | --------------------------- |
-| Store tokens              | Off                         |
-| Stored tokens readable    | Off                         |
-| Access Token is JWT       | Off                         |
-| Trust Email               | On                          |
-| Account linking only      | Off                         |
-| Hide on login page        | On                          |
-| Show in account console   | Always                      |
-| Verify essential claim    | Off                         |
-| First login flow override | Not confirmed in these docs |
-| Post login flow           | `flais-post-login-flow`     |
-| Sync mode                 | Force                       |
-| Case-sensitive username   | Off                         |
+| Setting                   | Value                      |
+| ------------------------- | -------------------------- |
+| Store tokens              | Off                        |
+| Stored tokens readable    | Off                        |
+| Access Token is JWT       | Off                        |
+| Trust Email               | On                         |
+| Account linking only      | Off                        |
+| Hide on login page        | On                         |
+| Show in account console   | Always                     |
+| Verify essential claim    | Off                        |
+| First login flow override | `flais-first-broker-login` |
+| Post login flow           | `flais-post-login-flow`    |
+| Sync mode                 | Force                      |
+| Case-sensitive username   | Off                        |
 
 > [!NOTE]
 > Set **Post login flow** to `flais-post-login-flow` for every IDP.
@@ -92,7 +92,7 @@ This configuration is based on an OpenID Connect v1.0 for ID-Porten and serves a
 | Name                         | Mapper type                | Template       | Target            | Sync mode |
 | ---------------------------- | -------------------------- | -------------- | ----------------- | --------- |
 | `map_pid_as_username`        | Username Template Importer | `${CLAIM.pid}` | `LOCAL`           | Inherit   |
-| `map_pid_as_brokerid`        | Username Template Importer | `${CLAIM.pid}` | `BROKER_ID`       | Inherit   |
+| `map_pid_as_broker_id`       | Username Template Importer | `${CLAIM.pid}` | `BROKER_ID`       | Inherit   |
 | `map_pid_as_broker_username` | Username Template Importer | `${CLAIM.pid}` | `BROKER_USERNAME` | Inherit   |
 
 ## Attribute mapping
