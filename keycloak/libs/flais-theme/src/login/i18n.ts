@@ -20,7 +20,8 @@ const { useI18n, ofTypeI18n } = i18nBuilder
       successLogout: "Du er logget ut",
       otherSignInOptions: "Andre påloggingsalternativer",
       noResult: "Ingen treff",
-      userNotProvisioned: "Din konto har ikke blitt provisionert enda. Vennligst kontakt din administrator.",
+      userNotProvisioned:
+        "Din konto har ikke blitt provisionert enda. Det kan ta opp til 1 time før kontoen blir tilgjengelig etter at du har blitt lagt til. Vennligst kontakt din administrator.",
       closeList: "Lukk liste",
       openList: "Åpne liste",
       chooseOrgRequired: "Velg en tilhørighet for å fortsette",
@@ -39,7 +40,8 @@ const { useI18n, ofTypeI18n } = i18nBuilder
       successLogout: "You are logged out",
       otherSignInOptions: "Other sign-in options",
       noResult: "No result",
-      userNotProvisioned: "Your account has not yet been provisioned. Please contact your administrator.",
+      userNotProvisioned:
+        "Your account has not yet been provisioned. It may take up to 1 hour for your account to become available after you have been added. Please contact your administrator.",
       closeList: "Close list",
       openList: "Open list",
       chooseOrgRequired: "Please select an affiliation to continue",
