@@ -91,7 +91,7 @@ const FlaisOrgSelectorComponent = ({
 
         {otherSignInOptions.length > 0 && (
           <section
-            className="space-y-3 border-t border-border pt-6"
+            className="space-y-3 border-t border-border pt-6 mt-8"
             aria-labelledby="other-sign-in-options"
           >
             <h2

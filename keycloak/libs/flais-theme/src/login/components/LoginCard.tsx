@@ -15,7 +15,7 @@ const LoginCardComponent = ({ children }: LoginCardProps) => {
       <div className="relative rounded-lg border border-border-subtle bg-surface shadow-sm shadow-shadow">
         <div className="px-6 py-8 sm:px-10 sm:py-10">
           <img src={logo} alt="Novari IKS" className="mb-6 h-auto w-25 " />
-          <div className="space-y-8">{children}</div>
+          <div className="space-y-4">{children}</div>
         </div>
       </div>
     </section>
