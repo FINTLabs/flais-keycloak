@@ -32,7 +32,7 @@ const FlaisOrgIdpSelectorComponent = ({
           method="POST"
           action={url.registrationAction}
         >
-          <div className="divide-y divide-gray-200 border-y border-gray-200 bg-white shadow-sm">
+          <div className="divide-y divide-border border-y border-border bg-surface shadow-sm shadow-shadow">
             {providers.map((provider) => (
               <IdpButton
                 key={`${provider.name}-${provider.alias}`}

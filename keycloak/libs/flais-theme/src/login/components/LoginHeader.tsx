@@ -1,8 +1,8 @@
-import React from "react";
+import React, { type ReactNode } from "react";
 
 export interface LoginHeaderProps {
-  title: string;
-  subtitle: string;
+  title: ReactNode;
+  subtitle?: string;
 }
 
 const LoginHeaderComponent = ({ title, subtitle }: LoginHeaderProps) => {
@@ -10,11 +10,13 @@ const LoginHeaderComponent = ({ title, subtitle }: LoginHeaderProps) => {
     <header className="space-y-2 text-center">
       <h1
         id="login-title"
-        className="text-2xl font-semibold text-accent sm:text-3xl lg:text-4xl"
+        className="text-2xl font-semibold text-content sm:text-3xl lg:text-4xl"
       >
         {title}
       </h1>
-      <p className="text-sm text-gray-700 sm:text-base">{subtitle}</p>
+      {subtitle && (
+        <p className="text-sm text-content-muted sm:text-base">{subtitle}</p>
+      )}
     </header>
   );
 };

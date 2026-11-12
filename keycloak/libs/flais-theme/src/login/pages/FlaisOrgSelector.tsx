@@ -105,7 +105,7 @@ const FlaisOrgSelectorComponent = ({
                   type="submit"
                   name="selected_org"
                   value={org.alias}
-                  className="flex w-full items-center gap-4 p-2 hover:cursor-pointer hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+                  className="flex w-full items-center gap-4 p-2 hover:cursor-pointer hover:bg-surface-selected focus:outline-none focus:ring-2 focus:ring-focus focus:ring-offset-2 focus:ring-offset-focus-offset"
                 >
                   {org.logo && (
                     <img

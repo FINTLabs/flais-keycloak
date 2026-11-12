@@ -214,4 +214,23 @@ class ProvisionTest {
                 }
         }
     }
+
+    @ParameterizedTest(name = "delete user with invalid id in org ({0}) returns not found")
+    @ValueSource(strings = [Orgs.TELEMARK, Orgs.ROGALAND])
+    fun `delete user with invalid id returns not found`(
+        orgAlias: String,
+        env: KcEnvironment,
+        kcConfig: KcConfig,
+    ) {
+        ScimFlow
+            .deleteUser(
+                baseUrl =
+                    "${env.keycloakServiceUrl()}/realms/external/scim/v2/${kcConfig.requireOrg(orgAlias).id}",
+                tokenUrl = "${env.flaisScimAuthUrl()}/token",
+                id = ScimFlow.randomUser().externalId,
+            ).use { response ->
+                val body = response.body.string()
+                assertEquals(404, response.code, body)
+            }
+    }
 }

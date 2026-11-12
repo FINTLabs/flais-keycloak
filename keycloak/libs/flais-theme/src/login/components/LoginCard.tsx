@@ -21,7 +21,7 @@ const LoginCardComponent = ({ logo, children }: LoginCardProps) => {
         />
       </div>
 
-      <div className="relative border border-gray-100 bg-white shadow-lg">
+      <div className="relative border border-border-subtle bg-surface shadow-lg shadow-shadow">
         <div className="space-y-5 px-5 py-6 sm:space-y-6 sm:px-8 sm:py-8 lg:px-10 lg:py-10">
           {children}
         </div>
