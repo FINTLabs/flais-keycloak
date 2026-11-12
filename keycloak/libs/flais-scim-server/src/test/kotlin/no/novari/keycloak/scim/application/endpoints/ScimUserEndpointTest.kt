@@ -305,6 +305,8 @@ class ScimUserEndpointTest {
 
         assertEquals(Response.Status.CREATED.statusCode, response.status)
         assertUserMeta(response)
+        assertEquals(URI("$usersUrl/$userId"), response.location)
+        assertEquals((response.entity as GenericScimResource).meta.location, response.location)
 
         verify(exactly = 1) { user.grantRole(scimRole) }
         verify { orgProvider.addManagedMember(scimContext.organization, user) }

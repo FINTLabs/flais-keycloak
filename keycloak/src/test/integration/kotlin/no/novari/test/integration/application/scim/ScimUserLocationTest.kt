@@ -23,6 +23,37 @@ import org.junit.jupiter.params.provider.ValueSource
 
 @ExtendWith(KcEnvironmentExtension::class)
 class ScimUserLocationTest {
+    @ParameterizedTest(name = "POST user Location header resolves to the created user in {0}")
+    @ValueSource(strings = [Orgs.TELEMARK, Orgs.ROGALAND])
+    fun `post returns a canonical Location header that retrieves the created user`(
+        orgAlias: String,
+        env: KcEnvironment,
+        kcConfig: KcConfig,
+    ) {
+        withUser(orgAlias, env, kcConfig) {
+            assertEquals(expectedLocation, location)
+            assertEquals(
+                created
+                    .getValue("meta")
+                    .jsonObject
+                    .getValue("location")
+                    .jsonPrimitive.content,
+                location,
+            )
+
+            val request =
+                Request
+                    .Builder()
+                    .url(requireNotNull(location))
+                    .get()
+                    .build()
+            val retrieved = client.newCall(request).execute().readResource(200)
+
+            assertMeta(retrieved, id, expectedLocation)
+            assertEquals(user.userName, retrieved.getValue("userName").jsonPrimitive.content)
+        }
+    }
+
     @ParameterizedTest(name = "POST user JSON metadata remains canonical in {0}")
     @ValueSource(strings = [Orgs.TELEMARK, Orgs.ROGALAND])
     fun `post returns canonical resource type and location`(
@@ -175,8 +206,10 @@ class ScimUserLocationTest {
                         else -> error("Unsupported organization: $orgAlias")
                     },
             )
-        val created = ScimFlow.createUser(baseUrl, tokenUrl, user, client).readResource(201)
-        val fixture = UserFixture(baseUrl, tokenUrl, client, user, created)
+        val response = ScimFlow.createUser(baseUrl, tokenUrl, user, client)
+        val location = response.header("Location")
+        val created = response.readResource(201)
+        val fixture = UserFixture(baseUrl, tokenUrl, client, user, created, location)
 
         try {
             fixture.test()
@@ -193,6 +226,7 @@ class ScimUserLocationTest {
         val client: OkHttpClient,
         val user: ScimFlow.ScimUser,
         val created: JsonObject,
+        val location: String?,
     ) {
         val id = created.getValue("id").jsonPrimitive.content
         val expectedLocation = "$baseUrl/Users/$id"
