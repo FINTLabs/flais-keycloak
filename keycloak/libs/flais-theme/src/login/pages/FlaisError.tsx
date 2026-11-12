@@ -49,7 +49,7 @@ const FlaisErrorComponent = ({ kcContext, i18n }: FlaisErrorProps) => {
           <a
             id="backToApplication"
             href={client.baseUrl}
-            className="login-action"
+            className="inline-block text-sm text-accent underline underline-offset-4 focus:outline-none focus:ring-2 focus:ring-focus focus:ring-offset-2 focus:ring-offset-focus-offset"
           >
             {i18n.msg("backToApplication")}
           </a>
