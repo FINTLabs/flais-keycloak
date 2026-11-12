@@ -1,0 +1,47 @@
+@theme static {
+  /* Brand palette. */
+  --color-cream: #fef8f2;
+  --color-primary: #7f78e8;
+  --color-accent: #000000;
+  --color-yellow: #fef0d8;
+  --color-pink: #ffe8e8;
+
+  /* Page, cards, and selectable items. */
+  --color-page: var(--color-cream);
+  --color-surface: #ffffff;
+  --color-surface-hover: oklch(98.5% 0.002 247.839);
+  --color-surface-selected: oklch(96.7% 0.003 264.542);
+
+  /* Text, placeholders, and icons. */
+  --color-content: var(--color-accent);
+  --color-content-muted: oklch(37.3% 0.034 259.733);
+  --color-content-subtle: oklch(55.1% 0.027 264.364);
+  --color-content-selected: oklch(21% 0.034 264.665);
+  --color-placeholder: oklch(70.7% 0.022 261.325);
+  --color-icon: var(--color-placeholder);
+  --color-on-primary: #ffffff;
+
+  /* Borders and keyboard focus. */
+  --color-border: oklch(92.8% 0.006 264.531);
+  --color-border-subtle: var(--color-surface-selected);
+  --color-border-input: oklch(87.2% 0.01 258.338);
+  --color-focus: var(--color-primary);
+  --color-focus-offset: var(--color-surface);
+  --color-dropdown-ring: var(--color-accent);
+
+  /* Actions and validation. */
+  --color-primary-hover: color-mix(
+    in oklab,
+    var(--color-primary) 90%,
+    transparent
+  );
+  --color-error: oklch(57.7% 0.245 27.325);
+  --color-error-border: oklch(63.7% 0.237 25.331);
+  --color-error-surface: var(--color-pink);
+  --color-error-surface-border: oklch(88.5% 0.062 18.334);
+  --color-warning-surface: var(--color-yellow);
+
+  /* Elevation and Storybook's loading transition. */
+  --color-shadow: rgb(0 0 0 / 0.1);
+  --color-preview-background: #393939;
+}
