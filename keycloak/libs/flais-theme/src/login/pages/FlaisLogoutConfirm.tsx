@@ -46,7 +46,7 @@ const FlaisLogoutConfirmComponent = ({
             <a
               id="backToApplication"
               href={client.baseUrl}
-              className="block text-center text-sm text-content-muted underline underline-offset-2 focus:outline-none focus:ring-2 focus:ring-focus focus:ring-offset-2 focus:ring-offset-focus-offset sm:text-base"
+              className="inline-block text-sm text-accent underline underline-offset-4 focus:outline-none focus:ring-2 focus:ring-focus focus:ring-offset-2 focus:ring-offset-focus-offset"
             >
               {i18n.msg("backToApplication")}
             </a>

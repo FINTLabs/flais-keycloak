@@ -141,7 +141,15 @@ export const { getKcContextMock } = createGetKcContextMock({
   kcContextExtension,
   kcContextExtensionPerPage,
   overrides: {},
-  overridesPerPage: {},
+  overridesPerPage: {
+    "info.ftl": {
+      messageHeader: "Request completed",
+      message: {
+        summary:
+          "Your request has been completed. You can return to the application.",
+      },
+    },
+  },
 });
 
 export function createKcPageStory<PageId extends KcContext["pageId"]>(params: {

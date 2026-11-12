@@ -62,11 +62,7 @@ const FlaisInfoComponent = ({ kcContext, i18n }: FlaisInfoProps) => {
           />
 
           {!skipLink && href && (
-            <a
-              id="backToApplication"
-              href={href}
-              className="block w-full rounded-lg bg-primary px-4 py-3 text-center text-sm font-medium uppercase text-on-primary hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-focus focus:ring-offset-2 focus:ring-offset-focus-offset sm:py-3.5 sm:text-base"
-            >
+            <a id="backToApplication" href={href} className="login-action">
               {msg(linkLabel)}
             </a>
           )}

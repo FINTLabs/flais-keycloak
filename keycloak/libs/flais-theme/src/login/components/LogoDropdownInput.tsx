@@ -203,7 +203,12 @@ const LogoDropdownInputComponent = ({
       {...rest}
     >
       {hasError && (
-        <p id={errorId} className="mt-1 text-sm text-error">
+        <p
+          id={errorId}
+          role="alert"
+          className="mb-3 flex items-start gap-2 text-sm font-medium leading-relaxed text-error"
+        >
+          <span aria-hidden="true">!</span>
           {i18n.msgStr("chooseOrgRequired")}
         </p>
       )}
@@ -212,12 +217,15 @@ const LogoDropdownInputComponent = ({
 
       <div
         onPointerDown={(event: PointerEvent<HTMLDivElement>) => {
-          event.preventDefault();
+          // Let the input handle native focus, caret placement, and selection.
+          if (event.target !== inputRef.current) {
+            event.preventDefault();
+            inputRef.current?.focus();
+          }
           openList();
-          inputRef.current?.focus();
         }}
         className={`
-  flex min-h-12 w-full cursor-text items-center gap-2 rounded-md border
+  flex min-h-14 w-full cursor-text items-center gap-3 rounded-md border
   bg-surface px-3 py-2 text-left text-base text-content-muted hover:bg-surface-hover
   focus-within:z-10 focus-within:outline-none sm:min-h-14 sm:px-4
   ${
@@ -228,7 +236,7 @@ const LogoDropdownInputComponent = ({
 `}
       >
         {selected?.logosUrl && !isFiltering && (
-          <span className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full">
+          <span className="organization-logo">
             <img
               src={selected.logosUrl}
               alt=""
@@ -238,12 +246,26 @@ const LogoDropdownInputComponent = ({
           </span>
         )}
 
+        {(!selected?.logosUrl || isFiltering) && (
+          <svg
+            aria-hidden="true"
+            className="h-5 w-5 shrink-0 text-content-subtle"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth={1.5}
+          >
+            <circle cx="10.5" cy="10.5" r="6.5" />
+            <path d="m16 16 4.5 4.5" strokeLinecap="round" />
+          </svg>
+        )}
+
         <input
           ref={inputRef}
           id={controlId}
           type="text"
           role="combobox"
-          aria-describedby={errorId}
+          aria-describedby={hasError ? errorId : undefined}
           aria-invalid={hasError}
           aria-controls={listboxId}
           aria-expanded={open}
@@ -338,7 +360,7 @@ const LogoDropdownInputComponent = ({
                   `}
                 >
                   {option.logosUrl && (
-                    <span className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full">
+                    <span className="organization-logo">
                       <img
                         src={option.logosUrl}
                         alt=""
@@ -348,7 +370,7 @@ const LogoDropdownInputComponent = ({
                     </span>
                   )}
 
-                  <span className="ml-2 min-w-0 flex-1 truncate">
+                  <span className="ml-3 min-w-0 flex-1 wrap-break-word">
                     {option.label}
                   </span>
                 </li>

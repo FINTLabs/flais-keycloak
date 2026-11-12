@@ -27,10 +27,21 @@ const FlaisErrorComponent = ({ kcContext, i18n }: FlaisErrorProps) => {
         <div
           id="kc-error-message"
           role="alert"
-          className="wrap-break-word rounded-lg border border-error-surface-border bg-error-surface p-4 text-sm text-content sm:text-base"
+          className="flex items-start gap-3 wrap-break-word rounded-md border border-error-surface-border border-l-4 border-l-error bg-error-surface p-5 text-base leading-relaxed text-content sm:p-6"
         >
+          <svg
+            aria-hidden="true"
+            className="mt-0.5 h-5 w-5 shrink-0 text-error"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth={1.75}
+          >
+            <circle cx="12" cy="12" r="9" />
+            <path d="M12 7v6m0 3v1" strokeLinecap="round" />
+          </svg>
           <p
-            className="[&_a]:underline [&_a]:underline-offset-2"
+            className="min-w-0 [&_a]:underline [&_a]:underline-offset-2"
             dangerouslySetInnerHTML={{ __html: kcSanitize(message.summary) }}
           />
         </div>
@@ -39,7 +50,7 @@ const FlaisErrorComponent = ({ kcContext, i18n }: FlaisErrorProps) => {
           <a
             id="backToApplication"
             href={client.baseUrl}
-            className="block w-full rounded-lg bg-primary px-4 py-3 text-center text-sm font-medium uppercase text-on-primary hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-focus focus:ring-offset-2 focus:ring-offset-focus-offset sm:py-3.5 sm:text-base"
+            className="login-action"
           >
             {i18n.msg("backToApplication")}
           </a>

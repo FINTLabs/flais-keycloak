@@ -11,7 +11,10 @@ const { useI18n, ofTypeI18n } = i18nBuilder
       chooseIdp: "Velg identitetsleverandør",
       chooseIdpSubtitle: "Velg metoden du ønsker å bruke for å logge inn",
       chooseOrg: "Velg tilhørighet",
-      chooseOrgSubtitle: "Velg hvilken organisasjon du ønsker å logge inn hos",
+      chooseOrgSubtitle:
+        "Søk etter eller velg organisasjonen du tilhører for å logge inn.",
+      searchOrgPlaceholder: "Søk, f.eks. Telemark",
+      signInWithOrg: "Logg inn",
       continue: "Fortsett",
       logoutConfirmTitle: "Logg ut",
       logoutConfirmHeader: "Vil du logge ut?",
@@ -29,7 +32,10 @@ const { useI18n, ofTypeI18n } = i18nBuilder
       chooseIdp: "Choose identity provider",
       chooseIdpSubtitle: "Choose the method you want to use to log in",
       chooseOrg: "Choose affiliation",
-      chooseOrgSubtitle: "Choose the organization you want to log in with",
+      chooseOrgSubtitle:
+        "Search for your organization or choose it from the list to sign in.",
+      searchOrgPlaceholder: "Search, e.g. Telemark",
+      signInWithOrg: "Sign in",
       continue: "Continue",
       logoutConfirmTitle: "Log out",
       logoutConfirmHeader: "Do you want to log out?",

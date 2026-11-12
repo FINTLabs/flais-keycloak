@@ -8,23 +8,16 @@ export interface LoginCardProps {
 const LoginCardComponent = ({ logo, children }: LoginCardProps) => {
   return (
     <section
-      className="w-full max-w-lg lg:max-w-xl"
+      className="w-full max-w-xl"
       role="region"
       aria-labelledby="login-title"
     >
-      <div className="mb-3 flex justify-center sm:mb-4">
-        <img
-          src={logo}
-          alt=""
-          className="h-20 w-auto sm:h-24 lg:h-28"
-          aria-hidden="true"
-        />
+      <div className="mb-5 px-6 sm:px-10">
+        <img src={logo} alt="Novari IKS" className="-ml-8 h-auto w-52" />
       </div>
 
-      <div className="relative border border-border-subtle bg-surface shadow-lg shadow-shadow">
-        <div className="space-y-5 px-5 py-6 sm:space-y-6 sm:px-8 sm:py-8 lg:px-10 lg:py-10">
-          {children}
-        </div>
+      <div className="relative rounded-lg border border-border-subtle bg-surface shadow-sm shadow-shadow">
+        <div className="space-y-8 px-6 py-8 sm:px-10 sm:py-10">{children}</div>
       </div>
     </section>
   );
