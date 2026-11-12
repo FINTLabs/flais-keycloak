@@ -2,7 +2,6 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { PageWrapper } from "./PageWrapper";
 import { LoginCard } from "./LoginCard";
 import { LoginHeader } from "./LoginHeader";
-import logo from "../assets/images/novari_logo.png";
 import "../main.css";
 
 const meta = {
@@ -11,7 +10,7 @@ const meta = {
   parameters: { layout: "fullscreen" },
   args: {
     children: (
-      <LoginCard logo={logo}>
+      <LoginCard>
         <LoginHeader
           title="A consistent starting position"
           subtitle="The layout uses the same card width and top spacing across all authentication screens."
@@ -26,7 +25,7 @@ export const Default: Story = {};
 export const TallContent: Story = {
   args: {
     children: (
-      <LoginCard logo={logo}>
+      <LoginCard>
         <LoginHeader title="Content can grow" />
         {Array.from({ length: 8 }, (_, index) => (
           <p key={index} className="leading-relaxed text-content-muted">

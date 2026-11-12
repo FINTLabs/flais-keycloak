@@ -3,7 +3,6 @@ import { LoginCard } from "./LoginCard";
 import { LoginHeader } from "./LoginHeader";
 import { PageWrapper } from "./PageWrapper";
 import { SubmitButton } from "./SubmitButton";
-import logo from "../assets/images/novari_logo.png";
 import "../main.css";
 
 const meta = {
@@ -18,7 +17,6 @@ const meta = {
     ),
   ],
   args: {
-    logo,
     children: (
       <>
         <LoginHeader

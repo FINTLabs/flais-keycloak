@@ -1,5 +1,4 @@
 import React, { useMemo, useState } from "react";
-import logo from "../assets/images/novari_logo.png";
 
 import { I18n } from "../i18n.ts";
 import { KcContext } from "../KcContext.ts";
@@ -61,7 +60,7 @@ const FlaisOrgSelectorComponent = ({
 
   return (
     <PageWrapper>
-      <LoginCard logo={logo}>
+      <LoginCard>
         <LoginHeader
           title={i18n.msgStr("chooseOrg")}
           subtitle={i18n.msgStr("chooseOrgSubtitle")}

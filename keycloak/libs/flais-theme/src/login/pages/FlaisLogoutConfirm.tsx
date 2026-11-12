@@ -1,5 +1,4 @@
 import React from "react";
-import logo from "../assets/images/novari_logo.png";
 
 import type { KcContext } from "../KcContext";
 import type { I18n } from "../i18n";
@@ -21,7 +20,7 @@ const FlaisLogoutConfirmComponent = ({
 
   return (
     <PageWrapper>
-      <LoginCard logo={logo}>
+      <LoginCard>
         <LoginHeader
           title={i18n.msgStr("logoutConfirmTitle")}
           subtitle={i18n.msgStr("logoutConfirmHeader")}

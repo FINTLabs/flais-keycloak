@@ -1,6 +1,5 @@
 import React from "react";
 import { kcSanitize } from "keycloakify/lib/kcSanitize";
-import logo from "../assets/images/novari_logo.png";
 
 import type { KcContext } from "../KcContext";
 import type { I18n } from "../i18n";
@@ -40,7 +39,7 @@ const FlaisInfoComponent = ({ kcContext, i18n }: FlaisInfoProps) => {
 
   return (
     <PageWrapper>
-      <LoginCard logo={logo}>
+      <LoginCard>
         <LoginHeader
           title={
             <span

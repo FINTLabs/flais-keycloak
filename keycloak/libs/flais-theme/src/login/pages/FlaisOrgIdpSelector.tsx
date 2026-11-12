@@ -1,5 +1,4 @@
 import React from "react";
-import logo from "../assets/images/novari_logo.png";
 
 import { KcContext } from "../KcContext.ts";
 import { I18n } from "../i18n.ts";
@@ -21,7 +20,7 @@ const FlaisOrgIdpSelectorComponent = ({
 
   return (
     <PageWrapper>
-      <LoginCard logo={logo}>
+      <LoginCard>
         <LoginHeader
           title={i18n.msgStr("chooseIdp")}
           subtitle={i18n.msgStr("chooseIdpSubtitle")}

@@ -1,6 +1,5 @@
 import React from "react";
 import { kcSanitize } from "keycloakify/lib/kcSanitize";
-import logo from "../assets/images/novari_logo.png";
 
 import type { KcContext } from "../KcContext";
 import type { I18n } from "../i18n";
@@ -18,7 +17,7 @@ const FlaisErrorComponent = ({ kcContext, i18n }: FlaisErrorProps) => {
 
   return (
     <PageWrapper>
-      <LoginCard logo={logo}>
+      <LoginCard>
         <LoginHeader
           title={i18n.msgStr("errorTitle")}
           subtitle={i18n.msgStr("errorSubtitle")}
