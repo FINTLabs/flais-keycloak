@@ -8,7 +8,7 @@ export interface LoginCardProps {
 const LoginCardComponent = ({ children }: LoginCardProps) => {
   return (
     <section
-      className="w-full max-w-xl"
+      className="w-full max-w-md"
       role="region"
       aria-labelledby="login-title"
     >

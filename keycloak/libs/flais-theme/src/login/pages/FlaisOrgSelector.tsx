@@ -85,6 +85,7 @@ const FlaisOrgSelectorComponent = ({
           <SubmitButton
             text={i18n.msgStr("signInWithOrg")}
             data-testid="continue-with-selected-org"
+            className="w-full"
           />
         </form>
 
