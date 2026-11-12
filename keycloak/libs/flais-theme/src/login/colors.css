@@ -14,7 +14,6 @@
   --color-surface: #ffffff;
   --color-surface-hover: color-mix(in srgb, var(--color-cream) 45%, white);
   --color-surface-selected: color-mix(in srgb, var(--color-purple) 14%, white);
-  --color-logo-backing: var(--color-burgundy);
 
   /* Text, placeholders, and icons. */
   --color-content: #333333;

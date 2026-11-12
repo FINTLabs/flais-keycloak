@@ -22,8 +22,7 @@
     @apply inline-flex min-h-11 cursor-pointer items-center justify-center rounded-md bg-primary px-5 py-2.5 text-sm font-semibold text-on-primary transition-colors hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2 focus-visible:ring-offset-focus-offset disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-primary;
   }
 
-  /* The dark tile also keeps white heraldry visible without recoloring it. */
   .organization-logo {
-    @apply flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-logo-backing p-1.5;
+    @apply flex h-10 w-10 shrink-0 items-center justify-center rounded-md p-1.5;
   }
 }
