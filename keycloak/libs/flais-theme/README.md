@@ -51,3 +51,13 @@ does not execute or verify a story's interaction tests.
   reconnect the AI client.
 - Verify the connection by listing component documentation and confirming that
   the returned stories belong to the active worktree.
+
+### Color schemes
+
+The login theme follows the device’s light or dark color preference. Semantic
+colors are defined in `src/login/colors.css`, using the profile palette and tints
+from Novari Designmanual v1.0 (2024), pages 24–26. The dark scheme uses supporting charcoal
+surfaces and soft white text, with coral actions and blue-purple focus accents. To force a scheme, set
+`data-theme="light"` or `data-theme="dark"` on the document’s `<html>` element.
+In Storybook, System is the default. Use the theme toolbar to manually choose
+Light or Dark, or switch back to System to follow the device preference.
