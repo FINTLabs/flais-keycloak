@@ -1,47 +1,79 @@
 @theme static {
-  /* Brand palette. */
-  --color-cream: #fef8f2;
-  --color-primary: #7f78e8;
-  --color-accent: #000000;
+  /* Novari Designmanual v1.0 (2024), pages 24–26. */
+  --color-cream: #f8ecdc;
+  --color-coral: #f76650;
+  --color-burgundy: #6b133d;
+  --color-purple: #7f78e8;
+  /* Supporting neutrals for dark UI surfaces. */
+  --color-charcoal: #1b1b1f;
+  --color-charcoal-raised: #252529;
+  --color-primary: light-dark(var(--color-burgundy), var(--color-coral));
+  --color-accent: light-dark(var(--color-burgundy), #f4f2ef);
   --color-yellow: #fef0d8;
   --color-pink: #ffe8e8;
 
   /* Page, cards, and selectable items. */
-  --color-page: var(--color-cream);
-  --color-surface: #ffffff;
-  --color-surface-hover: oklch(98.5% 0.002 247.839);
-  --color-surface-selected: oklch(96.7% 0.003 264.542);
+  --color-page: light-dark(var(--color-cream), var(--color-charcoal));
+  --color-surface: light-dark(#ffffff, var(--color-charcoal-raised));
+  --color-surface-hover: light-dark(
+    color-mix(in srgb, var(--color-cream) 45%, white),
+    color-mix(in srgb, var(--color-charcoal-raised) 94%, white)
+  );
+  --color-surface-selected: light-dark(
+    color-mix(in srgb, var(--color-purple) 14%, white),
+    color-mix(in srgb, var(--color-charcoal-raised) 80%, var(--color-purple))
+  );
 
   /* Text, placeholders, and icons. */
-  --color-content: var(--color-accent);
-  --color-content-muted: oklch(37.3% 0.034 259.733);
-  --color-content-subtle: oklch(55.1% 0.027 264.364);
-  --color-content-selected: oklch(21% 0.034 264.665);
-  --color-placeholder: oklch(70.7% 0.022 261.325);
+  --color-content: light-dark(#333333, #f4f2ef);
+  --color-content-muted: light-dark(#595052, #c7c3c9);
+  --color-content-subtle: light-dark(#716568, #aaa5af);
+  --color-content-selected: light-dark(
+    var(--color-burgundy),
+    var(--color-cream)
+  );
+  --color-placeholder: var(--color-content-subtle);
   --color-icon: var(--color-placeholder);
-  --color-on-primary: #ffffff;
+  --color-on-primary: light-dark(#ffffff, var(--color-charcoal));
 
   /* Borders and keyboard focus. */
-  --color-border: oklch(92.8% 0.006 264.531);
-  --color-border-subtle: var(--color-surface-selected);
-  --color-border-input: oklch(87.2% 0.01 258.338);
-  --color-focus: var(--color-primary);
+  --color-border: light-dark(#ded2cf, #49464f);
+  --color-border-subtle: light-dark(
+    color-mix(in srgb, var(--color-burgundy) 10%, white),
+    #3b393f
+  );
+  --color-border-input: light-dark(#99868e, #827c88);
+  --color-focus: light-dark(
+    #5a51e1,
+    color-mix(in srgb, var(--color-purple) 60%, white)
+  );
   --color-focus-offset: var(--color-surface);
-  --color-dropdown-ring: var(--color-accent);
+  --color-dropdown-ring: var(--color-border);
 
   /* Actions and validation. */
-  --color-primary-hover: color-mix(
-    in oklab,
-    var(--color-primary) 90%,
-    transparent
+  --color-primary-hover: light-dark(
+    #570f31,
+    color-mix(in srgb, var(--color-coral) 80%, white)
   );
-  --color-error: oklch(57.7% 0.245 27.325);
-  --color-error-border: oklch(63.7% 0.237 25.331);
-  --color-error-surface: var(--color-pink);
-  --color-error-surface-border: oklch(88.5% 0.062 18.334);
-  --color-warning-surface: var(--color-yellow);
+  --color-error: light-dark(
+    #a61d08,
+    color-mix(in srgb, var(--color-coral) 60%, white)
+  );
+  --color-error-border: var(--color-error);
+  --color-error-surface: light-dark(
+    color-mix(in srgb, var(--color-coral) 10%, white),
+    color-mix(in srgb, var(--color-charcoal-raised) 92%, var(--color-coral))
+  );
+  --color-error-surface-border: light-dark(
+    color-mix(in srgb, var(--color-coral) 40%, white),
+    color-mix(in srgb, var(--color-charcoal-raised) 65%, var(--color-coral))
+  );
+  --color-warning-surface: light-dark(
+    var(--color-yellow),
+    var(--color-charcoal)
+  );
 
   /* Elevation and Storybook's loading transition. */
-  --color-shadow: rgb(0 0 0 / 0.1);
-  --color-preview-background: #393939;
+  --color-shadow: light-dark(rgb(107 19 61 / 0.06), rgb(0 0 0 / 0.25));
+  --color-preview-background: light-dark(#393939, var(--color-charcoal));
 }

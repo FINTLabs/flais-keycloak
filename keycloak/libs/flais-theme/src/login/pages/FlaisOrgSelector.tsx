@@ -1,5 +1,4 @@
 import React, { useMemo, useState } from "react";
-import logo from "../assets/images/novari_logo.png";
 
 import { I18n } from "../i18n.ts";
 import { KcContext } from "../KcContext.ts";
@@ -61,14 +60,14 @@ const FlaisOrgSelectorComponent = ({
 
   return (
     <PageWrapper>
-      <LoginCard logo={logo}>
+      <LoginCard>
         <LoginHeader
           title={i18n.msgStr("chooseOrg")}
           subtitle={i18n.msgStr("chooseOrgSubtitle")}
         />
 
         <form
-          className="space-y-5"
+          className="space-y-6"
           method="POST"
           action={url.registrationAction}
           onSubmit={handleSubmit}
@@ -84,14 +83,21 @@ const FlaisOrgSelectorComponent = ({
           />
 
           <SubmitButton
-            text={i18n.msgStr("continue")}
+            text={i18n.msgStr("signInWithOrg")}
             data-testid="continue-with-selected-org"
+            className="w-full"
           />
         </form>
 
         {otherSignInOptions.length > 0 && (
-          <section className="mt-2" aria-labelledby="other-sign-in-options">
-            <h2 id="other-sign-in-options" className="mb-3 text-lg font-bold">
+          <section
+            className="space-y-3 border-t border-border pt-6 mt-8"
+            aria-labelledby="other-sign-in-options"
+          >
+            <h2
+              id="other-sign-in-options"
+              className="text-sm font-medium text-content-muted"
+            >
               {i18n.msgStr("otherSignInOptions")}
             </h2>
 
@@ -105,18 +111,23 @@ const FlaisOrgSelectorComponent = ({
                   type="submit"
                   name="selected_org"
                   value={org.alias}
-                  className="flex w-full items-center gap-4 p-2 hover:cursor-pointer hover:bg-surface-selected focus:outline-none focus:ring-2 focus:ring-focus focus:ring-offset-2 focus:ring-offset-focus-offset"
+                  className="flex min-h-14 w-full cursor-pointer items-center gap-3 rounded-md border border-border-input bg-surface px-4 py-3 text-left transition-colors hover:border-primary hover:bg-surface-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2 focus-visible:ring-offset-focus-offset"
                 >
                   {org.logo && (
                     <img
                       src={getLogoUrl(org.logo)}
                       alt=""
                       aria-hidden="true"
-                      className="h-10 w-10"
+                      className="h-7 w-7 shrink-0 object-contain"
                     />
                   )}
 
-                  <span className="text-lg">{org.name}</span>
+                  <span className="min-w-0 flex-1 text-sm font-semibold text-accent">
+                    {org.name}
+                  </span>
+                  <span aria-hidden="true" className="text-xl text-accent">
+                    →
+                  </span>
                 </button>
               </form>
             ))}

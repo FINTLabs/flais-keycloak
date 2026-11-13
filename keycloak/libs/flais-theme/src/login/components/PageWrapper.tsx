@@ -6,7 +6,7 @@ export interface PageWrapperProps {
 
 const PageWrapperComponent = ({ children }: PageWrapperProps) => {
   return (
-    <main className="flex min-h-dvh items-center justify-center bg-page px-4 py-6 sm:px-6 lg:px-8">
+    <main className="login-page flex min-h-svh items-start justify-center bg-page px-4 pb-6 sm:px-6 lg:px-8">
       {children}
     </main>
   );

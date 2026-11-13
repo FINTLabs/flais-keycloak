@@ -8,13 +8,38 @@
 }
 
 @layer base {
+  :root {
+    color-scheme: light dark;
+    scrollbar-gutter: stable;
+  }
+
+  :root[data-theme="light"] {
+    color-scheme: light;
+  }
+
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+  }
+
   html,
   body {
     background-color: var(--color-page);
     color: var(--color-content);
+    font-family: var(--font-display);
+  }
+}
 
-    @media (prefers-color-scheme: light) {
-      color-scheme: light;
-    }
+@layer components {
+  .login-page {
+    /* Keep the top steady across pages while the card fits its content. */
+    padding-top: clamp(1.5rem, 30svh, 20rem);
+  }
+
+  .login-action {
+    @apply inline-flex min-h-11 cursor-pointer items-center justify-center rounded-md bg-primary px-5 py-2.5 text-sm font-semibold text-on-primary transition-colors hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2 focus-visible:ring-offset-focus-offset disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-primary;
+  }
+
+  .organization-logo {
+    @apply flex h-10 w-10 shrink-0 items-center justify-center rounded-md p-1.5;
   }
 }

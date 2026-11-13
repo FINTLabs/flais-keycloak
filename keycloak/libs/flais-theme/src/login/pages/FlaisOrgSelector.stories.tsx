@@ -1,4 +1,5 @@
-import type { Meta, StoryObj } from "@storybook/react";
+import type { Meta, StoryObj } from "@storybook/react-vite";
+import { expect, fireEvent, userEvent, waitFor } from "storybook/test";
 import { createKcPageStory, mockOrganizations } from "../KcPageStory";
 
 const { KcPageStory } = createKcPageStory({ pageId: "flais-org-selector.ftl" });
@@ -14,6 +15,35 @@ type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {
   render: () => <KcPageStory />,
+};
+
+export const SearchAndKeyboardSelection: Story = {
+  render: () => <KcPageStory />,
+  play: async ({ canvas }) => {
+    const search = await canvas.findByRole("combobox");
+    await userEvent.click(search);
+    fireEvent.change(search, { target: { value: "Telemark" } });
+    await waitFor(() => expect(canvas.getAllByRole("option")).toHaveLength(1));
+    await userEvent.keyboard("{ArrowDown}{Enter}");
+    await expect(search).toHaveValue("Telemark");
+    await expect(search).toHaveAttribute("aria-expanded", "false");
+  },
+};
+
+export const RequiredAffiliation: Story = {
+  render: () => <KcPageStory />,
+  play: async ({ canvas }) => {
+    const search = await canvas.findByRole("combobox");
+    await userEvent.click(canvas.getByTestId("continue-with-selected-org"));
+    await expect(canvas.getByRole("alert")).toBeVisible();
+    await expect(search).toHaveAttribute("aria-invalid", "true");
+    await expect(search).toHaveFocus();
+    fireEvent.change(search, { target: { value: "Telemark" } });
+    await waitFor(() => expect(canvas.getAllByRole("option")).toHaveLength(1));
+    await userEvent.keyboard("{ArrowDown}{Enter}");
+    await expect(search).toHaveAttribute("aria-invalid", "false");
+    await expect(canvas.queryByRole("alert")).not.toBeInTheDocument();
+  },
 };
 
 export const SingleOrganization: Story = {

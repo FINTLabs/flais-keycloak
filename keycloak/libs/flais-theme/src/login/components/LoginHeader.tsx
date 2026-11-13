@@ -7,15 +7,17 @@ export interface LoginHeaderProps {
 
 const LoginHeaderComponent = ({ title, subtitle }: LoginHeaderProps) => {
   return (
-    <header className="space-y-2 text-center">
+    <header className="space-y-3 text-left">
       <h1
         id="login-title"
-        className="text-2xl font-semibold text-content sm:text-3xl lg:text-4xl"
+        className="text-2xl font-semibold leading-tight text-accent sm:text-3xl"
       >
         {title}
       </h1>
       {subtitle && (
-        <p className="text-sm text-content-muted sm:text-base">{subtitle}</p>
+        <p className="text-base leading-relaxed text-content-muted">
+          {subtitle}
+        </p>
       )}
     </header>
   );

@@ -1,29 +1,21 @@
 import React, { type ReactNode } from "react";
+import logo from "../assets/images/Novari_Logo_RGB.png";
 
 export interface LoginCardProps {
-  logo: string;
   children: ReactNode;
 }
 
-const LoginCardComponent = ({ logo, children }: LoginCardProps) => {
+const LoginCardComponent = ({ children }: LoginCardProps) => {
   return (
     <section
-      className="w-full max-w-lg lg:max-w-xl"
+      className="w-full max-w-md"
       role="region"
       aria-labelledby="login-title"
     >
-      <div className="mb-3 flex justify-center sm:mb-4">
-        <img
-          src={logo}
-          alt=""
-          className="h-20 w-auto sm:h-24 lg:h-28"
-          aria-hidden="true"
-        />
-      </div>
-
-      <div className="relative border border-border-subtle bg-surface shadow-lg shadow-shadow">
-        <div className="space-y-5 px-5 py-6 sm:space-y-6 sm:px-8 sm:py-8 lg:px-10 lg:py-10">
-          {children}
+      <div className="relative rounded-lg border border-border-subtle bg-surface shadow-sm shadow-shadow">
+        <div className="px-6 py-8 sm:px-10 sm:py-10">
+          <img src={logo} alt="Novari IKS" className="mb-6 h-auto w-20" />
+          <div className="space-y-4">{children}</div>
         </div>
       </div>
     </section>
