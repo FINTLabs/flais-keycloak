@@ -24,11 +24,11 @@ class DetectExistingUserAuthenticator : IdpDetectExistingBrokerUserAuthenticator
         val errorMessageKey =
             context.authenticatorConfig
                 ?.config
-                ?.get("errorMessageKey")
+                ?.get(DetectExistingUserAuthenticatorConfig.ERROR_MESSAGE_KEY)
                 ?.trim()
                 ?.takeIf { it.isNotEmpty() }
                 ?: throw AuthenticationFlowException(
-                    "FLAIS Detect Existing User requires errorMessageKey to be configured.",
+                    DetectExistingUserAuthenticatorConfig.MISSING_ERROR_MESSAGE_KEY_MESSAGE,
                     AuthenticationFlowError.INTERNAL_ERROR,
                 )
 

@@ -37,14 +37,13 @@ class DetectExistingUserAuthenticatorFactory : AuthenticatorFactory {
     override fun getConfigProperties(): MutableList<ProviderConfigProperty> =
         mutableListOf(
             ProviderConfigProperty().apply {
-                name = "errorMessageKey"
+                name = DetectExistingUserAuthenticatorConfig.ERROR_MESSAGE_KEY
                 label = "Error message key"
                 type = ProviderConfigProperty.STRING_TYPE
-                helpText =
-                    "Translation key displayed when no existing account matches."
-                defaultValue = "accessDeniedMessage"
+                helpText = "Translation key displayed when no existing account matches."
+                defaultValue = DetectExistingUserAuthenticatorConfig.DEFAULT_ERROR_MESSAGE_KEY
                 isRequired = true
-            },
+            }
         )
 
     override fun init(config: Config.Scope) {
