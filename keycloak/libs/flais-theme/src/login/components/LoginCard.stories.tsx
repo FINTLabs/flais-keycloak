@@ -37,7 +37,7 @@ export const LongContent: Story = {
       <>
         <LoginHeader
           title="Choose how to sign in to your organization"
-          subtitle="The shared card keeps the same horizontal alignment and spacing when content wraps onto several lines."
+          subtitle="The shared card keeps its top position while its height follows the content. Longer pages grow downward."
         />
         <p className="leading-relaxed text-content-muted">
           Your organization manages access to its services. Choose your

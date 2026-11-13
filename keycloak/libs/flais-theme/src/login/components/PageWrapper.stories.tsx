@@ -12,8 +12,8 @@ const meta = {
     children: (
       <LoginCard>
         <LoginHeader
-          title="A consistent starting position"
-          subtitle="The layout uses the same card width and top spacing across all authentication screens."
+          title="A steady starting position"
+          subtitle="The card stays horizontally centered with a consistent top position across pages, while its height follows the content."
         />
       </LoginCard>
     ),
