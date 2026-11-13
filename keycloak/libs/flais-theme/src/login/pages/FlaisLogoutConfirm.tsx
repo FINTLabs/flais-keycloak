@@ -3,6 +3,7 @@ import React from "react";
 import type { KcContext } from "../KcContext";
 import type { I18n } from "../i18n";
 import { LoginCard } from "../components/LoginCard";
+import { LoginHeader } from "../components/LoginHeader";
 import { PageWrapper } from "../components/PageWrapper";
 
 export interface FlaisLogoutConfirmProps {
@@ -19,17 +20,10 @@ const FlaisLogoutConfirmComponent = ({
   return (
     <PageWrapper>
       <LoginCard>
-        <header className="space-y-6 text-left">
-          <h1
-            id="login-title"
-            className="text-2xl font-semibold leading-tight text-accent sm:text-3xl"
-          >
-            {i18n.msgStr("logoutConfirmTitle")}
-          </h1>
-          <p className="text-base leading-relaxed text-content-muted">
-            {i18n.msgStr("logoutConfirmHeader")}
-          </p>
-        </header>
+        <LoginHeader
+          title={i18n.msgStr("logoutConfirmTitle")}
+          subtitle={i18n.msgStr("logoutConfirmHeader")}
+        />
 
         <div id="kc-logout-confirm" className="space-y-5">
           <form action={url.logoutConfirmAction} method="POST">
