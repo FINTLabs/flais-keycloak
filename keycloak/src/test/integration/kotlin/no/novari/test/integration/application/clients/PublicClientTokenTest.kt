@@ -8,30 +8,40 @@ import no.novari.test.common.fixture.TestStrings.Orgs
 import no.novari.test.common.fixture.TestStrings.Realms
 import no.novari.test.common.fixture.TestStrings.Scopes
 import no.novari.test.common.fixture.TestStrings.Uris
-import no.novari.test.common.fixture.TestStrings.Users
 import no.novari.test.common.utils.KcUrl
-import no.novari.test.integration.utils.KcFlow.loginWithUser
+import no.novari.test.common.utils.ScimFlow.ScimUser
+import no.novari.test.integration.utils.KcFlow.loginWithMicrosoftScimUser
 import no.novari.test.integration.utils.KcHttpClient
 import no.novari.test.integration.utils.KcToken.exchangeCodeForAccessToken
 import no.novari.test.integration.utils.KcToken.validateToken
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
-import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertNotNull
 import org.junit.jupiter.api.extension.ExtendWith
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.ValueSource
 
 @ExtendWith(KcEnvironmentExtension::class)
 class PublicClientTokenTest {
-    @Test
-    fun `code flow returns valid access token`(env: KcEnvironment) {
+    @ParameterizedTest(name = "code flow returns valid access token for org ({0})")
+    @ValueSource(strings = [Orgs.TELEMARK, Orgs.ROGALAND])
+    fun `code flow returns valid access token`(
+        orgAlias: String,
+        env: KcEnvironment,
+        scimUsers: List<ScimUser>,
+    ) {
         val client = KcHttpClient.create(followRedirects = true)
         val realm = Realms.EXTERNAL
         val clientId = Clients.FLAIS_KEYCLOAK_DEMO
         val redirectUri = Uris.redirectCallback(env.flaisKeycloakDemoUrl())
         val scope = Scopes.PROFILE_EMAIL
-        val orgAlias = Orgs.TELEMARK
-        val idpAlias = Idps.ENTRA_TELEMARK
-        val username = Users.ALICE_TELEMARK
+        val idpAlias =
+            when (orgAlias) {
+                Orgs.TELEMARK -> Idps.ENTRA_TELEMARK
+                Orgs.ROGALAND -> Idps.ENTRA_ROGALAND
+                else -> error("Unsupported organization: $orgAlias")
+            }
+
         val (authUrl, codeVerifier) =
             KcUrl.authUrl(
                 env = env,
@@ -41,14 +51,22 @@ class PublicClientTokenTest {
             )
         requireNotNull(codeVerifier)
 
-        loginWithUser(
+        val user =
+            scimUsers.single { user ->
+                user.emails.orEmpty().any {
+                    it.value.endsWith("@$orgAlias.no")
+                }
+            }
+
+        loginWithMicrosoftScimUser(
             env,
             clientId,
             orgAlias,
             idpAlias,
-            username,
-            client,
-            authUrl,
+            user,
+            httpClient = client,
+            httpUrl = authUrl,
+            hasIdpSelector = orgAlias == Orgs.TELEMARK,
         ).use { resp ->
             assertEquals(200, resp.code)
 
@@ -67,10 +85,10 @@ class PublicClientTokenTest {
                 )
             assertNotNull(accessToken)
 
-            validateToken(env, realm, accessToken, client).use { resp ->
-                assertEquals(200, resp.code)
+            validateToken(env, realm, accessToken, client).use { validationResponse ->
+                assertEquals(200, validationResponse.code)
 
-                val body = resp.body.string()
+                val body = validationResponse.body.string()
                 assertTrue(body.contains("\"sub\""))
             }
         }

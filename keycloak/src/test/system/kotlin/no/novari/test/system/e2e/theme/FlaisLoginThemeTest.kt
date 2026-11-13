@@ -10,8 +10,8 @@ import no.novari.test.common.fixture.TestStrings.Clients
 import no.novari.test.common.fixture.TestStrings.Idps
 import no.novari.test.common.fixture.TestStrings.Orgs
 import no.novari.test.common.fixture.TestStrings.Uris
-import no.novari.test.common.fixture.TestStrings.Users
 import no.novari.test.common.utils.KcAdminClient
+import no.novari.test.common.utils.ScimFlow.ScimUser
 import no.novari.test.system.utils.PwAutoLogin
 import no.novari.test.system.utils.PwFlow
 import org.junit.jupiter.api.TestTemplate
@@ -19,6 +19,8 @@ import org.keycloak.admin.client.CreatedResponseUtil
 import org.keycloak.representations.idm.ClientRepresentation
 import java.util.UUID
 import java.util.regex.Pattern
+import kotlin.collections.any
+import kotlin.collections.orEmpty
 
 @PwTest
 class FlaisLoginThemeTest {
@@ -26,14 +28,21 @@ class FlaisLoginThemeTest {
     fun `login works with org selector`(
         env: KcEnvironment,
         session: PwEnvironment.Session,
+        scimUsers: List<ScimUser>,
     ) {
         val page = session.page
+        val user =
+            scimUsers.single { user ->
+                user.emails.orEmpty().any {
+                    it.value.endsWith("@${Orgs.ROGALAND}.no")
+                }
+            }
 
         PwFlow.navigateToLogin(env, page, clientId = Clients.FLAIS_KEYCLOAK_DEMO)
         PwFlow.continueFromOrgSelector(page, Orgs.ROGALAND_DISPLAY_NAME)
         PwFlow.submit(page)
 
-        PwAutoLogin.login(page, Users.ALICE_ROGALAND)
+        PwAutoLogin.login(page, user)
 
         assertCallback(env, page)
     }
@@ -42,15 +51,22 @@ class FlaisLoginThemeTest {
     fun `login works with idp selector`(
         env: KcEnvironment,
         session: PwEnvironment.Session,
+        scimUsers: List<ScimUser>,
     ) {
         val page = session.page
+        val user =
+            scimUsers.single { user ->
+                user.emails.orEmpty().any {
+                    it.value.endsWith("@${Orgs.TELEMARK}.no")
+                }
+            }
 
         PwFlow.navigateToLogin(env, page, clientId = Clients.FLAIS_KEYCLOAK_DEMO)
         PwFlow.continueFromOrgSelector(page, Orgs.TELEMARK_DISPLAY_NAME)
         PwFlow.submit(page)
 
         PwFlow.continueFromIdpSelector(page, Idps.ENTRA_TELEMARK)
-        PwAutoLogin.login(page, Users.ALICE_TELEMARK)
+        PwAutoLogin.login(page, user)
 
         assertCallback(env, page)
     }
@@ -239,8 +255,15 @@ class FlaisLoginThemeTest {
     fun `confirming logout displays FlaisInfo`(
         env: KcEnvironment,
         session: PwEnvironment.Session,
+        scimUsers: List<ScimUser>,
     ) {
         val page = session.page
+        val user =
+            scimUsers.single { user ->
+                user.emails.orEmpty().any {
+                    it.value.endsWith("@${Orgs.ROGALAND}.no")
+                }
+            }
 
         PwFlow.navigateToLogin(
             env,
@@ -249,7 +272,7 @@ class FlaisLoginThemeTest {
         )
         PwFlow.continueFromOrgSelector(page, Orgs.ROGALAND_DISPLAY_NAME)
         PwFlow.submit(page)
-        PwAutoLogin.login(page, Users.ALICE_ROGALAND)
+        PwAutoLogin.login(page, user)
 
         assertCallback(env, page)
 

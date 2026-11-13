@@ -4,3 +4,4 @@ no.novari.authenticator.org.OrgIdpSelectionUiAuthenticatorFactory
 no.novari.authenticator.org.OrgSessionCommitAuthenticatorFactory
 no.novari.authenticator.org.OrgCookieAuthenticatorFactory
 no.novari.authenticator.client.ClientOrgAccessAuthenticatorFactory
+no.novari.authenticator.broker.DetectExistingUserAuthenticatorFactory

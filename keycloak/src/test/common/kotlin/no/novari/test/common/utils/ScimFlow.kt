@@ -5,6 +5,12 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
+import no.novari.test.common.config.KcConfig
+import no.novari.test.common.environment.kc.KcEnvironment
+import no.novari.test.common.fixture.TestStrings.Orgs
+import no.novari.test.common.fixture.TestStrings.Realms
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -201,11 +207,17 @@ object ScimFlow {
     }
 
     fun randomUser(
+        orgAlias: String,
         externalId: String = UUID.randomUUID().toString(),
         userName: String = externalId,
         givenName: String = listOf("Alice", "Jon", "Emma", "Lars").random(),
         familyName: String = "Basic",
-        domain: String = listOf("rogaland.no", "telemark.no").random(),
+        domain: String =
+            when (orgAlias) {
+                Orgs.TELEMARK -> "telemark.no"
+                Orgs.ROGALAND -> "rogaland.no"
+                else -> error("Unsupported organization: $orgAlias")
+            },
         email: String? =
             "${givenName.lowercase()}.${familyName.lowercase()}.$externalId@$domain",
         active: Boolean = true,
@@ -213,10 +225,15 @@ object ScimFlow {
         studentNumber: String? = employeeId,
         userPrincipalName: String? = email,
         roles: List<ScimUser.Role>? =
-            listOf(
-                ScimUser.Role("read", "read", "WindowsAzureActiveDirectoryRole", false),
-                ScimUser.Role("write", "write", "WindowsAzureActiveDirectoryRole", false),
-            ),
+            List(Random.nextInt(1, 4)) {
+                val role = "role-${UUID.randomUUID()}"
+                ScimUser.Role(
+                    value = role,
+                    display = role,
+                    type = "WindowsAzureActiveDirectoryRole",
+                    primary = false,
+                )
+            },
         fintUserExtension: ScimUser.FintUserExtension? =
             ScimUser.FintUserExtension(
                 givenName = givenName,
@@ -241,4 +258,36 @@ object ScimFlow {
             roles = roles,
             fintUserExtension = fintUserExtension,
         )
+
+    fun provision(
+        env: KcEnvironment,
+        kcConfig: KcConfig,
+        orgAlias: String,
+        users: List<ScimUser>,
+    ): List<ScimUser> {
+        val baseUrl =
+            "${env.keycloakServiceUrl()}/realms/${Realms.EXTERNAL}/scim/v2/${kcConfig.requireOrg(orgAlias).id}"
+        val tokenUrl = "${env.flaisScimAuthUrl()}/token"
+        val client = resolveClient(null, tokenUrl)
+
+        users.forEach { user ->
+            createUser(baseUrl, tokenUrl, user, client).use { response ->
+                val body = requireNotNull(response.body).string()
+
+                check(response.code == 201) {
+                    "Failed to provision ${user.userName} in $orgAlias: " +
+                        "${response.code}: $body"
+                }
+
+                user.id =
+                    Json
+                        .parseToJsonElement(body)
+                        .jsonObject
+                        .getValue("id")
+                        .jsonPrimitive.content
+            }
+        }
+
+        return users
+    }
 }

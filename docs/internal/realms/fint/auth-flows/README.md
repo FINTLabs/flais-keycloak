@@ -15,6 +15,10 @@ configured under **Authentication → Flows** in the Keycloak Admin UI.
     - First-login flow for external identity providers
     - Handles user creation, linking, and organization onboarding
 
+- [flais-first-broker-login-scim](flais-first-broker-login-scim.md)
+    - First-login flow requiring an existing user account provisioned through SCIM
+    - Links the external identity to the existing account and rejects login if no matching user exists
+
 - [flais-post-login-flow](flais-post-login-flow.md)
     - Post-broker-login flow that runs after every external IDP authentication
     - Enforces that the IDP used belongs to an organization allowed for the client

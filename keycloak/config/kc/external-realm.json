@@ -6,7 +6,7 @@
   "duplicateEmailsAllowed": true,
   "organizationsEnabled": true,
   "browserFlow": "flais-browser",
-  "firstBrokerLoginFlow": "flais-first-broker-login",
+  "firstBrokerLoginFlow": "flais-first-broker-login-scim",
   "loginTheme": "flais-theme",
   "roles": {
     "realm": [
@@ -29,7 +29,7 @@
         "subComponents": {},
         "config": {
           "kc.user.profile.config": [
-            "{\"attributes\":[{\"name\":\"username\",\"displayName\":\"${username}\",\"validations\":{\"length\":{\"min\":3,\"max\":255},\"username-prohibited-characters\":{},\"up-username-not-idn-homograph\":{}},\"annotations\":{},\"permissions\":{\"view\":[\"admin\"],\"edit\":[\"admin\"]},\"multivalued\":false},{\"name\":\"email\",\"displayName\":\"${email}\",\"validations\":{\"email\":{},\"length\":{\"max\":255}},\"annotations\":{},\"permissions\":{\"view\":[\"admin\"],\"edit\":[\"admin\"]},\"multivalued\":false},{\"name\":\"firstName\",\"displayName\":\"${firstName}\",\"validations\":{\"length\":{\"max\":255},\"person-name-prohibited-characters\":{}},\"annotations\":{},\"permissions\":{\"view\":[\"admin\"],\"edit\":[\"admin\"]},\"multivalued\":false},{\"name\":\"lastName\",\"displayName\":\"${lastName}\",\"validations\":{\"length\":{\"max\":255},\"person-name-prohibited-characters\":{}},\"annotations\":{},\"permissions\":{\"view\":[\"admin\"],\"edit\":[\"admin\"]},\"multivalued\":false},{\"name\":\"externalId\",\"displayName\":\"External ID\",\"validations\":{},\"annotations\":{},\"permissions\":{\"view\":[],\"edit\":[\"admin\"]},\"multivalued\":false},{\"name\":\"employeeId\",\"displayName\":\"Employee ID\",\"validations\":{},\"annotations\":{},\"permissions\":{\"view\":[],\"edit\":[\"admin\"]},\"multivalued\":false},{\"name\":\"studentNumber\",\"displayName\":\"Student Number\",\"validations\":{},\"annotations\":{},\"permissions\":{\"view\":[],\"edit\":[\"admin\"]},\"multivalued\":false},{\"name\":\"userPrincipalName\",\"displayName\":\"User Principal Name\",\"validations\":{},\"annotations\":{},\"permissions\":{\"view\":[],\"edit\":[\"admin\"]},\"multivalued\":false},{\"name\":\"roles\",\"displayName\":\"Roles\",\"validations\":{},\"annotations\":{},\"permissions\":{\"view\":[],\"edit\":[\"admin\"]},\"multivalued\":true}],\"groups\":[{\"name\":\"user-metadata\",\"displayHeader\":\"User metadata\",\"displayDescription\":\"Attributes, which refer to user metadata\"}]}"
+            "{\"attributes\":[{\"name\":\"username\",\"displayName\":\"${username}\",\"validations\":{\"length\":{\"min\":3,\"max\":255},\"username-prohibited-characters\":{},\"up-username-not-idn-homograph\":{}},\"annotations\":{},\"permissions\":{\"view\":[\"admin\"],\"edit\":[\"admin\"]},\"multivalued\":false},{\"name\":\"email\",\"displayName\":\"${email}\",\"validations\":{\"email\":{},\"length\":{\"max\":255}},\"annotations\":{},\"permissions\":{\"view\":[\"admin\"],\"edit\":[\"admin\"]},\"multivalued\":false},{\"name\":\"firstName\",\"displayName\":\"${firstName}\",\"validations\":{\"length\":{\"max\":255},\"person-name-prohibited-characters\":{}},\"annotations\":{},\"permissions\":{\"view\":[\"admin\"],\"edit\":[\"admin\"]},\"multivalued\":false},{\"name\":\"lastName\",\"displayName\":\"${lastName}\",\"validations\":{\"length\":{\"max\":255},\"person-name-prohibited-characters\":{}},\"annotations\":{},\"permissions\":{\"view\":[\"admin\"],\"edit\":[\"admin\"]},\"multivalued\":false},{\"name\":\"externalId\",\"displayName\":\"External ID\",\"validations\":{},\"annotations\":{},\"permissions\":{\"view\":[],\"edit\":[\"admin\"]},\"multivalued\":false},{\"name\":\"employeeId\",\"displayName\":\"Employee ID\",\"validations\":{},\"annotations\":{},\"permissions\":{\"view\":[],\"edit\":[\"admin\"]},\"multivalued\":false},{\"name\":\"studentNumber\",\"displayName\":\"Student Number\",\"validations\":{},\"annotations\":{},\"permissions\":{\"view\":[],\"edit\":[\"admin\"]},\"multivalued\":false},{\"name\":\"userPrincipalName\",\"displayName\":\"User Principal Name\",\"validations\":{},\"annotations\":{},\"permissions\":{\"view\":[],\"edit\":[\"admin\"]},\"multivalued\":false},{\"name\":\"roles\",\"displayName\":\"Roles\",\"validations\":{},\"annotations\":{},\"permissions\":{\"view\":[],\"edit\":[\"admin\"]},\"multivalued\":true},{\"name\":\"rawRoles\",\"displayName\":\"Raw Roles\",\"validations\":{},\"annotations\":{},\"permissions\":{\"view\":[],\"edit\":[\"admin\"]},\"multivalued\":true}],\"groups\":[{\"name\":\"user-metadata\",\"displayHeader\":\"User metadata\",\"displayDescription\":\"Attributes, which refer to user metadata\"}]}"
           ]
         }
       }
@@ -1107,6 +1107,7 @@
       "trustEmail": true,
       "authenticateByDefault": false,
       "linkOnly": false,
+      "hideOnLogin": true,
       "postBrokerLoginFlowAlias": "flais-post-login-flow",
       "config": {
         "clientId": "entra-telemark",
@@ -1121,9 +1122,14 @@
         "logoutUrl": "http://localhost:9000/entra-telemark/endsession",
         "useJwksUrl": "true",
         "kc.org.domain": "telemark.no",
-        "defaultScope": "openid email profile",
         "validateSignature": "true",
-        "backchannelSupported": "false"
+        "backchannelSupported": "false",
+        "pkceEnabled": "true",
+        "pkceMethod": "S256",
+        "prompt": "login",
+        "allowedClockSkew": "300",
+        "syncMode": "FORCE",
+        "defaultScope": "profile"
       }
     },
     {
@@ -1135,6 +1141,7 @@
       "trustEmail": true,
       "authenticateByDefault": false,
       "linkOnly": false,
+      "hideOnLogin": true,
       "postBrokerLoginFlowAlias": "flais-post-login-flow",
       "config": {
         "clientId": "entra-telemark-alt",
@@ -1148,9 +1155,14 @@
         "metadataDescriptorUrl": "http://mock-idp:8080/entra-telemark-alt/.well-known/openid-configuration",
         "logoutUrl": "http://localhost:9000/entra-telemark-alt/endsession",
         "useJwksUrl": "true",
-        "defaultScope": "openid email profile",
         "validateSignature": "true",
-        "backchannelSupported": "false"
+        "backchannelSupported": "false",
+        "pkceEnabled": "true",
+        "pkceMethod": "S256",
+        "prompt": "login",
+        "allowedClockSkew": "300",
+        "syncMode": "FORCE",
+        "defaultScope": "profile"
       }
     },
     {
@@ -1162,6 +1174,7 @@
       "trustEmail": true,
       "authenticateByDefault": false,
       "linkOnly": false,
+      "hideOnLogin": true,
       "postBrokerLoginFlowAlias": "flais-post-login-flow",
       "config": {
         "clientId": "entra-rogaland",
@@ -1176,9 +1189,14 @@
         "logoutUrl": "http://localhost:9000/entra-rogaland/endsession",
         "kc.org.domain": "rogaland.no",
         "useJwksUrl": "true",
-        "defaultScope": "openid email profile",
         "validateSignature": "true",
-        "backchannelSupported": "false"
+        "backchannelSupported": "false",
+        "pkceEnabled": "true",
+        "pkceMethod": "S256",
+        "prompt": "login",
+        "allowedClockSkew": "300",
+        "syncMode": "FORCE",
+        "defaultScope": "profile"
       }
     },
     {
@@ -1190,6 +1208,8 @@
       "trustEmail": true,
       "authenticateByDefault": false,
       "linkOnly": false,
+      "hideOnLogin": true,
+      "firstBrokerLoginFlowAlias": "flais-first-broker-login",
       "postBrokerLoginFlowAlias": "flais-post-login-flow",
       "config": {
         "clientId": "idporten",
@@ -1203,31 +1223,46 @@
         "metadataDescriptorUrl": "http://mock-idp:8080/idporten/.well-known/openid-configuration",
         "logoutUrl": "http://localhost:9000/idporten/endsession",
         "useJwksUrl": "true",
-        "defaultScope": "openid email profile",
         "validateSignature": "true",
-        "backchannelSupported": "false"
+        "backchannelSupported": "false",
+        "pkceEnabled": "true",
+        "pkceMethod": "S256",
+        "allowedClockSkew": "300",
+        "syncMode": "FORCE",
+        "defaultScope": "profile"
       }
     }
   ],
   "identityProviderMappers": [
     {
       "id": "d7a67b4f-8014-495c-a9c2-5311668be0e8",
-      "name": "map_oid_as_brokerid",
+      "name": "map_oid_as_broker_id",
       "identityProviderAlias": "entra-telemark",
       "identityProviderMapper": "oidc-username-idp-mapper",
       "config": {
-        "syncMode": "FORCE",
+        "syncMode": "INHERIT",
+        "template": "${CLAIM.oid}",
+        "target": "BROKER_ID"
+      }
+    },
+    {
+      "id": "1521753e-7374-4ef7-a42f-0bfe9ff9bd0f",
+      "name": "map_oid_as_broker_id",
+      "identityProviderAlias": "entra-telemark-alt",
+      "identityProviderMapper": "oidc-username-idp-mapper",
+      "config": {
+        "syncMode": "INHERIT",
         "template": "${CLAIM.oid}",
         "target": "BROKER_ID"
       }
     },
     {
       "id": "6c625e9e-aca0-4c89-b4c6-348aa3663bb4",
-      "name": "map_oid_as_brokerid",
+      "name": "map_oid_as_broker_id",
       "identityProviderAlias": "entra-rogaland",
       "identityProviderMapper": "oidc-username-idp-mapper",
       "config": {
-        "syncMode": "FORCE",
+        "syncMode": "INHERIT",
         "template": "${CLAIM.oid}",
         "target": "BROKER_ID"
       }
@@ -1255,12 +1290,23 @@
       }
     },
     {
+      "id": "f21b5aab-4554-42f3-8987-e181bb4a0db0",
+      "name": "map_oid_as_username",
+      "identityProviderAlias": "entra-telemark-alt",
+      "identityProviderMapper": "oidc-username-idp-mapper",
+      "config": {
+        "syncMode": "INHERIT",
+        "template": "${CLAIM.oid}",
+        "target": "LOCAL"
+      }
+    },
+    {
       "id": "32966a25-1e6e-4d4f-aa84-6b2be93472b2",
       "name": "map_roles_to_user_attribute",
       "identityProviderAlias": "entra-telemark",
       "identityProviderMapper": "oidc-user-attribute-idp-mapper",
       "config": {
-        "syncMode": "FORCE",
+        "syncMode": "INHERIT",
         "claim": "roles",
         "user.attribute": "roles"
       }
@@ -1271,13 +1317,84 @@
       "identityProviderAlias": "entra-rogaland",
       "identityProviderMapper": "oidc-user-attribute-idp-mapper",
       "config": {
-        "syncMode": "FORCE",
+        "syncMode": "INHERIT",
         "claim": "roles",
         "user.attribute": "roles"
+      }
+    },
+    {
+      "id": "8c4f62a1-9d73-4b08-ae51-2f6d9037bc85",
+      "name": "map_roles_to_user_attribute",
+      "identityProviderAlias": "entra-telemark-alt",
+      "identityProviderMapper": "oidc-user-attribute-idp-mapper",
+      "config": {
+        "syncMode": "INHERIT",
+        "claim": "roles",
+        "user.attribute": "roles"
+      }
+    },
+    {
+      "id": "123a32a1-0bdc-4dd3-bfb7-b402f35290c5",
+      "name": "map_pid_as_username",
+      "identityProviderAlias": "idporten",
+      "identityProviderMapper": "oidc-username-idp-mapper",
+      "config": {
+        "syncMode": "INHERIT",
+        "template": "${CLAIM.pid}",
+        "target": "LOCAL"
+      }
+    },
+    {
+      "id": "e29df7a6-fe5c-49d8-9d1a-d162b2fb2acb",
+      "name": "map_pid_as_broker_username",
+      "identityProviderAlias": "idporten",
+      "identityProviderMapper": "oidc-username-idp-mapper",
+      "config": {
+        "syncMode": "INHERIT",
+        "template": "${CLAIM.pid}",
+        "target": "BROKER_USERNAME"
+      }
+    },
+    {
+      "id": "4bfc8378-57ac-4801-9f3c-446a5b437a64",
+      "name": "map_pid_as_broker_id",
+      "identityProviderAlias": "idporten",
+      "identityProviderMapper": "oidc-username-idp-mapper",
+      "config": {
+        "syncMode": "INHERIT",
+        "template": "${CLAIM.pid}",
+        "target": "BROKER_ID"
       }
     }
   ],
   "authenticationFlows": [
+    {
+      "id": "8073d04b-76c6-4efe-8a96-2d3959858d3a",
+      "alias": "flais-first-broker-login-scim",
+      "description": "Requires an existing user account provisioned through SCIM. Links the identity provider to the existing account and rejects login if no matching user exists.",
+      "providerId": "basic-flow",
+      "topLevel": true,
+      "builtIn": false,
+      "authenticationExecutions": [
+        {
+          "authenticatorConfig": "flais-first-broker-login-scim - detect-existing-user-config",
+          "authenticator": "detect-existing-user-authenticator",
+          "authenticatorFlow": false,
+          "requirement": "REQUIRED",
+          "priority": 55,
+          "autheticatorFlow": false,
+          "userSetupAllowed": false
+        },
+        {
+          "authenticator": "idp-auto-link",
+          "authenticatorFlow": false,
+          "requirement": "REQUIRED",
+          "priority": 56,
+          "autheticatorFlow": false,
+          "userSetupAllowed": false
+        }
+      ]
+    },
     {
       "id": "9df3ddef-b8d6-4c18-9c83-e3bf506b22d9",
       "alias": "flais-first-broker-login",
@@ -1445,6 +1562,13 @@
     }
   ],
   "authenticatorConfig": [
+    {
+      "id": "eaddd4ca-d756-467f-94cd-158c412b3958",
+      "alias": "flais-first-broker-login-scim - detect-existing-user-config",
+      "config": {
+        "errorMessageKey": "userNotProvisioned"
+      }
+    },
     {
       "id": "9b3b7ba3-473b-4844-9499-e5779c94a67e",
       "alias": "flais-post-login-flow",

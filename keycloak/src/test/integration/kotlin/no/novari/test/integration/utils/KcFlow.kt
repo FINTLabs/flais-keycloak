@@ -1,7 +1,13 @@
 package no.novari.test.integration.utils
 
+import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.put
 import no.novari.test.common.environment.kc.KcEnvironment
 import no.novari.test.common.utils.KcUrl
+import no.novari.test.common.utils.ScimFlow
 import okhttp3.FormBody
 import okhttp3.HttpUrl
 import okhttp3.OkHttpClient
@@ -46,6 +52,33 @@ object KcFlow {
         return client.newCall(req).execute()
     }
 
+    private fun loginWithUser(
+        env: KcEnvironment,
+        clientId: String,
+        orgAlias: String,
+        idpAlias: String,
+        username: String,
+        claims: JsonObject = buildJsonObject {},
+        httpClient: OkHttpClient? = null,
+        httpUrl: HttpUrl? = null,
+        hasIdpSelector: Boolean = true,
+        scope: String? = null,
+    ): Response {
+        val client = httpClient ?: KcHttpClient.create(followRedirects = true)
+        val url = resolveAuthUrl(httpUrl, env, clientId, scope)
+
+        selectOrgAndContinueToIdpSelector(env, clientId, orgAlias, client, url).use { resp ->
+            if (hasIdpSelector) {
+                val kc = KcContextParser.parseKcContext(resp.body.string())
+                continueFromIdpSelector(kc.url.loginAction!!, idpAlias, client).use { resp ->
+                    return continueFromMockIdp(resp.request.url, username, client, claims)
+                }
+            } else {
+                return continueFromMockIdp(resp.request.url, username, client, claims)
+            }
+        }
+    }
+
     fun openAuthUrl(
         httpUrl: HttpUrl? = null,
         env: KcEnvironment? = null,
@@ -74,9 +107,20 @@ object KcFlow {
         url: HttpUrl,
         username: String,
         httpClient: OkHttpClient? = null,
+        claims: JsonObject = buildJsonObject {},
     ): Response {
-        require(url.encodedPath.endsWith("/authorize")) { "Expected mock IDP authorize URL: $url" }
-        return post(url, mapOf("username" to username), resolveClient(httpClient))
+        require(url.encodedPath.endsWith("/authorize")) {
+            "Expected mock IDP authorize URL: $url"
+        }
+
+        return post(
+            url,
+            mapOf(
+                "username" to username,
+                "claims" to claims.toString(),
+            ),
+            resolveClient(httpClient),
+        )
     }
 
     fun selectOrgAndContinueToIdpSelector(
@@ -96,29 +140,61 @@ object KcFlow {
         }
     }
 
-    fun loginWithUser(
+    fun loginWithMicrosoftScimUser(
         env: KcEnvironment,
         clientId: String,
         orgAlias: String,
         idpAlias: String,
-        username: String,
+        user: ScimFlow.ScimUser,
         httpClient: OkHttpClient? = null,
         httpUrl: HttpUrl? = null,
         hasIdpSelector: Boolean = true,
         scope: String? = null,
-    ): Response {
-        val client = httpClient ?: KcHttpClient.create(followRedirects = true)
-        val url = resolveAuthUrl(httpUrl, env, clientId, scope)
+    ): Response =
+        loginWithUser(
+            env = env,
+            clientId = clientId,
+            orgAlias = orgAlias,
+            idpAlias = idpAlias,
+            username = user.userName,
+            httpClient = httpClient,
+            httpUrl = httpUrl,
+            hasIdpSelector = hasIdpSelector,
+            scope = scope,
+            claims =
+                buildJsonObject {
+                    put("oid", user.externalId)
+                    put(
+                        "roles",
+                        JsonArray(
+                            user.roles.orEmpty().mapNotNull { role ->
+                                role.value?.let { JsonPrimitive(it) }
+                            },
+                        ),
+                    )
+                },
+        )
 
-        selectOrgAndContinueToIdpSelector(env, clientId, orgAlias, client, url).use { resp ->
-            if (hasIdpSelector) {
-                val kc = KcContextParser.parseKcContext(resp.body.string())
-                continueFromIdpSelector(kc.url.loginAction!!, idpAlias, client).use { resp ->
-                    return continueFromMockIdp(resp.request.url, username, client)
-                }
-            } else {
-                return continueFromMockIdp(resp.request.url, username, client)
-            }
-        }
-    }
+    fun loginWithIdportenUser(
+        env: KcEnvironment,
+        clientId: String,
+        orgAlias: String,
+        idpAlias: String,
+        pid: String,
+        httpClient: OkHttpClient? = null,
+        hasIdpSelector: Boolean = false,
+    ): Response =
+        loginWithUser(
+            env = env,
+            clientId = clientId,
+            orgAlias = orgAlias,
+            idpAlias = idpAlias,
+            username = pid,
+            httpClient = httpClient,
+            hasIdpSelector = hasIdpSelector,
+            claims =
+                buildJsonObject {
+                    put("pid", pid)
+                },
+        )
 }

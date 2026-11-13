@@ -12,7 +12,6 @@ import no.novari.test.common.environment.kc.KcEnvironment
 import no.novari.test.common.environment.kc.KcEnvironmentExtension
 import no.novari.test.common.fixture.TestStrings.Orgs
 import no.novari.test.common.fixture.TestStrings.Realms
-import no.novari.test.common.fixture.TestStrings.Users
 import no.novari.test.common.utils.KcAdminClient
 import no.novari.test.common.utils.ScimFlow
 import no.novari.test.common.utils.ScimFlow.ScimUser
@@ -31,14 +30,8 @@ import org.keycloak.representations.idm.RoleRepresentation
 import java.util.UUID
 
 /**
- * Covers the database-backed SCIM user search.
- *
- * The unit tests stub the JPA query, so these tests are what actually prove the compiled Criteria
- * query runs and means what it is supposed to mean.
- *
- * The expected result sets for the negation and multivalued cases are mirrored by
- * `ScimFilterSemanticsTest`, which asserts the same expectations against the SDK's in-memory
- * evaluator.
+ * Covers database-backed SCIM user search, including missing values,
+ * multivalued attributes, paging, and sorting.
  */
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @ExtendWith(KcEnvironmentExtension::class)
@@ -46,65 +39,79 @@ class ScimUserSearchTest {
     private val realm = Realms.EXTERNAL
     private val fintUrn = "urn:ietf:params:scim:schemas:extension:fint:2.0:User"
 
-    private val alice = Users.ALICE_TELEMARK_EMAIL
-    private val jon = Users.JON_TELEMARK_EMAIL
-    private val carol = "carol.search@telemark.no"
-    private val longExternalId = "long-external-id-" + "x".repeat(260)
-    private val longRole = "long-role-marker-" + "x".repeat(260)
+    private val alice = "alice-${UUID.randomUUID()}@telemark.no"
+    private val jon = "jon-${UUID.randomUUID()}@telemark.no"
+    private val carol = "carol-${UUID.randomUUID()}@telemark.no"
+    private val longExternalId = "long-external-id-${UUID.randomUUID()}-" + "x".repeat(260)
+    private val longRole = "long-role-marker-${UUID.randomUUID()}-" + "x".repeat(260)
+
+    private fun randomRole(): ScimUser.Role {
+        val value = "role-${UUID.randomUUID()}"
+        return ScimUser.Role(
+            value = value,
+            display = value,
+            type = "WindowsAzureActiveDirectoryRole",
+            primary = false,
+        )
+    }
 
     /**
-     * Three users chosen to exercise the awkward cases: a disabled user, a user with no email and
-     * no roles at all (so NULL handling under `not` is visible), and differing role cardinality.
+     * Keep the attributes used by search assertions deliberate while randomizing
+     * identities and role values.
      */
     private val testUsers =
         listOf(
-            ScimUser(
-                schemas = listOf(CORE_SCHEMA, FINT_SCHEMA),
-                externalId = Users.ALICE_TELEMARK,
+            ScimFlow.randomUser(
+                orgAlias = Orgs.TELEMARK,
                 userName = alice,
+                givenName = "Alice",
+                familyName = "Basic",
+                email = alice,
                 active = true,
-                emails = listOf(ScimUser.Email(alice, primary = true)),
+                employeeId = "E1",
+                studentNumber = null,
+                userPrincipalName = alice,
                 roles =
                     listOf(
-                        ScimUser.Role("read", "read", "WindowsAzureActiveDirectoryRole", false),
-                        ScimUser.Role("write", "write", "WindowsAzureActiveDirectoryRole", false),
-                        ScimUser.Role(longRole, longRole, "WindowsAzureActiveDirectoryRole", false),
-                    ),
-                fintUserExtension =
-                    ScimUser.FintUserExtension(
-                        Users.ALICE_FIRST_NAME,
-                        Users.BASIC_LAST_NAME,
-                        "E1",
-                        null,
-                        alice,
+                        randomRole(),
+                        randomRole(),
+                        ScimUser.Role(
+                            value = longRole,
+                            display = longRole,
+                            type = "WindowsAzureActiveDirectoryRole",
+                            primary = false,
+                        ),
                     ),
             ),
-            ScimUser(
-                schemas = listOf(CORE_SCHEMA, FINT_SCHEMA),
-                externalId = Users.JON_TELEMARK,
+            ScimFlow.randomUser(
+                orgAlias = Orgs.TELEMARK,
                 userName = jon,
+                givenName = "Jon",
+                familyName = "Basic",
+                email = jon,
                 active = false,
-                emails = listOf(ScimUser.Email(jon, primary = true)),
-                roles = listOf(ScimUser.Role("read", "read", "WindowsAzureActiveDirectoryRole", false)),
-                fintUserExtension =
-                    ScimUser.FintUserExtension(
-                        Users.JON_FIRST_NAME,
-                        Users.BASIC_LAST_NAME,
-                        "",
-                        null,
-                        jon,
-                    ),
+                employeeId = "",
+                studentNumber = null,
+                userPrincipalName = jon,
+                roles = listOf(randomRole()),
             ),
-            ScimUser(
-                schemas = listOf(CORE_SCHEMA),
-                externalId = longExternalId,
-                userName = carol,
-                active = true,
-                // No email and no roles: the row that makes NULL semantics observable.
-                emails = emptyList(),
-                roles = emptyList(),
-            ),
+            ScimFlow
+                .randomUser(
+                    orgAlias = Orgs.TELEMARK,
+                    externalId = longExternalId,
+                    userName = carol,
+                    email = null,
+                    active = true,
+                    roles = emptyList(),
+                    fintUserExtension = null,
+                ).copy(emails = emptyList()),
         )
+
+    private fun resolveFilter(filter: String): String =
+        filter
+            .trim()
+            .replace("{alice}", alice)
+            .replace("{aliceExternalId}", testUsers.first().externalId)
 
     private fun scimBaseUrl(
         env: KcEnvironment,
@@ -174,11 +181,7 @@ class ScimUserSearchTest {
         val (kc, realmRes) = KcAdminClient.connect(env, realm)
         kc.use { KcAdminClient.deleteAllUsers(realmRes) }
 
-        testUsers.forEach { user ->
-            ScimFlow
-                .createUser(scimBaseUrl(env, kcConfig), tokenUrl(env), user)
-                .use { resp -> assertEquals(201, resp.code) }
-        }
+        ScimFlow.provision(env, kcConfig, Orgs.TELEMARK, testUsers)
     }
 
     @Test
@@ -197,32 +200,33 @@ class ScimUserSearchTest {
         env: KcEnvironment,
         kcConfig: KcConfig,
     ) {
-        // Mirrors a user created by IdP first-broker-login: a MANAGED organization member that was
-        // never provisioned over SCIM and therefore holds no scim-managed role.
-        val intruder = "idp-joined@telemark.no"
+        val intruder = ScimFlow.randomUser(Orgs.TELEMARK)
         val orgId = kcConfig.requireOrg(Orgs.TELEMARK).id
         val (kc, realmRes) = KcAdminClient.connect(env, realm)
+
         kc.use {
+            // Create through the admin API so this member has no scim-managed role.
             val userId =
                 KcAdminClient.createUser(
                     realm = realmRes,
-                    username = intruder,
-                    email = intruder,
-                    firstName = "Idp",
-                    lastName = "Joined",
+                    username = intruder.userName,
+                    email =
+                        intruder.emails
+                            .orEmpty()
+                            .single()
+                            .value,
+                    firstName = requireNotNull(intruder.fintUserExtension?.givenName),
+                    lastName = requireNotNull(intruder.fintUserExtension?.familyName),
                 )
             KcAdminClient.addUserToOrg(realmRes, userId, orgId)
 
-            // Without this the test could pass vacuously: the assertions below only have meaning if
-            // the intruder really is an organization member that a role-blind query would count.
             assertNotNull(KcAdminClient.getOrgMember(realmRes, orgId, userId))
         }
 
         val body = listUsers(env, kcConfig)
 
-        // The role predicate lives in the SQL, so the extra member must not inflate the count.
         assertEquals(testUsers.size, body.totalResults())
-        assertFalse(intruder in body.userNames())
+        assertFalse(intruder.userName in body.userNames())
     }
 
     @Test
@@ -231,15 +235,20 @@ class ScimUserSearchTest {
         kcConfig: KcConfig,
     ) {
         val (kc, realmRes) = KcAdminClient.connect(env, realm)
+
         kc.use {
             val suffix = UUID.randomUUID().toString()
             val compositeName = "scim-search-composite-$suffix"
             realmRes.roles().create(RoleRepresentation().apply { name = compositeName })
+
             val composite = realmRes.roles().get(compositeName)
             val scimRole = realmRes.roles().get("scim-managed").toRepresentation()
             composite.addComposites(listOf(scimRole))
 
-            val groupResponse = realmRes.groups().add(GroupRepresentation().apply { name = "scim-search-group-$suffix" })
+            val groupResponse =
+                realmRes.groups().add(
+                    GroupRepresentation().apply { name = "scim-search-group-$suffix" },
+                )
             val groupId = groupResponse.use { CreatedResponseUtil.getCreatedId(it) }
             val group = realmRes.groups().group(groupId)
             group.roles().realmLevel().add(listOf(composite.toRepresentation()))
@@ -247,14 +256,17 @@ class ScimUserSearchTest {
             val userId = requireNotNull(KcAdminClient.findUserByUsername(realmRes, alice)?.id)
             val user = realmRes.users().get(userId)
             user.roles().realmLevel().remove(listOf(scimRole))
+
             try {
                 user.roles().realmLevel().add(listOf(composite.toRepresentation()))
+
                 val compositeBody = listUsers(env, kcConfig)
                 assertEquals(testUsers.size - 1, compositeBody.totalResults())
                 assertFalse(alice in compositeBody.userNames())
 
                 user.roles().realmLevel().remove(listOf(composite.toRepresentation()))
                 user.joinGroup(groupId)
+
                 val groupBody = listUsers(env, kcConfig, cursor = "")
                 assertEquals(testUsers.size - 1, groupBody.totalResults())
                 assertFalse(alice in groupBody.userNames())
@@ -271,20 +283,21 @@ class ScimUserSearchTest {
         env: KcEnvironment,
         kcConfig: KcConfig,
     ) {
-        val edgeUser = "edge-presence@telemark.no"
+        val edgeUser =
+            ScimFlow.randomUser(
+                orgAlias = Orgs.TELEMARK,
+                roles = listOf(ScimUser.Role(display = "reader")),
+                fintUserExtension = null,
+            )
+
         ScimFlow
             .createUser(
                 scimBaseUrl(env, kcConfig),
                 tokenUrl(env),
-                ScimUser(
-                    schemas = listOf(CORE_SCHEMA),
-                    externalId = "44444444-4444-4444-4444-444444444444",
-                    userName = edgeUser,
-                    active = true,
-                    emails = listOf(ScimUser.Email(edgeUser, primary = true)),
-                    roles = listOf(ScimUser.Role(display = "reader")),
-                ),
-            ).use { response -> assertEquals(201, response.code) }
+                edgeUser,
+            ).use { response ->
+                assertEquals(201, response.code)
+            }
 
         assertEquals(2, listUsers(env, kcConfig, filter = "roles pr").totalResults())
         assertEquals(2, listUsers(env, kcConfig, filter = "roles.value pr").totalResults())
@@ -295,28 +308,24 @@ class ScimUserSearchTest {
     @CsvSource(
         delimiter = '|',
         value = [
-            // Equality and inequality on indexed columns.
-            "userName eq \"${Users.ALICE_TELEMARK_EMAIL}\"           | 1",
-            "userName ne \"${Users.ALICE_TELEMARK_EMAIL}\"           | 2",
-            "id pr                                                    | 3",
-            "externalId pr                                            | 3",
-            "externalId eq \"${Users.ALICE_TELEMARK}\"               | 1",
-            "externalId co \"long-external-id\"                       | 1",
-            // Substring operators.
-            "userName co \"@telemark.no\"                             | 3",
+            // Placeholders are resolved against the randomized fixture.
+            "userName eq \"{alice}\"                                  | 1",
+            "userName ne \"{alice}\"                                  | 2",
+            "id pr                                                   | 3",
+            "externalId pr                                           | 3",
+            "externalId eq \"{aliceExternalId}\"                       | 1",
+            "externalId co \"long-external-id\"                        | 1",
+            "userName co \"@telemark.no\"                              | 3",
             "userName sw \"alice\"                                    | 1",
-            "userName ew \"@telemark.no\"                             | 3",
-            // Booleans.
-            "active eq true                                           | 2",
-            "active eq false                                          | 1",
-            // Presence, including the user with no email at all.
-            "emails pr                                                | 3",
-            "emails.value pr                                          | 2",
-            "emails.primary eq true                                   | 3",
-            // Logical combinators.
-            "active eq true and userName sw \"alice\"                 | 1",
-            "userName sw \"alice\" or userName sw \"jon\"             | 2",
-            "roles pr                                                 | 2",
+            "userName ew \"@telemark.no\"                              | 3",
+            "active eq true                                          | 2",
+            "active eq false                                         | 1",
+            "emails pr                                               | 3",
+            "emails.value pr                                         | 2",
+            "emails.primary eq true                                  | 3",
+            "active eq true and userName sw \"alice\"                  | 1",
+            "userName sw \"alice\" or userName sw \"jon\"              | 2",
+            "roles pr                                                | 2",
         ],
     )
     fun `filters return correct totals`(
@@ -325,20 +334,21 @@ class ScimUserSearchTest {
         env: KcEnvironment,
         kcConfig: KcConfig,
     ) {
-        assertEquals(expected, listUsers(env, kcConfig, filter = filter.trim()).totalResults())
+        assertEquals(
+            expected,
+            listUsers(env, kcConfig, filter = resolveFilter(filter)).totalResults(),
+        )
     }
 
     @ParameterizedTest(name = "{0} matches {1} user(s)")
     @CsvSource(
         delimiter = '|',
         value = [
-            // A missing attribute makes the inner comparison false, so `not` must include the user
-            // that has no email. Getting this wrong in SQL silently drops rows.
-            "not (emails.value eq \"${Users.ALICE_TELEMARK_EMAIL}\") | 2",
-            "not (emails.value co \"@telemark.no\")                   | 1",
-            "emails.value ne \"${Users.ALICE_TELEMARK_EMAIL}\"       | 2",
+            "not (emails.value eq \"{alice}\")                        | 2",
+            "not (emails.value co \"@telemark.no\")                    | 1",
+            "emails.value ne \"{alice}\"                              | 2",
             "urn:ietf:params:scim:schemas:extension:fint:2.0:User:employeeId ne \"E1\" | 2",
-            "not (active eq true)                                     | 1",
+            "not (active eq true)                                    | 1",
         ],
     )
     fun `negation and missing values follow the SCIM evaluator`(
@@ -347,7 +357,10 @@ class ScimUserSearchTest {
         env: KcEnvironment,
         kcConfig: KcConfig,
     ) {
-        assertEquals(expected, listUsers(env, kcConfig, filter = filter.trim()).totalResults())
+        assertEquals(
+            expected,
+            listUsers(env, kcConfig, filter = resolveFilter(filter)).totalResults(),
+        )
     }
 
     @Test
@@ -367,7 +380,10 @@ class ScimUserSearchTest {
         env: KcEnvironment,
         kcConfig: KcConfig,
     ) {
-        assertEquals(1, listUsers(env, kcConfig, filter = """externalId co "long-external-id"""").totalResults())
+        assertEquals(
+            1,
+            listUsers(env, kcConfig, filter = """externalId co "long-external-id"""").totalResults(),
+        )
     }
 
     @Test
@@ -383,7 +399,6 @@ class ScimUserSearchTest {
         assertEquals(testUsers.size, secondPage.totalResults())
         assertEquals(1, secondPage.userNames().size)
 
-        // Pages must not overlap, which also proves the offset is applied in the database.
         assertEquals(
             testUsers.size,
             (firstPage.userNames() + secondPage.userNames()).distinct().size,
@@ -395,7 +410,14 @@ class ScimUserSearchTest {
         env: KcEnvironment,
         kcConfig: KcConfig,
     ) {
-        val body = listUsers(env, kcConfig, filter = """userName co "@telemark.no"""", startIndex = 1, count = 1)
+        val body =
+            listUsers(
+                env,
+                kcConfig,
+                filter = """userName co "@telemark.no"""",
+                startIndex = 1,
+                count = 1,
+            )
 
         assertEquals(3, body.totalResults())
         assertEquals(1, body.userNames().size)
@@ -443,9 +465,15 @@ class ScimUserSearchTest {
         val descending = listUsers(env, kcConfig, sortBy = "userName", sortOrder = "descending")
         assertEquals(listOf(jon, carol, alice), descending.userNames())
 
-        // Sorting must survive paging, which only holds if the ORDER BY is in the SQL.
         val firstDescending =
-            listUsers(env, kcConfig, sortBy = "userName", sortOrder = "descending", startIndex = 1, count = 1)
+            listUsers(
+                env,
+                kcConfig,
+                sortBy = "userName",
+                sortOrder = "descending",
+                startIndex = 1,
+                count = 1,
+            )
         assertEquals(listOf(jon), firstDescending.userNames())
     }
 
@@ -466,21 +494,27 @@ class ScimUserSearchTest {
         env: KcEnvironment,
         kcConfig: KcConfig,
     ) {
-        val outsider = Users.ALICE_ROGALAND_EMAIL
+        val outsider =
+            ScimFlow.randomUser(
+                orgAlias = Orgs.ROGALAND,
+                fintUserExtension = null,
+            )
+
         ScimFlow
             .createUser(
                 scimBaseUrl(env, kcConfig, Orgs.ROGALAND),
                 tokenUrl(env),
-                ScimUser(
-                    schemas = listOf(CORE_SCHEMA),
-                    externalId = Users.ALICE_ROGALAND,
-                    userName = outsider,
-                    active = true,
-                    emails = listOf(ScimUser.Email(outsider, primary = true)),
-                ),
-            ).use { resp -> assertEquals(201, resp.code) }
+                outsider,
+            ).use { resp ->
+                assertEquals(201, resp.code)
+            }
 
-        val body = listUsers(env, kcConfig, filter = """userName eq "$outsider"""")
+        val body =
+            listUsers(
+                env,
+                kcConfig,
+                filter = """userName eq "${outsider.userName}"""",
+            )
 
         assertEquals(0, body.totalResults())
     }
@@ -490,8 +524,18 @@ class ScimUserSearchTest {
         env: KcEnvironment,
         kcConfig: KcConfig,
     ) {
-        assertEquals(400, listUsersStatus(env, kcConfig, filter = """roles.type eq "WindowsAzureActiveDirectoryRole""""))
-        assertEquals(400, listUsersStatus(env, kcConfig, filter = """emails eq "${Users.ALICE_TELEMARK_EMAIL}""""))
+        assertEquals(
+            400,
+            listUsersStatus(
+                env,
+                kcConfig,
+                filter = """roles.type eq "WindowsAzureActiveDirectoryRole"""",
+            ),
+        )
+        assertEquals(
+            400,
+            listUsersStatus(env, kcConfig, filter = """emails eq "$alice""""),
+        )
     }
 
     @Test
@@ -500,10 +544,5 @@ class ScimUserSearchTest {
         kcConfig: KcConfig,
     ) {
         assertEquals(400, listUsersStatus(env, kcConfig, sortBy = "roles"))
-    }
-
-    private companion object {
-        const val CORE_SCHEMA = "urn:ietf:params:scim:schemas:core:2.0:User"
-        const val FINT_SCHEMA = "urn:ietf:params:scim:schemas:extension:fint:2.0:User"
     }
 }
