@@ -7,7 +7,8 @@ How SCIM creates and updates users in FINT.
 ## User creation
 
 For organizations using SCIM, users must be provisioned before their first login.
-Login is rejected if no matching local account exists. This flow does not create users.
+First broker login is rejected if no matching local account exists or the account
+lacks the `scim-managed` realm role required by the flow. This flow does not create users.
 
 SCIM supplies the attributes, such as `employeeId` and `studentNumber`. The provisioned user
 is associated with an organization. SCIM does not create the organization.

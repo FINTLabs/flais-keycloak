@@ -7,7 +7,7 @@ which is executed during first login via an external Identity Provider (IDP).
 
 This flow is responsible for:
 
-- Requiring an existing user account provisioned through SCIM
+- Requiring an existing user account with the configured `scim-managed` realm role
 - Linking the external identity to the existing account
 - Rejecting login if no matching user exists
 
@@ -50,6 +50,7 @@ a new account.
 - The user must be provisioned through SCIM before their first broker login.
 - `requiredRole` must name a realm role. Missing or blank configuration is a configuration error; a nonexistent role rejects login.
 - The role check uses Keycloak effective role membership, including composite and group-inherited roles.
+- The role check runs only during first broker login, when the external identity is not yet linked to a local account. Already-linked identities skip this flow, so removing `scim-managed` alone does not cause this authenticator to reject subsequent logins.
 - The displayed error text depends on the translation configured for `userNotProvisioned`.
 
 ## Execution: Automatically set existing user
@@ -69,7 +70,7 @@ link the external identity to that account.
 
 This flow ensures that:
 
-- First broker login requires an existing SCIM-provisioned account
+- First broker login requires an existing account with the configured `scim-managed` realm role
 - The external identity is linked to the matching existing account
 - Login is rejected when no matching user exists
 - No user account is created by this flow
