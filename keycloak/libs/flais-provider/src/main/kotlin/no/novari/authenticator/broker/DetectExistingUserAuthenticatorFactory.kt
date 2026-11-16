@@ -29,7 +29,7 @@ class DetectExistingUserAuthenticatorFactory : AuthenticatorFactory {
     override fun isUserSetupAllowed(): Boolean = false
 
     override fun getHelpText(): String =
-        "Detects an existing user for broker login. If no account matches, " +
+        "Detects an existing user for broker login. Requires the configured realm role. If no eligible account matches, " +
             "displays an error page using the configured message key."
 
     override fun create(session: KeycloakSession): Authenticator = detectExistingUserAuthenticator
@@ -37,10 +37,17 @@ class DetectExistingUserAuthenticatorFactory : AuthenticatorFactory {
     override fun getConfigProperties(): MutableList<ProviderConfigProperty> =
         mutableListOf(
             ProviderConfigProperty().apply {
+                name = DetectExistingUserAuthenticatorConfig.REQUIRED_ROLE
+                label = "Required realm role"
+                type = ProviderConfigProperty.ROLE_TYPE
+                helpText = "Realm role the existing user must have to continue broker login."
+                isRequired = true
+            },
+            ProviderConfigProperty().apply {
                 name = DetectExistingUserAuthenticatorConfig.ERROR_MESSAGE_KEY
                 label = "Error message key"
                 type = ProviderConfigProperty.STRING_TYPE
-                helpText = "Translation key displayed when no existing account matches."
+                helpText = "Translation key displayed when no existing account matches or the required role is missing."
                 defaultValue = DetectExistingUserAuthenticatorConfig.DEFAULT_ERROR_MESSAGE_KEY
                 isRequired = true
             },

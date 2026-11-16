@@ -32,6 +32,17 @@ class DetectExistingUserAuthenticator : IdpDetectExistingBrokerUserAuthenticator
                     AuthenticationFlowError.INTERNAL_ERROR,
                 )
 
+        val requiredRoleName =
+            context.authenticatorConfig
+                ?.config
+                ?.get(DetectExistingUserAuthenticatorConfig.REQUIRED_ROLE)
+                ?.trim()
+                ?.takeIf { it.isNotEmpty() }
+                ?: throw AuthenticationFlowException(
+                    DetectExistingUserAuthenticatorConfig.MISSING_REQUIRED_ROLE_MESSAGE,
+                    AuthenticationFlowError.INTERNAL_ERROR,
+                )
+
         if (username.isNullOrBlank()) {
             reject(context, errorMessageKey)
             return
@@ -46,6 +57,14 @@ class DetectExistingUserAuthenticator : IdpDetectExistingBrokerUserAuthenticator
             )
 
         if (existingUser == null) {
+            reject(context, errorMessageKey)
+            return
+        }
+
+        val requiredRole = context.realm.getRole(requiredRoleName)
+        val user = context.session.users().getUserById(context.realm, existingUser.existingUserId)
+
+        if (requiredRole == null || user == null || !user.hasRole(requiredRole)) {
             reject(context, errorMessageKey)
             return
         }
