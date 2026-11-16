@@ -1,4 +1,5 @@
 import React from "react";
+import "./SubmitButton.css";
 import {cn} from "../utils/cn.ts";
 
 export interface SubmitButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {

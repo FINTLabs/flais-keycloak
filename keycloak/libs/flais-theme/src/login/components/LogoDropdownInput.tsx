@@ -11,6 +11,7 @@ import React, {
 } from "react";
 import { Chevron } from "./icons/Chevron.tsx";
 import { I18n } from "../i18n.ts";
+import "./LogoDropdownInput.css";
 
 export interface LogoOption {
   id: string;

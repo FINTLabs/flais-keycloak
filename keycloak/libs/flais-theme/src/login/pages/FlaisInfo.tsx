@@ -1,4 +1,5 @@
 import React from "react";
+import "../components/SubmitButton.css";
 import { kcSanitize } from "keycloakify/lib/kcSanitize";
 
 import type { KcContext } from "../KcContext";
