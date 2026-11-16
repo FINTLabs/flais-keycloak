@@ -1566,7 +1566,8 @@
       "id": "eaddd4ca-d756-467f-94cd-158c412b3958",
       "alias": "flais-first-broker-login-scim - detect-existing-user-config",
       "config": {
-        "errorMessageKey": "userNotProvisioned"
+        "errorMessageKey": "userNotProvisioned",
+        "requiredRole": "scim-managed"
       }
     },
     {
