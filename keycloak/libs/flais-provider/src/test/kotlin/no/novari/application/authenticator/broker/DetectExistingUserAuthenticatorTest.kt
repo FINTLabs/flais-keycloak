@@ -15,6 +15,9 @@ import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.NullAndEmptySource
+import org.junit.jupiter.params.provider.ValueSource
 import org.keycloak.authentication.AuthenticationFlowContext
 import org.keycloak.authentication.AuthenticationFlowError
 import org.keycloak.authentication.AuthenticationFlowException
@@ -28,6 +31,7 @@ import org.keycloak.forms.login.LoginFormsProvider
 import org.keycloak.models.AuthenticatorConfigModel
 import org.keycloak.models.KeycloakSession
 import org.keycloak.models.RealmModel
+import org.keycloak.models.RoleModel
 import org.keycloak.models.UserModel
 import org.keycloak.models.UserProvider
 import org.keycloak.sessions.AuthenticationSessionModel
@@ -44,6 +48,8 @@ class DetectExistingUserAuthenticatorTest {
     private lateinit var brokerContext: BrokeredIdentityContext
     private lateinit var form: LoginFormsProvider
     private lateinit var response: Response
+    private lateinit var scimManagedRole: RoleModel
+    private lateinit var existingUser: UserModel
 
     private lateinit var authNotes: MutableMap<String, String>
 
@@ -64,6 +70,7 @@ class DetectExistingUserAuthenticatorTest {
         brokerContext = mockk(relaxed = true)
         form = mockk()
         response = mockk()
+        scimManagedRole = mockk()
         authNotes = mutableMapOf()
 
         every { context.authenticationSession } returns authSession
@@ -74,10 +81,14 @@ class DetectExistingUserAuthenticatorTest {
         every { session.users() } returns users
 
         every { config.config } returns
-            mutableMapOf("errorMessageKey" to "userNotAllowed")
+            mutableMapOf(
+                "errorMessageKey" to "userNotAllowed",
+                DetectExistingUserAuthenticatorConfig.REQUIRED_ROLE to REQUIRED_ROLE_NAME,
+            )
 
         every { realm.isRegistrationEmailAsUsername } returns false
         every { realm.isLoginWithEmailAllowed } returns false
+        every { realm.getRole(REQUIRED_ROLE_NAME) } returns scimManagedRole
         every { brokerContext.modelUsername } returns existingUsername
         every { brokerContext.email } returns null
 
@@ -118,12 +129,15 @@ class DetectExistingUserAuthenticatorTest {
         unmockkStatic(SerializedBrokeredIdentityContext::class)
     }
 
-    private fun mockExistingUser(): String {
+    private fun mockExistingUser(scimManaged: Boolean = true): String {
         val user = mockk<UserModel>()
+        existingUser = user
 
         every { user.id } returns "user-id-1"
         every { user.username } returns "test-user"
         every { users.getUserByUsername(realm, "test-user") } returns user
+        every { users.getUserById(realm, "user-id-1") } returns user
+        every { user.hasRole(scimManagedRole) } returns scimManaged
 
         return ExistingUserInfo(
             "user-id-1",
@@ -150,7 +164,9 @@ class DetectExistingUserAuthenticatorTest {
         assertNull(authNotes[EXISTING_USER_INFO])
     }
 
-    private fun verifyConfigurationFailure() {
+    private fun verifyConfigurationFailure(
+        expectedMessage: String = DetectExistingUserAuthenticatorConfig.MISSING_ERROR_MESSAGE_KEY_MESSAGE,
+    ) {
         val exception =
             assertThrows<AuthenticationFlowException> {
                 authenticator.authenticate(context)
@@ -158,7 +174,7 @@ class DetectExistingUserAuthenticatorTest {
 
         assertEquals(AuthenticationFlowError.INTERNAL_ERROR, exception.error)
         assertEquals(
-            DetectExistingUserAuthenticatorConfig.MISSING_ERROR_MESSAGE_KEY_MESSAGE,
+            expectedMessage,
             exception.message,
         )
 
@@ -172,6 +188,34 @@ class DetectExistingUserAuthenticatorTest {
         verify(exactly = 0) {
             context.failure(any<AuthenticationFlowError>(), any<Response>())
         }
+    }
+
+    @Test
+    fun `authenticate - required role name should be trimmed`() {
+        every { config.config } returns
+            mutableMapOf(
+                "errorMessageKey" to "userNotAllowed",
+                DetectExistingUserAuthenticatorConfig.REQUIRED_ROLE to "  $REQUIRED_ROLE_NAME  ",
+            )
+        val expectedUserInfo = mockExistingUser()
+
+        authenticator.authenticate(context)
+
+        assertEquals(expectedUserInfo, authNotes[EXISTING_USER_INFO])
+        verify(exactly = 1) { context.success() }
+    }
+
+    @ParameterizedTest
+    @NullAndEmptySource
+    @ValueSource(strings = ["   "])
+    fun `authenticate - missing or blank required role should throw`(roleName: String?) {
+        val values = mutableMapOf("errorMessageKey" to "userNotAllowed")
+        if (roleName != null) {
+            values[DetectExistingUserAuthenticatorConfig.REQUIRED_ROLE] = roleName
+        }
+        every { config.config } returns values
+
+        verifyConfigurationFailure(DetectExistingUserAuthenticatorConfig.MISSING_REQUIRED_ROLE_MESSAGE)
     }
 
     @Test
@@ -253,11 +297,52 @@ class DetectExistingUserAuthenticatorTest {
     @Test
     fun `authenticate - error message key should be trimmed`() {
         every { config.config } returns
-            mutableMapOf("errorMessageKey" to "  userNotAllowed  ")
+            mutableMapOf(
+                "errorMessageKey" to "  userNotAllowed  ",
+                DetectExistingUserAuthenticatorConfig.REQUIRED_ROLE to REQUIRED_ROLE_NAME,
+            )
 
         authenticator.authenticate(context)
 
         verifyRejected("userNotAllowed")
+    }
+
+    @Test
+    fun `authenticate - existing user without scim managed role should reject`() {
+        mockExistingUser(scimManaged = false)
+
+        authenticator.authenticate(context)
+
+        verifyRejected()
+    }
+
+    @Test
+    fun `authenticate - missing scim managed realm role should reject`() {
+        mockExistingUser()
+        every { realm.getRole(REQUIRED_ROLE_NAME) } returns null
+
+        authenticator.authenticate(context)
+
+        verifyRejected()
+    }
+
+    @Test
+    fun `authenticate - user removed after matching should reject`() {
+        mockExistingUser()
+        every { users.getUserById(realm, "user-id-1") } returns null
+
+        authenticator.authenticate(context)
+
+        verifyRejected()
+    }
+
+    @Test
+    fun `action - existing user without scim managed role should reject`() {
+        mockExistingUser(scimManaged = false)
+
+        authenticator.action(context)
+
+        verifyRejected()
     }
 
     @Test
@@ -271,6 +356,7 @@ class DetectExistingUserAuthenticatorTest {
         verifyOrder {
             authSession.removeAuthNote(EXISTING_USER_INFO)
             users.getUserByUsername(realm, "test-user")
+            existingUser.hasRole(scimManagedRole)
             authSession.setAuthNote(EXISTING_USER_INFO, expectedUserInfo)
             context.success()
         }
@@ -282,14 +368,14 @@ class DetectExistingUserAuthenticatorTest {
     }
 
     @Test
-    fun `authenticate - rejected retry should clear previously detected user`() {
+    fun `authenticate - role removed before retry should clear previously detected user`() {
         val expectedUserInfo = mockExistingUser()
 
         authenticator.authenticate(context)
 
         assertEquals(expectedUserInfo, authNotes[EXISTING_USER_INFO])
 
-        every { users.getUserByUsername(realm, "test-user") } returns null
+        every { existingUser.hasRole(scimManagedRole) } returns false
 
         authenticator.authenticate(context)
 
@@ -330,5 +416,9 @@ class DetectExistingUserAuthenticatorTest {
         authenticator.action(context)
 
         verifyRejected()
+    }
+
+    private companion object {
+        const val REQUIRED_ROLE_NAME = "broker-login-role"
     }
 }
