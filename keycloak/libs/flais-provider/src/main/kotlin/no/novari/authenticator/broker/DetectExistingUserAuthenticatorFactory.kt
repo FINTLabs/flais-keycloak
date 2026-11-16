@@ -43,7 +43,7 @@ class DetectExistingUserAuthenticatorFactory : AuthenticatorFactory {
                 helpText = "Translation key displayed when no existing account matches."
                 defaultValue = DetectExistingUserAuthenticatorConfig.DEFAULT_ERROR_MESSAGE_KEY
                 isRequired = true
-            }
+            },
         )
 
     override fun init(config: Config.Scope) {
