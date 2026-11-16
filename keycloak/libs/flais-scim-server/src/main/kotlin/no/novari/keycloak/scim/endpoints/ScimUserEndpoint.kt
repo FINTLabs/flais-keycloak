@@ -12,7 +12,6 @@ import com.unboundid.scim2.common.types.Role
 import com.unboundid.scim2.common.utils.ApiConstants
 import com.unboundid.scim2.common.utils.JsonUtils
 import com.unboundid.scim2.server.annotations.ResourceType
-import com.unboundid.scim2.server.utils.ResourcePreparer
 import com.unboundid.scim2.server.utils.SchemaChecker
 import jakarta.ws.rs.Consumes
 import jakarta.ws.rs.DELETE
@@ -43,6 +42,7 @@ import no.novari.keycloak.scim.search.jpa.JpaScimUserSearch
 import no.novari.keycloak.scim.utils.EntraScimTransformer
 import no.novari.keycloak.scim.utils.ResourcePath
 import no.novari.keycloak.scim.utils.ResourceTypeDefinitionUtil.createResourceTypeDefinition
+import no.novari.keycloak.scim.utils.ScimResourcePreparer
 import no.novari.keycloak.scim.utils.ScimRoles
 import no.novari.keycloak.scim.utils.UserPrincipalNameDomainMatcher
 import org.jboss.logging.Logger
@@ -218,7 +218,6 @@ class ScimUserEndpoint(
     @Produces(ApiConstants.MEDIA_TYPE_SCIM, MediaType.APPLICATION_JSON)
     fun getUser(
         @PathParam("id") id: String,
-        @Context uriInfo: UriInfo,
     ): Response {
         val user =
             scimContext.orgProvider
@@ -239,7 +238,11 @@ class ScimUserEndpoint(
 
         val scimUser =
             translateUser(user).let {
-                val resourcePreparer = ResourcePreparer<UserResource>(RESOURCE_TYPE_DEFINITION, uriInfo)
+                val resourcePreparer =
+                    ScimResourcePreparer<UserResource>(
+                        RESOURCE_TYPE_DEFINITION,
+                        scimContext.session.context.uri,
+                    )
                 resourcePreparer.setResourceTypeAndLocation(it)
                 resourcePreparer.trimRetrievedResource(it)
             }
@@ -249,14 +252,11 @@ class ScimUserEndpoint(
     @POST
     @Produces(ApiConstants.MEDIA_TYPE_SCIM, MediaType.APPLICATION_JSON)
     @Consumes(ApiConstants.MEDIA_TYPE_SCIM, MediaType.APPLICATION_JSON)
-    fun createUser(
-        @Context uriInfo: UriInfo,
-        scimUser: UserResource,
-    ): Response {
+    fun createUser(scimUser: UserResource): Response {
         val resourcePreparer =
-            ResourcePreparer<UserResource>(
+            ScimResourcePreparer<UserResource>(
                 RESOURCE_TYPE_DEFINITION,
-                uriInfo,
+                scimContext.session.context.uri,
             )
         val node = SCHEMA_CHECKER.removeReadOnlyAttributes(scimUser.asGenericScimResource().objectNode)
         val normalizedNode = EntraScimTransformer.normalizeExtensionSchemas(node, RESOURCE_TYPE_DEFINITION)
@@ -295,7 +295,7 @@ class ScimUserEndpoint(
             translateUser(user).let {
                 resourcePreparer.trimCreatedResource(it, scimUser)
             }
-        val resultURI = UriBuilder.fromUri(uriInfo.requestUri).path(result.id).build()
+        val resultURI = UriBuilder.fromUri(scimContext.session.context.uri.absolutePath).path(result.id).build()
         return Response.created(resultURI).entity(result).build()
     }
 
@@ -304,7 +304,6 @@ class ScimUserEndpoint(
     @Produces(ApiConstants.MEDIA_TYPE_SCIM, MediaType.APPLICATION_JSON)
     @Consumes(ApiConstants.MEDIA_TYPE_SCIM, MediaType.APPLICATION_JSON)
     fun updateUser(
-        @Context uriInfo: UriInfo,
         @PathParam("id") id: String,
         updatedScimUser: UserResource,
     ): Response {
@@ -331,9 +330,9 @@ class ScimUserEndpoint(
         val result =
             translateUser(user).let {
                 val resourcePreparer =
-                    ResourcePreparer<UserResource>(
+                    ScimResourcePreparer<UserResource>(
                         RESOURCE_TYPE_DEFINITION,
-                        uriInfo,
+                        scimContext.session.context.uri,
                     )
                 resourcePreparer.trimReplacedResource(it, updatedScimUser)
             }
@@ -346,7 +345,6 @@ class ScimUserEndpoint(
     @Produces(ApiConstants.MEDIA_TYPE_SCIM, MediaType.APPLICATION_JSON)
     @Consumes(ApiConstants.MEDIA_TYPE_SCIM, MediaType.APPLICATION_JSON)
     fun patchUser(
-        @Context uriInfo: UriInfo,
         @PathParam("id") id: String,
         patchOperations: PatchRequest,
     ): Response {
@@ -381,9 +379,9 @@ class ScimUserEndpoint(
         val result =
             translateUser(user).let {
                 val resourcePreparer =
-                    ResourcePreparer<UserResource>(
+                    ScimResourcePreparer<UserResource>(
                         RESOURCE_TYPE_DEFINITION,
-                        uriInfo,
+                        scimContext.session.context.uri,
                     )
                 resourcePreparer.trimModifiedResource(it, patchOperations)
             }

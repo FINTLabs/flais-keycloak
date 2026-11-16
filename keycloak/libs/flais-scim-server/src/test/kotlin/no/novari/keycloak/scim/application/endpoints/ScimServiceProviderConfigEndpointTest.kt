@@ -1,16 +1,23 @@
 package no.novari.keycloak.scim.application.endpoints
 
+import io.mockk.every
+import io.mockk.mockk
 import no.novari.keycloak.scim.endpoints.ScimServiceProviderConfigEndpoint
 import no.novari.keycloak.scim.utils.TestUriInfo
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
+import org.keycloak.models.KeycloakSession
 import java.net.URI
 
 class ScimServiceProviderConfigEndpointTest {
-    private val endpoint = ScimServiceProviderConfigEndpoint()
     private var uriInfo = TestUriInfo(URI("http://localhost/scim/v2/ServiceProviderConfig"))
+    private val session =
+        mockk<KeycloakSession>(relaxed = true).also {
+            every { it.context.uri } answers { uriInfo.asKeycloakUriInfo() }
+        }
+    private val endpoint = ScimServiceProviderConfigEndpoint(session)
 
     @Test
     fun `serviceProviderConfig returns expected capabilities`() {
@@ -43,7 +50,7 @@ class ScimServiceProviderConfigEndpointTest {
 
     @Test
     fun `get returns GenericScimResource with config and meta populated`() {
-        val node = endpoint.get(uriInfo).objectNode
+        val node = endpoint.get().objectNode
 
         val patchNode = node["patch"]
         assertTrue(patchNode["supported"].asBoolean())
