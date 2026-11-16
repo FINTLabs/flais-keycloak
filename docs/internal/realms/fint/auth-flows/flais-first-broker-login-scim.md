@@ -29,9 +29,10 @@ Both executions run in the following order:
 
 **Requirement:** Required
 
-This execution checks for a matching existing user account.
+This execution checks for a matching existing user account with the configured
+required realm role (`scim-managed` for this flow).
 
-If no matching user exists, authentication fails. The flow does not create
+If no matching user exists or the user lacks the required role, authentication fails. The flow does not create
 a new account.
 
 ### Configuration
@@ -41,11 +42,14 @@ a new account.
 | Alias                           | `flais-first-broker-login-scim - detect-existing-user-config` | Identifies this execution's configuration     |
 | Authenticator Reference         | Not set                                                       | No explicit value configured                  |
 | Authenticator Reference Max Age | Not set                                                       | No explicit value configured                  |
+| Required realm role             | `scim-managed` | Realm role the matching user must have |
 | Error message key               | `userNotProvisioned`                                          | Message key used when no matching user exists |
 
 ### Notes
 
 - The user must be provisioned through SCIM before their first broker login.
+- `requiredRole` must name a realm role. Missing or blank configuration is a configuration error; a nonexistent role rejects login.
+- The role check uses Keycloak effective role membership, including composite and group-inherited roles.
 - The displayed error text depends on the translation configured for `userNotProvisioned`.
 
 ## Execution: Automatically set existing user

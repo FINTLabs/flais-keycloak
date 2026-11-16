@@ -6,9 +6,8 @@ How SCIM creates and updates users in FINT.
 
 ## User creation
 
-Users has to be created through SCIM before their first login.
-
-For organizations using scim, a matching user account must already exist before first login. The login will be rejected if there are no users provisioned before login.
+For organizations using SCIM, users must be provisioned before their first login.
+Login is rejected if no matching local account exists. This flow does not create users.
 
 SCIM supplies the attributes, such as `employeeId` and `studentNumber`. The provisioned user
 is associated with an organization. SCIM does not create the organization.
