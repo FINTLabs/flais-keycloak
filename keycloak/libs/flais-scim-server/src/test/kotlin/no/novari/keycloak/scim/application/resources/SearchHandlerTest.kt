@@ -1,52 +1,59 @@
 package no.novari.keycloak.scim.application.resources
 
 import com.unboundid.scim2.common.GenericScimResource
-import com.unboundid.scim2.common.ScimResource
 import com.unboundid.scim2.common.messages.ListResponse
 import com.unboundid.scim2.common.messages.SortOrder
 import com.unboundid.scim2.common.utils.ApiConstants
-import com.unboundid.scim2.server.utils.ResourcePreparer
-import com.unboundid.scim2.server.utils.ResourceTypeDefinition
-import io.mockk.Runs
-import io.mockk.every
-import io.mockk.just
-import io.mockk.mockk
-import io.mockk.mockkConstructor
 import jakarta.ws.rs.core.MultivaluedHashMap
 import jakarta.ws.rs.core.UriInfo
+import no.novari.keycloak.scim.endpoints.ScimUserEndpoint
 import no.novari.keycloak.scim.resources.SearchHandler
+import no.novari.keycloak.scim.utils.ResourceTypeDefinitionUtil.createResourceTypeDefinition
 import no.novari.keycloak.scim.utils.TestUriInfo
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.ValueSource
 import java.net.URI
 
 class SearchHandlerTest {
-    private fun mockScimInfrastructure() {
-        mockkConstructor(ResourcePreparer::class)
-
-        every {
-            anyConstructed<ResourcePreparer<ScimResource>>().setResourceTypeAndLocation(any())
-        } just Runs
-    }
-
     private fun uriInfoWithParams(vararg params: Pair<String, String>): UriInfo {
         val query = MultivaluedHashMap<String, String>()
         params.forEach { (key, value) -> query.add(key, value) }
 
         return TestUriInfo(
-            URI("http://localhost/scim/v2/Users"),
+            URI("http://localhost/realms/external/scim/v2/org-id/Users"),
             query,
         )
     }
 
     private fun createHandler(vararg params: Pair<String, String>): SearchHandler<GenericScimResource> {
-        mockScimInfrastructure()
-        val resourceType = mockk<ResourceTypeDefinition>(relaxed = true)
+        val resourceType = createResourceTypeDefinition<ScimUserEndpoint>()
         val uriInfo = uriInfoWithParams(*params)
         return SearchHandler(resourceType, uriInfo)
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = [false, true])
+    fun `prepares metadata for every user in index and cursor pages`(cursorPagination: Boolean) {
+        val result =
+            createHandler().createPagedSearchResult(
+                sequenceOf("alice", "bob").map { id -> GenericScimResource().apply { this.id = id } },
+                totalResults = 2,
+                cursorPagination = cursorPagination,
+            )
+
+        assertEquals(2, result.resources.size)
+        result.resources.forEach { resource ->
+            assertEquals("User", resource.objectNode["meta"]["resourceType"].asText())
+            assertEquals(
+                "http://localhost/realms/external/scim/v2/org-id/Users/${resource.id}",
+                resource.objectNode["meta"]["location"].asText(),
+            )
+        }
     }
 
     @Test

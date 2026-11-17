@@ -5,6 +5,8 @@ import com.unboundid.scim2.common.GenericScimResource
 import com.unboundid.scim2.common.exceptions.ForbiddenException
 import com.unboundid.scim2.common.exceptions.ResourceNotFoundException
 import com.unboundid.scim2.common.messages.ListResponse
+import io.mockk.every
+import io.mockk.mockk
 import no.novari.keycloak.scim.endpoints.ScimSchemaEndpoint
 import no.novari.keycloak.scim.endpoints.ScimUserEndpoint
 import no.novari.keycloak.scim.utils.TestUriInfo
@@ -12,22 +14,27 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertNotNull
 import org.junit.jupiter.api.assertThrows
+import org.keycloak.models.KeycloakSession
 import java.net.URI
 
 class ScimSchemaEndpointTest {
     private var uriInfo = TestUriInfo(URI("http://localhost/scim/v2/Schemas"))
-    private val endpoint = ScimSchemaEndpoint(listOf(ScimUserEndpoint::class))
+    private val session =
+        mockk<KeycloakSession>(relaxed = true).also {
+            every { it.context.uri } answers { uriInfo.asKeycloakUriInfo() }
+        }
+    private val endpoint = ScimSchemaEndpoint(session, listOf(ScimUserEndpoint::class))
 
     @Test
     fun `search throws ForbiddenException when filter is provided`() {
         assertThrows<ForbiddenException> {
-            endpoint.search(uriInfo, "id eq \"test\"")
+            endpoint.search("id eq \"test\"")
         }
     }
 
     @Test
     fun `search returns schemas and user schema contains externalId attribute`() {
-        val response: ListResponse<GenericScimResource> = endpoint.search(uriInfo, null)
+        val response: ListResponse<GenericScimResource> = endpoint.search(null)
 
         val userSchema =
             response.resources.firstOrNull {
@@ -55,7 +62,7 @@ class ScimSchemaEndpointTest {
     @Test
     fun `get returns schema when requested by id`() {
         val id = "urn:ietf:params:scim:schemas:core:2.0:User"
-        val node = endpoint.get(id, uriInfo).objectNode
+        val node = endpoint.get(id).objectNode
 
         assertEquals(id, node["id"].asText())
         assertEquals("User", node["name"].asText())
@@ -63,7 +70,7 @@ class ScimSchemaEndpointTest {
 
     @Test
     fun `get returns schema when requested by name`() {
-        val node = endpoint.get("User", uriInfo).objectNode
+        val node = endpoint.get("User").objectNode
 
         assertEquals("urn:ietf:params:scim:schemas:core:2.0:User", node["id"].asText())
         assertEquals("User", node["name"].asText())
@@ -72,7 +79,7 @@ class ScimSchemaEndpointTest {
     @Test
     fun `get throws ResourceNotFoundException when schema does not exist`() {
         assertThrows<ResourceNotFoundException> {
-            endpoint.get("does-not-exist", uriInfo)
+            endpoint.get("does-not-exist")
         }
     }
 }
