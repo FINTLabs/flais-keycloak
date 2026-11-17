@@ -1,14 +1,22 @@
 import React from "react";
 import "./SubmitButton.css";
-import {cn} from "../utils/cn.ts";
+import { cn } from "../utils/cn.ts";
 
 export interface SubmitButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   text: string;
 }
 
-const SubmitButtonComponent = ({ text, className, ...buttonProps }: SubmitButtonProps) => {
+const SubmitButtonComponent = ({
+  text,
+  className,
+  ...buttonProps
+}: SubmitButtonProps) => {
   return (
-    <button type="submit" className={cn("login-action", className)} {...buttonProps}>
+    <button
+      type="submit"
+      className={cn("login-action", className)}
+      {...buttonProps}
+    >
       {text}
     </button>
   );
