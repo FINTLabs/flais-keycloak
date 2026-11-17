@@ -12,8 +12,8 @@ const meta = {
     children: (
       <LoginCard>
         <LoginHeader
-          title="A steady starting position"
-          subtitle="The card stays horizontally centered with a consistent top position across pages, while its height follows the content."
+          title="Centered on your screen"
+          subtitle="The card stays centered horizontally and vertically, with space to scroll when the screen is shorter than the content."
         />
       </LoginCard>
     ),

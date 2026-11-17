@@ -1,6 +1,0 @@
-@layer components {
-  .login-page {
-    /* Keep the top steady across pages while the card fits its content. */
-    padding-top: clamp(1.5rem, 30svh, 20rem);
-  }
-}
