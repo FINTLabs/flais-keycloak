@@ -20,7 +20,7 @@ const IdpButtonComponent = ({ alias, name }: IdpButtonProps) => {
         focus:outline-none focus:ring-2 focus:ring-inset focus:ring-focus
       "
     >
-      <span className="font-medium text-content">{name}</span>
+      <span className="font-medium text-accent">{name}</span>
       <svg
         aria-hidden="true"
         className="h-5 w-5 shrink-0 text-icon"

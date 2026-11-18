@@ -6,8 +6,11 @@ import com.microsoft.playwright.BrowserType
 import com.microsoft.playwright.Page
 import com.microsoft.playwright.Playwright
 import com.microsoft.playwright.Tracing
+import org.apache.commons.lang3.SystemUtils
 import org.junit.jupiter.api.extension.ExtensionConfigurationException
+import java.io.File
 import java.lang.management.ManagementFactory
+import java.nio.file.Files
 
 /**
  * Manages a Playwright lifecycle for tests, providing browser sessions with tracing enabled.
@@ -19,6 +22,7 @@ import java.lang.management.ManagementFactory
  */
 class PwEnvironment : AutoCloseable {
     private var playwright: Playwright? = null
+    private var firefoxAppData: File? = null
 
     companion object {
         private val currentSessionTL = ThreadLocal<Session?>()
@@ -66,12 +70,23 @@ class PwEnvironment : AutoCloseable {
                 .inputArguments
                 .any { it.contains("-agentlib:jdwp") }
 
-        val browser =
-            browserType.launch(
-                BrowserType
-                    .LaunchOptions()
-                    .setHeadless(!isDebug),
+        val launchOptions = BrowserType.LaunchOptions().setHeadless(!isDebug)
+        if (browserName == "firefox" && SystemUtils.IS_OS_MAC_OSX) {
+            // macOS protects the real Firefox app data even when using a temporary profile. https://bugzilla.mozilla.org/show_bug.cgi?id=2078511
+            val appData =
+                firefoxAppData ?: Files.createTempDirectory("playwright-firefox-app-data").toFile().also {
+                    firefoxAppData = it
+                }
+            launchOptions.setEnv(
+                System.getenv() +
+                    mapOf(
+                        "MOZ_APP_DATA" to File(appData, "AppData").absolutePath,
+                        "MOZ_LOCAL_APP_DATA" to File(appData, "LocalAppData").absolutePath,
+                    ),
             )
+        }
+
+        val browser = browserType.launch(launchOptions)
 
         val ctxOptions = Browser.NewContextOptions()
         val ctx = browser.newContext(ctxOptions)
@@ -104,5 +119,7 @@ class PwEnvironment : AutoCloseable {
 
         runCatching { playwright?.close() }
         playwright = null
+        firefoxAppData?.deleteRecursively()
+        firefoxAppData = null
     }
 }

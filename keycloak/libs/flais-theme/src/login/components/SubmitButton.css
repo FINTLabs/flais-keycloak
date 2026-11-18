@@ -1,0 +1,7 @@
+@reference "../main.css";
+
+@layer components {
+  .login-action {
+    @apply inline-flex min-h-11 cursor-pointer items-center justify-center rounded-md bg-primary px-5 py-2.5 text-sm font-semibold text-on-primary transition-colors hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2 focus-visible:ring-offset-focus-offset disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-primary;
+  }
+}

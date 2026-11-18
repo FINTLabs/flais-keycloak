@@ -8,13 +8,23 @@
 }
 
 @layer base {
+  :root {
+    color-scheme: light dark;
+    scrollbar-gutter: stable;
+  }
+
+  :root[data-theme="light"] {
+    color-scheme: light;
+  }
+
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+  }
+
   html,
   body {
     background-color: var(--color-page);
     color: var(--color-content);
-
-    @media (prefers-color-scheme: light) {
-      color-scheme: light;
-    }
+    font-family: var(--font-display);
   }
 }
