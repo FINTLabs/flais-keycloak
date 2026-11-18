@@ -15,26 +15,26 @@
     "storybook": "storybook dev -p 6006"
   },
   "dependencies": {
-    "@tailwindcss/vite": "4.3.4",
+    "@tailwindcss/vite": "4.3.5",
     "clsx": "2.1.1",
     "keycloakify": "11.16.4",
     "react": "19.3.1",
     "react-dom": "19.3.1",
     "tailwind-merge": "3.7.0",
-    "tailwindcss": "4.3.4"
+    "tailwindcss": "4.3.5"
   },
   "devDependencies": {
-    "@storybook/addon-mcp": "10.6.6",
-    "@storybook/react": "10.6.6",
-    "@storybook/react-vite": "10.6.6",
+    "@storybook/addon-mcp": "10.6.7",
+    "@storybook/react": "10.6.7",
+    "@storybook/react-vite": "10.6.7",
     "@types/react": "19.3.0",
     "@types/react-dom": "19.3.0",
-    "@vitejs/plugin-react": "6.2.1",
-    "oxfmt": "0.76.0",
-    "oxlint": "1.91.0",
-    "storybook": "10.6.6",
+    "@vitejs/plugin-react": "6.3.0",
+    "oxfmt": "0.78.0",
+    "oxlint": "1.93.0",
+    "storybook": "10.6.7",
     "typescript": "7.0.2",
-    "vite": "8.3.6"
+    "vite": "8.3.8"
   },
   "engines": {
     "node": "26"
