@@ -42,13 +42,16 @@ const OrgSelectComponent = ({
 
   return (
     <div>
-      <label htmlFor="selected_org" className="sr-only">
+      <label
+        htmlFor="selected_org"
+        className="mb-2 block text-sm font-medium text-content"
+      >
         {i18n.msgStr("chooseOrg")}
       </label>
 
       <LogoDropdownInput
         id="selected_org"
-        placeholder={i18n.msgStr("chooseOrg")}
+        placeholder={i18n.msgStr("searchOrgPlaceholder")}
         name="selected_org"
         options={options}
         onChange={onChange}

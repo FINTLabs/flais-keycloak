@@ -84,8 +84,13 @@ class FlaisLoginThemeTest {
 
         continueButton.click()
 
-        assertThat(page.locator("#org-not-selected-error"))
-            .hasText("Please select an affiliation to continue")
+        val validationError = page.locator("#org-not-selected-error")
+        assertThat(validationError).isVisible()
+        assertThat(validationError).hasAttribute("role", "alert")
+        assertThat(validationError)
+            .containsText("Please select an affiliation to continue")
+        assertThat(page.locator("#selected_org"))
+            .hasAttribute("aria-invalid", "true")
     }
 
     @TestTemplate
@@ -235,9 +240,9 @@ class FlaisLoginThemeTest {
         navigateToLogout(env, page)
 
         assertThat(page.locator("#login-title"))
-            .hasText("Log out")
+            .hasText("Sign out")
 
-        assertThat(page.getByText("Do you want to log out?"))
+        assertThat(page.getByText("Are you sure you want to sign out?"))
             .isVisible()
 
         val logoutConfirm = page.locator("#kc-logout-confirm")
@@ -246,7 +251,7 @@ class FlaisLoginThemeTest {
         val logoutButton = logoutConfirm.locator("#kc-logout")
         assertThat(logoutButton).isVisible()
         assertThat(logoutButton).isEnabled()
-        assertThat(logoutButton).hasText("Log out")
+        assertThat(logoutButton).hasText("Yes")
 
         assertThat(page.locator("#backToApplication")).hasCount(0)
     }

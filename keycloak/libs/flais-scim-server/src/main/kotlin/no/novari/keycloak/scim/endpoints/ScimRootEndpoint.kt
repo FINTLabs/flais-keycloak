@@ -15,11 +15,11 @@ class ScimRootEndpoint(
     fun users() = ScimUserEndpoint(scimContext)
 
     @Path("Schemas")
-    fun schemas() = ScimSchemaEndpoint(resourceClasses)
+    fun schemas() = ScimSchemaEndpoint(scimContext.session, resourceClasses)
 
     @Path("ServiceProviderConfig")
-    fun serviceProviderConfig() = ScimServiceProviderConfigEndpoint()
+    fun serviceProviderConfig() = ScimServiceProviderConfigEndpoint(scimContext.session)
 
     @Path("ResourceTypes")
-    fun resourceTypes() = ScimResourceTypesEndpoint(resourceClasses)
+    fun resourceTypes() = ScimResourceTypesEndpoint(scimContext.session, resourceClasses)
 }
