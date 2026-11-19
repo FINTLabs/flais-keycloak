@@ -8,6 +8,8 @@ object SharedExtensionStore {
     const val KC_ENV = "kc-env"
     const val KC_CFG = "kc-config"
 
+    const val SCIM_USERS = "scim-users"
+
     const val PW_ENV = "pw-env"
     const val PW_SESSION = "pw-session"
     const val PW_PAGE = "pw-page"

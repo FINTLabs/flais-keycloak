@@ -7,19 +7,20 @@ import no.novari.test.common.fixture.TestStrings.Idps
 import no.novari.test.common.fixture.TestStrings.Orgs
 import no.novari.test.common.fixture.TestStrings.Pages
 import no.novari.test.common.fixture.TestStrings.Scopes
-import no.novari.test.common.fixture.TestStrings.Users
+import no.novari.test.common.utils.ScimFlow.ScimUser
 import no.novari.test.integration.utils.KcContextParser
-import no.novari.test.integration.utils.KcFlow.loginWithUser
+import no.novari.test.integration.utils.KcFlow.loginWithMicrosoftScimUser
 import no.novari.test.integration.utils.KcFlow.openAuthUrl
 import no.novari.test.integration.utils.KcHttpClient
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertNotNull
 import org.junit.jupiter.api.extension.ExtendWith
+import kotlin.collections.any
+import kotlin.collections.orEmpty
 
 @ExtendWith(KcEnvironmentExtension::class)
 class OrgCookieAuthenticatorTest {
-    private val username = Users.ALICE_TELEMARK
     private val clientId = Clients.FLAIS_KEYCLOAK_DEMO
     private val orgAlias = Orgs.TELEMARK
     private val idpAlias = Idps.ENTRA_TELEMARK
@@ -37,10 +38,28 @@ class OrgCookieAuthenticatorTest {
     }
 
     @Test
-    fun `identity cookie with organization scope and allowed telemark org restores organization and returns code`(env: KcEnvironment) {
+    fun `identity cookie with organization scope and allowed telemark org restores organization and returns code`(
+        env: KcEnvironment,
+        scimUsers: List<ScimUser>,
+    ) {
         val client = KcHttpClient.create(followRedirects = true)
 
-        loginWithUser(env, clientId, orgAlias, idpAlias, username, client, scope = Scopes.ORGANIZATION).use { resp ->
+        val user =
+            scimUsers.single { user ->
+                user.emails.orEmpty().any {
+                    it.value.endsWith("$orgAlias.no")
+                }
+            }
+
+        loginWithMicrosoftScimUser(
+            env,
+            clientId,
+            orgAlias,
+            idpAlias,
+            user = user,
+            httpClient = client,
+            scope = Scopes.ORGANIZATION,
+        ).use { resp ->
             assertEquals(200, resp.code)
 
             openAuthUrl(env = env, clientId = clientId, httpClient = client, scope = Scopes.ORGANIZATION).use { resp ->
@@ -52,10 +71,28 @@ class OrgCookieAuthenticatorTest {
     }
 
     @Test
-    fun `identity cookie with organization scope and client org access denied falls through to organization flow`(env: KcEnvironment) {
+    fun `identity cookie with organization scope and client org access denied falls through to organization flow`(
+        env: KcEnvironment,
+        scimUsers: List<ScimUser>,
+    ) {
         val client = KcHttpClient.create(followRedirects = true)
 
-        loginWithUser(env, clientId, orgAlias, idpAlias, username, client, scope = Scopes.ORGANIZATION).use { resp ->
+        val user =
+            scimUsers.single { user ->
+                user.emails.orEmpty().any {
+                    it.value.endsWith("$orgAlias.no")
+                }
+            }
+
+        loginWithMicrosoftScimUser(
+            env,
+            clientId,
+            orgAlias,
+            idpAlias,
+            user,
+            httpClient = client,
+            scope = Scopes.ORGANIZATION,
+        ).use { resp ->
             assertEquals(200, resp.code)
 
             openAuthUrl(

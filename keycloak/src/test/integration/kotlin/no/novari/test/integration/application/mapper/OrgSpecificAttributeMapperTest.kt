@@ -9,9 +9,9 @@ import no.novari.test.common.fixture.TestStrings.Orgs
 import no.novari.test.common.fixture.TestStrings.Realms
 import no.novari.test.common.fixture.TestStrings.Scopes
 import no.novari.test.common.fixture.TestStrings.Uris
-import no.novari.test.common.fixture.TestStrings.Users
 import no.novari.test.common.utils.KcUrl
-import no.novari.test.integration.utils.KcFlow.loginWithUser
+import no.novari.test.common.utils.ScimFlow.ScimUser
+import no.novari.test.integration.utils.KcFlow.loginWithMicrosoftScimUser
 import no.novari.test.integration.utils.KcHttpClient
 import no.novari.test.integration.utils.KcToken
 import no.novari.test.integration.utils.KcToken.exchangeCodeForAccessToken
@@ -23,12 +23,13 @@ import org.junit.jupiter.params.provider.ValueSource
 
 @ExtendWith(KcEnvironmentExtension::class)
 class OrgSpecificAttributeMapperTest {
-    @ParameterizedTest(name = "org-specific-attribute-mapper for org ({0}) maps correctly ")
+    @ParameterizedTest(name = "org-specific-attribute-mapper for org ({0}) maps correctly")
     @ValueSource(strings = [Orgs.TELEMARK, Orgs.ROGALAND])
     fun `org-specific-attribute-mapper maps attribute correctly to access token`(
         orgAlias: String,
         env: KcEnvironment,
         kcConfig: KcConfig,
+        scimUsers: List<ScimUser>,
     ) {
         val client = KcHttpClient.create(followRedirects = true)
         val realm = Realms.EXTERNAL
@@ -36,7 +37,13 @@ class OrgSpecificAttributeMapperTest {
         val redirectUri = Uris.redirectCallback(env.flaisKeycloakDemoUrl())
         val scope = Scopes.PROFILE_EMAIL_ORGANIZATION
         val idpAlias = Idps.entra(orgAlias)
-        val username = Users.alice(orgAlias)
+        val user =
+            scimUsers.single { user ->
+                user.emails.orEmpty().any {
+                    it.value.endsWith("@$orgAlias.no")
+                }
+            }
+
         val (authUrl, codeVerifier) =
             KcUrl.authUrl(
                 env = env,
@@ -46,14 +53,14 @@ class OrgSpecificAttributeMapperTest {
             )
         requireNotNull(codeVerifier)
 
-        loginWithUser(
+        loginWithMicrosoftScimUser(
             env,
             clientId,
             orgAlias,
             idpAlias,
-            username,
-            client,
-            authUrl,
+            user,
+            httpClient = client,
+            httpUrl = authUrl,
             hasIdpSelector = (orgAlias == Orgs.TELEMARK),
         ).use { resp ->
             assertEquals(200, resp.code)

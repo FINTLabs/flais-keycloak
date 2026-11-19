@@ -8,29 +8,41 @@ import no.novari.test.common.fixture.TestStrings.Orgs
 import no.novari.test.common.fixture.TestStrings.Realms
 import no.novari.test.common.fixture.TestStrings.Scopes
 import no.novari.test.common.fixture.TestStrings.Uris
-import no.novari.test.common.fixture.TestStrings.Users
 import no.novari.test.common.utils.KcUrl
-import no.novari.test.integration.utils.KcFlow.loginWithUser
+import no.novari.test.common.utils.ScimFlow.ScimUser
+import no.novari.test.integration.utils.KcFlow.loginWithMicrosoftScimUser
 import no.novari.test.integration.utils.KcHttpClient
 import no.novari.test.integration.utils.KcToken
 import no.novari.test.integration.utils.KcToken.exchangeCodeForAccessToken
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertNotNull
 import org.junit.jupiter.api.extension.ExtendWith
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.ValueSource
+import kotlin.collections.any
+import kotlin.collections.orEmpty
 
 @ExtendWith(KcEnvironmentExtension::class)
 class PublicClientMapperTest {
-    @Test
-    fun `map_roles_to_token maps roles correctly to access token`(env: KcEnvironment) {
+    @ParameterizedTest(name = "map_roles_to_token maps roles correctly for org ({0})")
+    @ValueSource(strings = [Orgs.TELEMARK, Orgs.ROGALAND])
+    fun `map_roles_to_token maps roles correctly to access token`(
+        orgAlias: String,
+        env: KcEnvironment,
+        scimUsers: List<ScimUser>,
+    ) {
         val client = KcHttpClient.create(followRedirects = true)
         val realm = Realms.EXTERNAL
         val clientId = Clients.FLAIS_KEYCLOAK_DEMO
         val redirectUri = Uris.redirectCallback(env.flaisKeycloakDemoUrl())
         val scope = Scopes.PROFILE_EMAIL
-        val orgAlias = Orgs.TELEMARK
-        val idpAlias = Idps.ENTRA_TELEMARK
-        val username = Users.ALICE_TELEMARK
+        val idpAlias =
+            when (orgAlias) {
+                Orgs.TELEMARK -> Idps.ENTRA_TELEMARK
+                Orgs.ROGALAND -> Idps.ENTRA_ROGALAND
+                else -> error("Unsupported organization: $orgAlias")
+            }
+
         val (authUrl, codeVerifier) =
             KcUrl.authUrl(
                 env = env,
@@ -40,14 +52,22 @@ class PublicClientMapperTest {
             )
         requireNotNull(codeVerifier)
 
-        loginWithUser(
+        val user =
+            scimUsers.single { user ->
+                user.emails.orEmpty().any {
+                    it.value.endsWith("@$orgAlias.no")
+                }
+            }
+
+        loginWithMicrosoftScimUser(
             env,
             clientId,
             orgAlias,
             idpAlias,
-            username,
-            client,
-            authUrl,
+            user,
+            httpClient = client,
+            httpUrl = authUrl,
+            hasIdpSelector = orgAlias == Orgs.TELEMARK,
         ).use { resp ->
             assertEquals(200, resp.code)
 
@@ -66,13 +86,18 @@ class PublicClientMapperTest {
                 )
             assertNotNull(accessToken)
 
-            val roles = KcToken.decodeClaim(accessToken, "roles")
-            assertNotNull(roles)
+            val rolesClaim = KcToken.decodeClaim(accessToken, "roles")
+            val roles =
+                rolesClaim as? List<*>
+                    ?: throw AssertionError("roles should be a list: $rolesClaim")
 
-            roles as? List<*>
-                ?: throw AssertionError("roles should be a list: $roles")
-
-            assertEquals(listOf("read", "write", "admin"), roles)
+            assertEquals(
+                user.roles
+                    .orEmpty()
+                    .mapNotNull { it.value }
+                    .toSet(),
+                roles.toSet(),
+            )
         }
     }
 }

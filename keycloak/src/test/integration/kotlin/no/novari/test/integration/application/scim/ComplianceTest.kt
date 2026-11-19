@@ -6,9 +6,8 @@ import kotlinx.serialization.json.jsonPrimitive
 import no.novari.test.common.config.KcConfig
 import no.novari.test.common.environment.kc.KcEnvironment
 import no.novari.test.common.environment.kc.KcEnvironmentExtension
+import no.novari.test.common.fixture.TestStrings.ComplianceUsers
 import no.novari.test.common.fixture.TestStrings.Orgs
-import no.novari.test.common.fixture.TestStrings.Realms
-import no.novari.test.common.fixture.TestStrings.Users
 import no.novari.test.common.utils.ScimFlow
 import no.novari.test.common.utils.ScimFlow.ScimUser
 import no.novari.test.common.utils.ScimHttpClient
@@ -31,8 +30,6 @@ import java.time.Duration
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @ExtendWith(KcEnvironmentExtension::class)
 class ComplianceTest {
-    private val realm = Realms.EXTERNAL
-
     private val users =
         mapOf(
             Orgs.TELEMARK to
@@ -41,10 +38,10 @@ class ComplianceTest {
                         listOf(
                             "urn:ietf:params:scim:schemas:core:2.0:User",
                         ),
-                    externalId = Users.JON_TELEMARK,
-                    userName = Users.JON_TELEMARK,
+                    externalId = ComplianceUsers.JON_TELEMARK,
+                    userName = ComplianceUsers.JON_TELEMARK,
                     active = true,
-                    emails = listOf(ScimUser.Email(Users.JON_TELEMARK_EMAIL, primary = true)),
+                    emails = listOf(ScimUser.Email(ComplianceUsers.JON_TELEMARK_EMAIL, primary = true)),
                     roles =
                         listOf(
                             ScimUser.Role("read", "read", "WindowsAzureActiveDirectoryRole", false),
@@ -52,11 +49,11 @@ class ComplianceTest {
                         ),
                     fintUserExtension =
                         ScimUser.FintUserExtension(
-                            Users.JON_FIRST_NAME,
-                            Users.BASIC_LAST_NAME,
+                            ComplianceUsers.JON_FIRST_NAME,
+                            ComplianceUsers.BASIC_LAST_NAME,
                             "1234",
                             "1234",
-                            Users.JON_TELEMARK_EMAIL,
+                            ComplianceUsers.JON_TELEMARK_EMAIL,
                         ),
                 ),
             Orgs.ROGALAND to
@@ -65,10 +62,10 @@ class ComplianceTest {
                         listOf(
                             "urn:ietf:params:scim:schemas:core:2.0:User",
                         ),
-                    externalId = Users.JON_ROGALAND,
-                    userName = Users.JON_ROGALAND,
+                    externalId = ComplianceUsers.JON_ROGALAND,
+                    userName = ComplianceUsers.JON_ROGALAND,
                     active = true,
-                    emails = listOf(ScimUser.Email(Users.JON_ROGALAND_EMAIL, primary = true)),
+                    emails = listOf(ScimUser.Email(ComplianceUsers.JON_ROGALAND_EMAIL, primary = true)),
                     roles =
                         listOf(
                             ScimUser.Role("read", "read", "WindowsAzureActiveDirectoryRole", false),
@@ -76,11 +73,11 @@ class ComplianceTest {
                         ),
                     fintUserExtension =
                         ScimUser.FintUserExtension(
-                            Users.JON_FIRST_NAME,
-                            Users.BASIC_LAST_NAME,
+                            ComplianceUsers.JON_FIRST_NAME,
+                            ComplianceUsers.BASIC_LAST_NAME,
                             "1234",
                             "1234",
-                            Users.JON_ROGALAND_EMAIL,
+                            ComplianceUsers.JON_ROGALAND_EMAIL,
                         ),
                 ),
         )

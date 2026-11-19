@@ -6,11 +6,11 @@ How SCIM creates and updates users in FINT.
 
 ## User creation
 
-Users can be created through SCIM before their first login. A user may also be
-created during first broker login and updated later by SCIM. The two processes
-are independent.
+For organizations using SCIM, users must be provisioned before their first login.
+First broker login is rejected if no matching local account exists or the account
+lacks the `scim-managed` realm role required by the flow. This flow does not create users.
 
-SCIM supplies the `employeeId` and `studentNumber` attributes. The provisioned user
+SCIM supplies the attributes, such as `employeeId` and `studentNumber`. The provisioned user
 is associated with an organization. SCIM does not create the organization.
 
 ## User updates

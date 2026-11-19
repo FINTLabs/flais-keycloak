@@ -62,9 +62,9 @@ object KcAdminClient {
     fun createUser(
         realm: RealmResource,
         username: String,
-        email: String,
-        firstName: String,
-        lastName: String,
+        email: String? = null,
+        firstName: String? = null,
+        lastName: String? = null,
         enabled: Boolean = true,
         realmRoleNames: List<String> = emptyList(),
     ): String {
