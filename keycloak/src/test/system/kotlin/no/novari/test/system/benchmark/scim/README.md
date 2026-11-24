@@ -4,6 +4,10 @@ Requires Java 21 and Docker. JUnit starts the test environment, seeds users thro
 the Keycloak Admin API, runs k6 in a container, and cleans up afterward.
 No local k6 installation is needed. Benchmarks are skipped unless explicitly enabled.
 
+The pinned k6 image is defined in `keycloak/docker-compose.benchmark.yaml`.
+The test reads it using `docker compose config`; Testcontainers manages execution
+and report collection. Dependabot updates the image through its Compose configuration.
+
 ## Run
 
 From `keycloak/`, run both benchmarks:
