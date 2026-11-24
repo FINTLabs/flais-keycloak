@@ -35,7 +35,6 @@ class LocalKcEnvironment(
             )
 
             withEnv("KOVER_AGENT_JAR_NAME", koverAgentJar()?.name)
-            withEnv("KEYCLOAK_VERSION", System.getenv("KEYCLOAK_VERSION"))
 
             withExposedService("keycloak", 9000)
             withExposedService("keycloak", 8080)

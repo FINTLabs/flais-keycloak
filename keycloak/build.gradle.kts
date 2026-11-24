@@ -155,7 +155,6 @@ tasks.withType<Test>().configureEach {
     systemProperty("org.slf4j.simpleLogger.defaultLogLevel", "debug")
     systemProperty("project.rootDir", rootProject.projectDir.absolutePath)
 
-    environment("KEYCLOAK_VERSION", libs.versions.keycloak.get())
     environment("PLAYWRIGHT_VERSION", libs.versions.playwright.get())
 
     testLogging {
@@ -292,7 +291,6 @@ val composeFiles =
 fun Exec.configureCompose(vararg args: String) {
     group = "docker"
     workingDir(projectDir)
-    environment("KEYCLOAK_VERSION", libs.versions.keycloak.get())
     commandLine(
         "docker",
         "compose",

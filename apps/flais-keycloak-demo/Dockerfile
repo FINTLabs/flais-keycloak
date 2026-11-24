@@ -1,7 +1,7 @@
 # -----------------------------
 # Stage: Build
 # -----------------------------
-FROM node:25-alpine AS build
+FROM node:25-alpine@sha256:bdf2cca6fe3dabd014ea60163eca3f0f7015fbd5c7ee1b0e9ccb4ced6eb02ef4 AS build
 
 WORKDIR /app
 
@@ -12,7 +12,7 @@ RUN npm install && npm run build
 # -----------------------------
 # Stage: Runtime
 # -----------------------------
-FROM nginx:1.31.3-alpine-slim
+FROM nginx:1.31.3-alpine-slim@sha256:45b82ed5f285b90d63df07ba70430fdd8f25624b416617d9e6dc93412b2006dc
 
 COPY --from=build /app/dist /usr/share/nginx/html
 COPY /nginx.conf /etc/nginx/conf.d/default.conf
