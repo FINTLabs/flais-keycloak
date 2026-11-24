@@ -12,7 +12,8 @@ const { useI18n, ofTypeI18n } = i18nBuilder
       chooseIdpSubtitle: "Velg metoden du ønsker å bruke for å logge inn",
       chooseOrg: "Velg tilhørighet",
       rememberOrgTitle: "Huske organisasjonen?",
-      rememberOrgSubtitle: "Gjør neste innlogging enklere ved å huske valget ditt.",
+      rememberOrgSubtitle:
+        "Gjør neste innlogging enklere ved å huske valget ditt.",
       rememberOrgYes: "Ja",
       rememberOrgNo: "Nei",
       chooseOrgSubtitle:
