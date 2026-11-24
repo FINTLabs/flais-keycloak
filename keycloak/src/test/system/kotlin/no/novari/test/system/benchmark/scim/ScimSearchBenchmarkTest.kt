@@ -83,11 +83,23 @@ class ScimSearchBenchmarkTest {
         }
     }
 
+    private fun k6Image(): String {
+        val composeFile = File(System.getProperty("project.rootDir"), "docker-compose.benchmark.yaml")
+        val process =
+            ProcessBuilder("docker", "compose", "-f", composeFile.absolutePath, "config", "--images", "k6")
+                .redirectError(ProcessBuilder.Redirect.INHERIT)
+                .start()
+        val image = process.inputStream.bufferedReader().use { it.readText().trim() }
+        check(process.waitFor() == 0) { "Failed to read k6 image from $composeFile" }
+        check(image.isNotBlank() && image.lines().size == 1) { "Expected exactly one k6 image in $composeFile" }
+        return image
+    }
+
     private fun runK6(
         fixture: File,
         reportDir: File,
     ) {
-        K6Container("grafana/k6:2.2.0")
+        K6Container(k6Image())
             .withNetworkMode("keycloak")
             .withWorkingDirectory("/home/k6")
             .withTestScript(MountableFile.forClasspathResource("k6/scim-benchmark.js"))

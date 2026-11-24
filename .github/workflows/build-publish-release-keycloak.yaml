@@ -17,25 +17,14 @@ permissions:
   packages: write
 
 jobs:
-  keycloak-version:
-    name: Read Keycloak version
-    uses: ./.github/workflows/.extract-version.yaml
-    with:
-      libs_versions_path: ./keycloak/gradle/libs.versions.toml
-      lib_name: "keycloak"
-    secrets: inherit
-
   build-publish:
     name: Build and Publish Flais Keycloak
     uses: ./.github/workflows/.build-publish-docker.yaml
-    needs:
-      - keycloak-version
     secrets: inherit
     with:
       image_name: ${{ github.repository }}
       context: ./keycloak
       environment: ${{ inputs.environment }}
-      keycloak_version: ${{ needs.keycloak-version.outputs.version }}
 
   publish-chart:
     name: Publish Flais Keycloak Helm Chart
@@ -43,6 +32,7 @@ jobs:
     uses: ./.github/workflows/.chart-publish.yaml
     with:
       image_tags: ${{ needs.build-publish.outputs.image_tags }}
+      image_digest: ${{ needs.build-publish.outputs.image_digest }}
       chart_name: ${{ github.event.repository.name }}
     secrets: inherit
 

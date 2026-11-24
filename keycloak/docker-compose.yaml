@@ -6,8 +6,6 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-      args:
-        KEYCLOAK_VERSION: ${KEYCLOAK_VERSION}
     command: >
       start-dev
       --import-realm
@@ -32,7 +30,7 @@ services:
       - keycloak
 
   keycloak-pg:
-    image: postgres:18-alpine
+    image: postgres:18-alpine@sha256:0115267ab5a509022df9319c77be365cef335adb71556c75f60f5360ee247e71
     environment:
       POSTGRES_DB: keycloak
       POSTGRES_USER: keycloak
@@ -50,7 +48,7 @@ services:
   # Helper services
   # ----------------------
   mock-idp:
-    image: ghcr.io/navikt/mock-oauth2-server:7.0.1
+    image: ghcr.io/navikt/mock-oauth2-server:7.0.1@sha256:eb07a0a65007c34c40c7b849592a47e6299128a514a5c6c582a53451cc6e3390
     healthcheck:
       test:
         - CMD

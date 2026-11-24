@@ -7,6 +7,10 @@ on:
         description: "The image tag of the application"
         type: string
         required: true
+      image_digest:
+        description: "Published application image digest"
+        type: string
+        required: true
       chart_name:
         description: "The name of the chart"
         type: string
@@ -20,12 +24,12 @@ jobs:
       contents: read
     steps:
       - name: Checkout code
-        uses: actions/checkout@v7
+        uses: actions/checkout@v7.0.1
         with:
           fetch-depth: 0
 
       - id: commit-hash
-        uses: prompt/actions-commit-hash@v4
+        uses: prompt/actions-commit-hash@v4.0.0
 
       - id: versions
         run: |
@@ -36,18 +40,21 @@ jobs:
           echo "Extracted version: $version"
           echo "app_version=$version" >> $GITHUB_OUTPUT
 
-      - name: Update Chart.yaml
+      - name: Update chart metadata and image digest
         uses: mikefarah/yq@v4.54.3
         with:
           cmd: |
             yq e -i '.version = "${{ steps.versions.outputs.chart_version }}"' ./charts/${{ inputs.chart_name }}/Chart.yaml
+            yq e -i '.image.digest = "${{ inputs.image_digest }}"' ./charts/${{ inputs.chart_name }}/values.yaml
             yq e -i '.appVersion = "${{ steps.versions.outputs.app_version }}"' ./charts/${{ inputs.chart_name }}/Chart.yaml
 
       - name: Save Chart Meta
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v7.0.2
         with:
           name: ${{ inputs.chart_name }}-chart-metadata
-          path: ./charts/${{ inputs.chart_name }}/Chart.yaml
+          path: |
+            ./charts/${{ inputs.chart_name }}/Chart.yaml
+            ./charts/${{ inputs.chart_name }}/values.yaml
 
   publish-chart:
     name: Publish Helm Chart
@@ -58,7 +65,7 @@ jobs:
       packages: write
     steps:
       - name: Checkout code
-        uses: actions/checkout@v7
+        uses: actions/checkout@v7.0.1
         with:
           fetch-depth: 0
 
