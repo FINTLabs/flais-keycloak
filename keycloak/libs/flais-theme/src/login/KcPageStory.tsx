@@ -114,6 +114,11 @@ export const mockOrganizations = [
 ];
 
 const kcContextExtensionPerPage: KcContextExtensionPerPage = {
+  "flais-org-remember.ftl": {
+    url: {
+      registrationAction: "",
+    },
+  },
   "flais-org-selector.ftl": {
     organizations: mockOrganizations,
     url: {

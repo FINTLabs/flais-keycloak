@@ -11,6 +11,10 @@ const { useI18n, ofTypeI18n } = i18nBuilder
       chooseIdp: "Velg identitetsleverandør",
       chooseIdpSubtitle: "Velg metoden du ønsker å bruke for å logge inn",
       chooseOrg: "Velg tilhørighet",
+      rememberOrgTitle: "Huske organisasjonen?",
+      rememberOrgSubtitle: "Gjør neste innlogging enklere ved å huske valget ditt.",
+      rememberOrgYes: "Ja",
+      rememberOrgNo: "Nei",
       chooseOrgSubtitle:
         "Søk etter eller velg organisasjonen du tilhører for å logge inn.",
       searchOrgPlaceholder: "Søk, f.eks. Telemark",
@@ -35,6 +39,10 @@ const { useI18n, ofTypeI18n } = i18nBuilder
       chooseIdp: "Choose identity provider",
       chooseIdpSubtitle: "Choose the method you want to use to log in",
       chooseOrg: "Choose affiliation",
+      rememberOrgTitle: "Remember your organization?",
+      rememberOrgSubtitle: "Make signing in easier by remembering your choice.",
+      rememberOrgYes: "Yes",
+      rememberOrgNo: "No",
       chooseOrgSubtitle:
         "Search for your organization or choose it from the list to sign in.",
       searchOrgPlaceholder: "Search, e.g. Telemark",

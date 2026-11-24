@@ -38,7 +38,17 @@ class OrgSelectionUiAuthenticatorFactory :
     override fun getHelpText(): String =
         "Presents the user with a list of organizations they are permitted to log in with for the current client."
 
-    override fun getConfigProperties(): List<ProviderConfigProperty> = mutableListOf()
+    override fun getConfigProperties(): List<ProviderConfigProperty> =
+        listOf(
+            ProviderConfigProperty().apply {
+                name = OrgSelectionUiAuthenticatorConfig.USE_REMEMBERED_ORGANIZATION
+                label = "Preselect remembered organization"
+                type = ProviderConfigProperty.BOOLEAN_TYPE
+                defaultValue = true
+                helpText = "Use the remembered organization cookie to preselect an allowed organization. " +
+                    "Does not change the remember organization confirmation step."
+            },
+        )
 
     override fun init(config: Config.Scope) {
         // No required actions needed

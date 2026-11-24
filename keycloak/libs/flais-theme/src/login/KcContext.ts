@@ -10,7 +10,13 @@ export type KcContextExtension = {
 };
 
 export type KcContextExtensionPerPage = {
+  "flais-org-remember.ftl": {
+    url: {
+      registrationAction: string;
+    };
+  };
   "flais-org-selector.ftl": {
+    defaultSelectedOrg?: string;
     organizations: {
       alias: string;
       name: string;

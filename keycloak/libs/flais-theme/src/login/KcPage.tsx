@@ -5,6 +5,7 @@ import type { KcContext } from "./KcContext";
 import { useI18n } from "./i18n";
 import DefaultPage from "keycloakify/login/DefaultPage";
 import Template from "keycloakify/login/Template";
+import { FlaisOrgRemember } from "./pages/FlaisOrgRemember";
 import { FlaisOrgSelector } from "./pages/FlaisOrgSelector";
 import { FlaisOrgIdpSelector } from "./pages/FlaisOrgIdpSelector";
 import { FlaisError } from "./pages/FlaisError";
@@ -31,6 +32,8 @@ export default function KcPage(props: { kcContext: KcContext }) {
             return <FlaisLogoutConfirm kcContext={kcContext} i18n={i18n} />;
           case "error.ftl":
             return <FlaisError kcContext={kcContext} i18n={i18n} />;
+          case "flais-org-remember.ftl":
+            return <FlaisOrgRemember kcContext={kcContext} i18n={i18n} />;
           case "flais-org-selector.ftl":
             return <FlaisOrgSelector kcContext={kcContext} i18n={i18n} />;
           case "flais-org-idp-selector.ftl":

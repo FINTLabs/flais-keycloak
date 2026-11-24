@@ -4,6 +4,7 @@ import no.novari.attributes.OrgAttribute
 import no.novari.dtos.OrgDto
 import no.novari.flow.AuthenticationErrorHandler.failure
 import no.novari.provider.ClientOrgAccessProvider
+import no.novari.utils.OrgRememberCookie.cookieName
 import org.jboss.logging.Logger
 import org.keycloak.authentication.AuthenticationFlowContext
 import org.keycloak.authentication.Authenticator
@@ -71,10 +72,6 @@ class OrgSelectionUiAuthenticator : Authenticator {
             )
             context.authenticationSession.setAuthNote(Details.ORG_ID, org.id)
 
-            val rememberMe = formData.getFirst(Details.REMEMBER_ME) ?: ""
-            if (rememberMe == "on") {
-                context.authenticationSession.setAuthNote(Details.REMEMBER_ME, "true")
-            }
             context.success()
             return
         }
@@ -94,6 +91,12 @@ class OrgSelectionUiAuthenticator : Authenticator {
         organizations: List<OrganizationModel>,
         error: String? = null,
     ) {
+        val defaultSelectedOrg = getDefaultSelectedOrganization(context, organizations)
+        logger.debugf(
+            "Resolved default organization selection. client=%s org=%s",
+            context.authenticationSession.client.clientId,
+            defaultSelectedOrg,
+        )
         val form =
             context
                 .form()
@@ -109,8 +112,29 @@ class OrgSelectionUiAuthenticator : Authenticator {
                             OrgDto(org.alias, org.name, logo)
                         }
                     setAttribute("organizations", orgDto)
+                    setAttribute("defaultSelectedOrg", defaultSelectedOrg)
                 }.createForm("flais-org-selector.ftl")
         context.challenge(form)
+    }
+
+    private fun getDefaultSelectedOrganization(
+        context: AuthenticationFlowContext,
+        organizations: List<OrganizationModel>,
+    ): String {
+        if (
+            context.authenticatorConfig
+                ?.config
+                ?.get(OrgSelectionUiAuthenticatorConfig.USE_REMEMBERED_ORGANIZATION)
+                ?.toBooleanStrictOrNull() == false
+        ) {
+            return ""
+        }
+
+        val name = cookieName(context.authenticationSession.client.clientId)
+        val rememberedOrg =
+            context.httpRequest.httpHeaders.cookies[name]
+                ?.value ?: return ""
+        return organizations.find { it.alias == rememberedOrg }?.alias ?: ""
     }
 
     override fun requiresUser(): Boolean = false
