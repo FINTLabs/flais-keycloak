@@ -23,21 +23,62 @@ updates:
       interval: "weekly"
       day: "sunday"
     open-pull-requests-limit: 15
+    groups:
+      backend:
+        patterns:
+          - "*"
+        # We wanna keep transitive overrides in individual PRs.
+        exclude-patterns:
+          - "io.netty:*"
+          - "com.google.protobuf:*"
+          - "io.opentelemetry:*"
+          - "com.fasterxml.jackson*:*"
+          - "ch.qos.logback:*"
+          - "org.codehaus.plexus:*"
+          - "org.apache.logging.log4j:*"
+        update-types:
+          - "minor"
+          - "patch"
 
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
       interval: "weekly"
       day: "sunday"
+    groups:
+      github-actions:
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"
 
   - package-ecosystem: "docker"
-    directory: "/keycloak/"
+    directories:
+      - "/keycloak/"
+      - "/keycloak/tools/scimverify/"
+      - "/keycloak/tools/flais-scim-auth/"
+      - "/apps/flais-keycloak-demo/"
     schedule:
       interval: "weekly"
       day: "sunday"
+    groups:
+      docker-images:
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"
 
   - package-ecosystem: "docker-compose"
     directory: "/keycloak/"
     schedule:
       interval: "weekly"
       day: "sunday"
+    groups:
+      compose-images:
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"
