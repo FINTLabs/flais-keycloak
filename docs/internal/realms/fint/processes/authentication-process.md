@@ -11,10 +11,11 @@ This section describes the high-level authentication flow.
 3. SSO cookie is checked — if valid and org is allowed, login completes immediately
 4. Organization is selected
 5. IDP is selected
-6. Organization context is committed to the session
-7. User authenticates with external IDP
-8. Post-broker-login flow verifies the IDP org is allowed for the client
-9. Keycloak processes callback and redirects back with a code
+6. If the selected organization is not already remembered for this client, the user chooses whether to remember it
+7. Organization context is committed to the session
+8. User is redirected to and authenticates with the external IDP
+9. Post-broker-login flow verifies the IDP org is allowed for the client
+10. Keycloak processes callback and redirects back with a code
 
 ## Organization access and identity-provider selection
 
@@ -27,11 +28,29 @@ the client cannot access are excluded from selection. If the requested organizat
 is not allowed, access is denied. After external authentication, the post-broker-login
 flow verifies that the IDP actually used belongs to an organization allowed for the client.
 
+## Remembered organization
+
+Organization selection can preselect a remembered organization if it is still
+allowed for the client. A single eligible organization or IDP is selected
+automatically.
+
+Before session commit, the remember execution compares the selected organization
+with this client's cookie. A match skips confirmation. Otherwise, the user chooses
+Yes to save the selection or No to clear the preference before redirecting to the
+IDP. The organization context is committed after this step succeeds. The default
+cookie lifetime is 30 days, configurable on the remember execution.
+
+Preferences are separate for each client. They do not grant organization access,
+authenticate the user, or change SSO session lifetime. Successful SSO still completes
+login without organization selection or remember confirmation.
+
 ## Error handling
 
 - Invalid client or request
 - Client not allowed for organization (enforced at org selection and post-broker-login)
 - No enabled IDPs for the selected organization
+- Selected organization is no longer allowed when confirming the remember preference
+- Missing or invalid remember choice
 - User not allowed to authenticate via the external IDP
 - Broker URL tampering — IDP used does not match the client's permitted organizations
 
@@ -48,11 +67,16 @@ flowchart TD
     is_org_allowed_sso{Is org allowed<br />for client?}
     is_client_access_to_org{Does client have access<br /> to org?}
     is_org_multiple_idps{Does organization have<br /> multiple IDPs?}
+    is_org_remembered{Does this client's cookie<br />match the selected org?}
+    remember_choice{Remember organization?}
     is_idp_org_allowed{Is IDP org allowed<br />for client?<br />post-broker-login}
 
     user_opens_app[User opens application]
     user_selects_org[User selects organization]
     user_selects_idp[User selects IDP]
+    commit_org[Commit organization context]
+    save_org_cookie[Save client preference]
+    clear_org_cookie[Clear client preference]
     user_redirected_keycloak["User is redirected to<br /> Keycloak"]
     user_logs_in_with_ext_idp[User logs in with<br /> external IDP]
 
@@ -84,10 +108,17 @@ flowchart TD
     is_client_access_to_org -- Yes --> is_org_multiple_idps
     is_client_access_to_org -- No --> err_access_denied
     is_org_multiple_idps -- Yes --> kc_redirects_idp_selector
-    is_org_multiple_idps -- No --> kc_redirects_ext_idp
+    is_org_multiple_idps -- No --> is_org_remembered
 
     kc_redirects_idp_selector --> user_selects_idp
-    user_selects_idp --> kc_redirects_ext_idp
+    user_selects_idp --> is_org_remembered
+    is_org_remembered -- Yes --> commit_org
+    is_org_remembered -- No --> remember_choice
+    remember_choice -- Yes --> save_org_cookie
+    remember_choice -- No --> clear_org_cookie
+    save_org_cookie --> commit_org
+    clear_org_cookie --> commit_org
+    commit_org --> kc_redirects_ext_idp
     kc_redirects_ext_idp --> user_logs_in_with_ext_idp
 
     user_logs_in_with_ext_idp --> idp_redirect_to_keycloak
