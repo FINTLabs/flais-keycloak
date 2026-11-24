@@ -14,6 +14,9 @@ import no.novari.test.common.utils.KcAdminClient
 import no.novari.test.common.utils.ScimFlow.ScimUser
 import no.novari.test.system.utils.PwAutoLogin
 import no.novari.test.system.utils.PwFlow
+import no.novari.utils.OrgRememberCookie.cookieName
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.TestTemplate
 import org.keycloak.admin.client.CreatedResponseUtil
 import org.keycloak.representations.idm.ClientRepresentation
@@ -297,6 +300,146 @@ class FlaisLoginThemeTest {
 
         assertThat(page.locator("#kc-logout-confirm")).hasCount(0)
         assertThat(page.locator("#kc-error-message")).hasCount(0)
+    }
+
+    @TestTemplate
+    fun `confirmation offers yes and no and no asks again on next login`(
+        env: KcEnvironment,
+        session: PwEnvironment.Session,
+    ) {
+        val page = session.page
+        openRememberConfirmation(env, page)
+
+        assertThat(page.locator("#login-title")).hasText("Remember your organization?")
+        assertThat(page.getByTestId("remember-org-yes")).hasText("Yes")
+        assertThat(page.getByTestId("remember-org-no")).hasText("No")
+        assertThat(page.locator("input[type='checkbox']")).hasCount(0)
+        PwFlow.continueFromOrgRemember(page)
+        assertThat(page.locator("input[name='username']")).isVisible()
+        assertTrue(session.context().cookies().none { it.name == cookieName(Clients.FLAIS_KEYCLOAK_DEMO) })
+
+        openRememberConfirmation(env, page)
+        assertThat(page.locator("#login-title")).hasText("Remember your organization?")
+    }
+
+    @TestTemplate
+    fun `yes remembers organization and matching selection skips confirmation`(
+        env: KcEnvironment,
+        session: PwEnvironment.Session,
+    ) {
+        val page = session.page
+        openRememberConfirmation(env, page)
+        PwFlow.continueFromOrgRemember(page, rememberOrg = true)
+        assertEquals(
+            Orgs.TELEMARK,
+            session
+                .context()
+                .cookies()
+                .single { it.name == cookieName(Clients.FLAIS_KEYCLOAK_DEMO) }
+                .value,
+        )
+
+        PwFlow.navigateToLogin(env, page, Clients.FLAIS_KEYCLOAK_DEMO)
+        assertThat(page.locator("#selected_org")).hasValue(Orgs.TELEMARK_DISPLAY_NAME)
+        PwFlow.submit(page)
+        PwFlow.continueFromIdpSelector(page, Idps.ENTRA_TELEMARK, hasRememberOrg = false)
+
+        assertThat(page.locator("input[name='username']")).isVisible()
+        assertThat(page.getByTestId("remember-org-form")).hasCount(0)
+    }
+
+    @TestTemplate
+    fun `changing organization asks again and no clears the remembered choice`(
+        env: KcEnvironment,
+        session: PwEnvironment.Session,
+    ) {
+        val page = session.page
+        openRememberConfirmation(env, page)
+        PwFlow.continueFromOrgRemember(page, rememberOrg = true)
+
+        openRememberConfirmation(env, page, orgName = Orgs.ROGALAND_DISPLAY_NAME)
+        assertThat(page.locator("#login-title")).hasText("Remember your organization?")
+        PwFlow.continueFromOrgRemember(page)
+        assertTrue(session.context().cookies().none { it.name == cookieName(Clients.FLAIS_KEYCLOAK_DEMO) })
+
+        PwFlow.navigateToLogin(env, page, Clients.FLAIS_KEYCLOAK_DEMO)
+        assertThat(page.locator("#selected_org")).hasValue("")
+    }
+
+    @TestTemplate
+    fun `clients remember different organizations and clearing one preserves the other`(
+        env: KcEnvironment,
+        session: PwEnvironment.Session,
+    ) {
+        val page = session.page
+        val firstClient = Clients.FLAIS_KEYCLOAK_DEMO
+        val secondClient = Clients.FLAIS_KEYCLOAK_DEMO_ENTRA
+        openRememberConfirmation(env, page, clientId = firstClient)
+        PwFlow.continueFromOrgRemember(page, rememberOrg = true)
+
+        PwFlow.navigateToLogin(env, page, secondClient)
+        assertThat(page.locator("#selected_org")).hasValue("")
+        PwFlow.continueFromOrgSelector(page, Orgs.ROGALAND_DISPLAY_NAME)
+        PwFlow.submit(page, hasRememberOrg = false)
+        assertThat(page.locator("#login-title")).hasText("Remember your organization?")
+        PwFlow.continueFromOrgRemember(page, rememberOrg = true)
+
+        PwFlow.navigateToLogin(env, page, firstClient)
+        assertThat(page.locator("#selected_org")).hasValue(Orgs.TELEMARK_DISPLAY_NAME)
+        PwFlow.navigateToLogin(env, page, secondClient)
+        assertThat(page.locator("#selected_org")).hasValue(Orgs.ROGALAND_DISPLAY_NAME)
+        PwFlow.continueFromOrgSelector(page, Orgs.TELEMARK_DISPLAY_NAME)
+        PwFlow.submit(page)
+        PwFlow.continueFromIdpSelector(page, Idps.ENTRA_TELEMARK, hasRememberOrg = false)
+        assertThat(page.locator("#login-title")).hasText("Remember your organization?")
+        PwFlow.continueFromOrgRemember(page)
+
+        assertTrue(session.context().cookies().none { it.name == cookieName(secondClient) })
+        assertEquals(
+            Orgs.TELEMARK,
+            session
+                .context()
+                .cookies()
+                .single { it.name == cookieName(firstClient) }
+                .value,
+        )
+        PwFlow.navigateToLogin(env, page, firstClient)
+        assertThat(page.locator("#selected_org")).hasValue(Orgs.TELEMARK_DISPLAY_NAME)
+        PwFlow.navigateToLogin(env, page, secondClient)
+        assertThat(page.locator("#selected_org")).hasValue("")
+    }
+
+    @TestTemplate
+    fun `invalid remember choice displays FlaisError`(
+        env: KcEnvironment,
+        session: PwEnvironment.Session,
+    ) {
+        val page = session.page
+        openRememberConfirmation(env, page)
+        val button = page.getByTestId("remember-org-yes")
+        button.evaluate("button => { button.value = 'invalid'; }")
+        button.click()
+
+        assertThat(page.locator("#kc-error-message"))
+            .hasText("Choose whether to remember your organization to continue")
+        assertThat(page.locator("#kc-error-message")).hasAttribute("role", "alert")
+        assertThat(page.getByTestId("remember-org-form")).hasCount(0)
+        assertTrue(session.context().cookies().none { it.name == cookieName(Clients.FLAIS_KEYCLOAK_DEMO) })
+    }
+
+    private fun openRememberConfirmation(
+        env: KcEnvironment,
+        page: Page,
+        clientId: String = Clients.FLAIS_KEYCLOAK_DEMO,
+        orgName: String = Orgs.TELEMARK_DISPLAY_NAME,
+    ) {
+        PwFlow.navigateToLogin(env, page, clientId)
+        PwFlow.continueFromOrgSelector(page, orgName)
+        PwFlow.submit(page, hasRememberOrg = false)
+        if (orgName == Orgs.TELEMARK_DISPLAY_NAME) {
+            PwFlow.continueFromIdpSelector(page, Idps.ENTRA_TELEMARK, hasRememberOrg = false)
+        }
+        assertThat(page.getByTestId("remember-org-form")).isVisible()
     }
 
     private fun assertCallback(
