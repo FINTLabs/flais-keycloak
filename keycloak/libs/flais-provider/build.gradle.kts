@@ -33,6 +33,8 @@ dependencies {
     testImplementation(libs.junit.jupiter)
     testImplementation(libs.mockk)
 
+    testRuntimeOnly(platform(libs.resteasy.bom))
+    testRuntimeOnly(libs.resteasy.core)
     testRuntimeOnly(libs.junit.platform.launcher)
 }
 

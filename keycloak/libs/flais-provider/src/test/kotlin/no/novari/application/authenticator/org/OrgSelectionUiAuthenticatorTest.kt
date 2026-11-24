@@ -5,18 +5,24 @@ import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
 import io.mockk.verify
+import jakarta.ws.rs.core.Cookie
 import jakarta.ws.rs.core.MultivaluedHashMap
 import jakarta.ws.rs.core.Response
 import no.novari.attributes.OrgAttribute
 import no.novari.authenticator.org.OrgSelectionUiAuthenticator
+import no.novari.authenticator.org.OrgSelectionUiAuthenticatorConfig
 import no.novari.dtos.OrgDto
 import no.novari.provider.ClientOrgAccessProvider
+import no.novari.utils.OrgRememberCookie.cookieName
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.NullAndEmptySource
+import org.junit.jupiter.params.provider.ValueSource
 import org.keycloak.authentication.AuthenticationFlowContext
 import org.keycloak.events.Details
 import org.keycloak.forms.login.LoginFormsProvider
-import org.keycloak.http.HttpRequest
+import org.keycloak.models.AuthenticatorConfigModel
 import org.keycloak.models.IdentityProviderModel
 import org.keycloak.models.KeycloakSession
 import org.keycloak.models.OrganizationModel
@@ -34,6 +40,11 @@ class OrgSelectionUiAuthenticatorTest {
 
         every { context.authenticationSession } returns authSession
         every { context.session } returns session
+        every { context.authenticatorConfig } returns null
+        every { authSession.client.clientId } returns "client-a"
+        every { authSession.getAuthNote(Details.ORG_ID) } returns null
+        every { context.httpRequest } returns mockk(relaxed = true)
+        every { context.httpRequest.httpHeaders.cookies } returns emptyMap()
         every { session.getProvider(ClientOrgAccessProvider::class.java) } returns clientOrgAccessProvider
 
         return context
@@ -155,14 +166,14 @@ class OrgSelectionUiAuthenticatorTest {
     @Test
     fun `action - missing selected_org rerenders form with error`() {
         val context = mockContext()
-        val httpRequest = mockk<HttpRequest>()
+        val httpRequest = context.httpRequest
         val formProvider = mockk<LoginFormsProvider>()
         val formResponse = mockk<Response>()
         val org1 = mockOrg("id-1", "org-1", "Org 1")
         val org2 = mockOrg("id-2", "org-2", "Org 2")
 
         every { context.httpRequest } returns httpRequest
-        every { httpRequest.decodedFormParameters } returns MultivaluedHashMap<String, String>()
+        every { httpRequest.decodedFormParameters } returns MultivaluedHashMap()
         every { clientOrgAccessProvider.getAllowedOrgs(context) } returns listOf(org1, org2)
 
         mockFormChallenge(context, formProvider, formResponse)
@@ -177,17 +188,16 @@ class OrgSelectionUiAuthenticatorTest {
     }
 
     @Test
-    fun `action - valid selected_org and remember-me on sets notes and succeeds`() {
+    fun `action - valid selection sets organization note and succeeds`() {
         val context = mockContext(relaxed = true)
         val authSession = context.authenticationSession
-        val httpRequest = mockk<HttpRequest>()
+        val httpRequest = context.httpRequest
         val org = mockOrg("id-1", "org-1", "Org 1")
 
         every { context.httpRequest } returns httpRequest
         every { httpRequest.decodedFormParameters } returns
             MultivaluedHashMap<String, String>().apply {
                 putSingle("selected_org", org.alias)
-                putSingle(Details.REMEMBER_ME, "on")
             }
         every { clientOrgAccessProvider.getAllowedOrgs(context) } returns listOf(org)
 
@@ -195,14 +205,13 @@ class OrgSelectionUiAuthenticatorTest {
 
         verify(exactly = 1) { clientOrgAccessProvider.getAllowedOrgs(context) }
         verify(exactly = 1) { authSession.setAuthNote(Details.ORG_ID, "id-1") }
-        verify(exactly = 1) { authSession.setAuthNote(Details.REMEMBER_ME, "true") }
         verify(exactly = 1) { context.success() }
     }
 
     @Test
     fun `action - selected_org not permitted should fail`() {
         val context = mockContext(relaxed = true)
-        val httpRequest = mockk<HttpRequest>()
+        val httpRequest = context.httpRequest
         val org = mockOrg("id-1", "org-1", "Org 1")
 
         every { context.httpRequest } returns httpRequest
@@ -216,5 +225,114 @@ class OrgSelectionUiAuthenticatorTest {
 
         verify(exactly = 1) { clientOrgAccessProvider.getAllowedOrgs(context) }
         verify(exactly = 0) { context.success() }
+    }
+
+    @Test
+    fun `action - validation rerender preserves remembered organization preselection`() {
+        val context = mockContext()
+        val formProvider = mockk<LoginFormsProvider>()
+        val response = mockk<Response>()
+        every { context.httpRequest.decodedFormParameters } returns MultivaluedHashMap()
+        every { context.httpRequest.httpHeaders.cookies } returns
+            mapOf(cookieName("client-a") to Cookie.Builder(cookieName("client-a")).value("org-2").build())
+        every { clientOrgAccessProvider.getAllowedOrgs(context) } returns
+            listOf(mockOrg("id-1", "org-1", "Org 1"), mockOrg("id-2", "org-2", "Org 2"))
+        mockFormChallenge(context, formProvider, response)
+
+        authenticator.action(context)
+
+        verify { formProvider.setAttribute("defaultSelectedOrg", "org-2") }
+    }
+
+    @ParameterizedTest
+    @NullAndEmptySource
+    @ValueSource(strings = ["true", "invalid"])
+    fun `authenticate - remembered preselection defaults to enabled unless explicitly false`(configuredValue: String?) {
+        val context = mockContext()
+        val authSession = context.authenticationSession
+        val formProvider = mockk<LoginFormsProvider>()
+        val response = mockk<Response>()
+        every { context.authenticatorConfig } returns
+            configuredValue?.let { value ->
+                AuthenticatorConfigModel().apply {
+                    config =
+                        if (value.isEmpty()) {
+                            emptyMap()
+                        } else {
+                            mapOf(OrgSelectionUiAuthenticatorConfig.USE_REMEMBERED_ORGANIZATION to value)
+                        }
+                }
+            }
+        every { context.httpRequest.httpHeaders.cookies } returns
+            mapOf(
+                cookieName("client-a") to Cookie.Builder(cookieName("client-a")).value("org-2").build(),
+                cookieName("client-b") to Cookie.Builder(cookieName("client-b")).value("org-1").build(),
+            )
+        every { clientOrgAccessProvider.getAllowedOrgs(context) } returns
+            listOf(mockOrg("id-1", "org-1", "Org 1"), mockOrg("id-2", "org-2", "Org 2"))
+        mockFormChallenge(context, formProvider, response)
+
+        authenticator.authenticate(context)
+
+        verify { formProvider.setAttribute("defaultSelectedOrg", "org-2") }
+        verify { context.challenge(response) }
+        verify(exactly = 0) { context.success() }
+        verify(exactly = 0) { authSession.setAuthNote(Details.ORG_ID, any()) }
+    }
+
+    @Test
+    fun `authenticate - disabled preselection does not read remembered cookie`() {
+        val context = mockContext()
+        val httpRequest = context.httpRequest
+        val formProvider = mockk<LoginFormsProvider>()
+        val response = mockk<Response>()
+        every { context.authenticatorConfig } returns
+            AuthenticatorConfigModel().apply {
+                config = mapOf(OrgSelectionUiAuthenticatorConfig.USE_REMEMBERED_ORGANIZATION to "false")
+            }
+        every { clientOrgAccessProvider.getAllowedOrgs(context) } returns
+            listOf(mockOrg("id-1", "org-1", "Org 1"), mockOrg("id-2", "org-2", "Org 2"))
+        mockFormChallenge(context, formProvider, response)
+
+        authenticator.authenticate(context)
+
+        verify { formProvider.setAttribute("defaultSelectedOrg", "") }
+        verify { context.challenge(response) }
+        verify(exactly = 0) { httpRequest.httpHeaders }
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = ["org-unknown", "id-2", ""])
+    fun `authenticate - remembered cookie must match an allowed organization alias`(rememberedOrg: String) {
+        val context = mockContext()
+        val formProvider = mockk<LoginFormsProvider>()
+        val response = mockk<Response>()
+        every { context.httpRequest.httpHeaders.cookies } returns
+            mapOf(cookieName("client-a") to Cookie.Builder(cookieName("client-a")).value(rememberedOrg).build())
+        every { clientOrgAccessProvider.getAllowedOrgs(context) } returns
+            listOf(mockOrg("id-1", "org-1", "Org 1"), mockOrg("id-2", "org-2", "Org 2"))
+        mockFormChallenge(context, formProvider, response)
+
+        authenticator.authenticate(context)
+
+        verify { formProvider.setAttribute("defaultSelectedOrg", "") }
+        verify { context.challenge(response) }
+    }
+
+    @Test
+    fun `authenticate - cookie belonging to another client is ignored`() {
+        val context = mockContext()
+        val formProvider = mockk<LoginFormsProvider>()
+        val response = mockk<Response>()
+        every { context.httpRequest.httpHeaders.cookies } returns
+            mapOf(cookieName("client-b") to Cookie.Builder(cookieName("client-b")).value("org-2").build())
+        every { clientOrgAccessProvider.getAllowedOrgs(context) } returns
+            listOf(mockOrg("id-1", "org-1", "Org 1"), mockOrg("id-2", "org-2", "Org 2"))
+        mockFormChallenge(context, formProvider, response)
+
+        authenticator.authenticate(context)
+
+        verify { formProvider.setAttribute("defaultSelectedOrg", "") }
+        verify { context.challenge(response) }
     }
 }
