@@ -5,6 +5,7 @@ import no.novari.dtos.OrgDto
 import no.novari.flow.AuthenticationErrorHandler.failure
 import no.novari.provider.ClientOrgAccessProvider
 import no.novari.utils.OrgRememberCookie.cookieName
+import no.novari.utils.OrgRememberCookie.decodeValue
 import org.jboss.logging.Logger
 import org.keycloak.authentication.AuthenticationFlowContext
 import org.keycloak.authentication.Authenticator
@@ -133,7 +134,8 @@ class OrgSelectionUiAuthenticator : Authenticator {
         val name = cookieName(context.authenticationSession.client.clientId)
         val rememberedOrg =
             context.httpRequest.httpHeaders.cookies[name]
-                ?.value ?: return ""
+                ?.value
+                ?.let(::decodeValue) ?: return ""
         return organizations.find { it.alias == rememberedOrg }?.alias ?: ""
     }
 

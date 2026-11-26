@@ -4,6 +4,8 @@ import jakarta.ws.rs.core.NewCookie
 import no.novari.flow.AuthenticationErrorHandler.failure
 import no.novari.provider.ClientOrgAccessProvider
 import no.novari.utils.OrgRememberCookie.cookieName
+import no.novari.utils.OrgRememberCookie.decodeValue
+import no.novari.utils.OrgRememberCookie.encodeValue
 import org.jboss.logging.Logger
 import org.keycloak.authentication.AuthenticationFlowContext
 import org.keycloak.authentication.Authenticator
@@ -25,6 +27,7 @@ class OrgRememberUiAuthenticator : Authenticator {
         val rememberedOrg =
             context.httpRequest.httpHeaders.cookies[cookieName]
                 ?.value
+                ?.let(::decodeValue)
         if (rememberedOrg == organization.alias) {
             logger.debugf(
                 "Remembered organization matches selection, skipping confirmation. client=%s org=%s",
@@ -69,7 +72,7 @@ class OrgRememberUiAuthenticator : Authenticator {
         val cookie =
             NewCookie
                 .Builder(cookieName(context.authenticationSession.client.clientId))
-                .value(if (rememberOrg) organization.alias else "")
+                .value(if (rememberOrg) encodeValue(organization.alias) else "")
                 .path(cookiePath)
                 .maxAge(if (rememberOrg) getCookieMaxAge(context) else 0)
                 .secure(SecureContextResolver.isSecureContext(context.session))
