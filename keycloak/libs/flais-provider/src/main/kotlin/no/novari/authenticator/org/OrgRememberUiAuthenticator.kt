@@ -19,7 +19,8 @@ class OrgRememberUiAuthenticator : Authenticator {
     private val logger: Logger = Logger.getLogger(OrgRememberUiAuthenticator::class.java)
 
     override fun authenticate(context: AuthenticationFlowContext) {
-        val organization = selectedOrganization(context) ?: return
+        val organization =
+            selectedOrganization(context) ?: return context.failure("No permitted organization selected")
         val cookieName = cookieName(context.authenticationSession.client.clientId)
         val rememberedOrg =
             context.httpRequest.httpHeaders.cookies[cookieName]
@@ -43,7 +44,8 @@ class OrgRememberUiAuthenticator : Authenticator {
     }
 
     override fun action(context: AuthenticationFlowContext) {
-        val organization = selectedOrganization(context) ?: return
+        val organization =
+            selectedOrganization(context) ?: return context.failure("No permitted organization selected")
         val rememberOrg =
             context.httpRequest.decodedFormParameters
                 .getFirst("remember_org")
@@ -121,7 +123,6 @@ class OrgRememberUiAuthenticator : Authenticator {
                 context.authenticationSession.client.clientId,
                 selectedOrg,
             )
-            context.failure("No permitted organization selected")
         }
 
         return organization
