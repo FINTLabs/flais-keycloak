@@ -6,6 +6,7 @@ import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 import no.novari.test.common.environment.kc.KcEnvironment
+import no.novari.test.common.fixture.TestStrings.Pages
 import no.novari.test.common.utils.KcUrl
 import no.novari.test.common.utils.ScimFlow
 import okhttp3.FormBody
@@ -63,15 +64,31 @@ object KcFlow {
         httpUrl: HttpUrl? = null,
         hasIdpSelector: Boolean = true,
         scope: String? = null,
+        hasRememberOrg: Boolean = true,
+        rememberOrg: Boolean = false,
     ): Response {
         val client = httpClient ?: KcHttpClient.create(followRedirects = true)
         val url = resolveAuthUrl(httpUrl, env, clientId, scope)
 
-        selectOrgAndContinueToIdpSelector(env, clientId, orgAlias, client, url).use { resp ->
+        selectOrgAndContinueToIdpSelector(
+            env,
+            clientId,
+            orgAlias,
+            client,
+            url,
+            hasRememberOrg = hasRememberOrg,
+            rememberOrg = rememberOrg,
+        ).use { resp ->
             if (hasIdpSelector) {
                 val kc = KcContextParser.parseKcContext(resp.body.string())
-                continueFromIdpSelector(kc.url.loginAction!!, idpAlias, client).use { resp ->
-                    return continueFromMockIdp(resp.request.url, username, client, claims)
+                continueFromIdpSelector(
+                    kc.url.loginAction!!,
+                    idpAlias,
+                    client,
+                    hasRememberOrg = hasRememberOrg,
+                    rememberOrg = rememberOrg,
+                ).use { redirect ->
+                    return continueFromMockIdp(redirect.request.url, username, client, claims)
                 }
             } else {
                 return continueFromMockIdp(resp.request.url, username, client, claims)
@@ -95,13 +112,76 @@ object KcFlow {
         url: HttpUrl,
         orgAlias: String,
         httpClient: OkHttpClient? = null,
-    ): Response = post(url, mapOf("selected_org" to orgAlias), resolveClient(httpClient))
+        hasRememberOrg: Boolean = true,
+        rememberOrg: Boolean = false,
+        idpAlias: String? = null,
+    ): Response {
+        val client = resolveClient(httpClient)
+        val response = post(url, mapOf("selected_org" to orgAlias), client)
+        if (idpAlias != null &&
+            response.code == 200 &&
+            !response.request.url.encodedPath
+                .endsWith("/authorize")
+        ) {
+            val kc = KcContextParser.parseKcContext(response.peekBody(Long.MAX_VALUE).string())
+            if (kc.pageId == Pages.FLAIS_ORG_IDP_SELECTOR) {
+                response.close()
+                return continueFromIdpSelector(
+                    kc.url.loginAction!!,
+                    idpAlias,
+                    client,
+                    hasRememberOrg = hasRememberOrg,
+                    rememberOrg = rememberOrg,
+                )
+            }
+        }
+        return continueRememberStep(response, client, hasRememberOrg, rememberOrg)
+    }
 
     fun continueFromIdpSelector(
         url: HttpUrl,
         idpAlias: String,
         httpClient: OkHttpClient? = null,
-    ): Response = post(url, mapOf("identity_provider" to idpAlias), resolveClient(httpClient))
+        hasRememberOrg: Boolean = true,
+        rememberOrg: Boolean = false,
+    ): Response {
+        val client = resolveClient(httpClient)
+        val response = post(url, mapOf("identity_provider" to idpAlias), client)
+        return continueRememberStep(response, client, hasRememberOrg, rememberOrg)
+    }
+
+    private fun continueRememberStep(
+        response: Response,
+        client: OkHttpClient,
+        hasRememberOrg: Boolean,
+        rememberOrg: Boolean,
+    ): Response {
+        if (!hasRememberOrg ||
+            response.code != 200 ||
+            response.request.url.encodedPath
+                .endsWith("/authorize")
+        ) {
+            return response
+        }
+
+        val kc = KcContextParser.parseKcContext(response.peekBody(Long.MAX_VALUE).string())
+        if (kc.pageId != Pages.FLAIS_ORG_REMEMBER) {
+            return response
+        }
+        response.close()
+        return continueFromOrgRemember(kc.url.loginAction!!, rememberOrg, client)
+    }
+
+    fun continueFromOrgRemember(
+        url: HttpUrl,
+        rememberOrg: Boolean = false,
+        httpClient: OkHttpClient? = null,
+    ): Response =
+        post(
+            url,
+            mapOf("remember_org" to rememberOrg.toString()),
+            resolveClient(httpClient),
+        )
 
     fun continueFromMockIdp(
         url: HttpUrl,
@@ -129,6 +209,9 @@ object KcFlow {
         orgAlias: String,
         httpClient: OkHttpClient? = null,
         httpUrl: HttpUrl? = null,
+        hasRememberOrg: Boolean = true,
+        rememberOrg: Boolean = false,
+        idpAlias: String? = null,
     ): Response {
         val client = resolveClient(httpClient)
         val url = resolveAuthUrl(httpUrl, env, clientId)
@@ -136,7 +219,14 @@ object KcFlow {
         openAuthUrl(url, httpClient = client).use { resp ->
             val html = resp.body.string()
             val kc = KcContextParser.parseKcContext(html)
-            return continueFromOrgSelector(kc.url.loginAction!!, orgAlias, client)
+            return continueFromOrgSelector(
+                kc.url.loginAction!!,
+                orgAlias,
+                client,
+                hasRememberOrg = hasRememberOrg,
+                rememberOrg = rememberOrg,
+                idpAlias = idpAlias,
+            )
         }
     }
 
@@ -150,6 +240,8 @@ object KcFlow {
         httpUrl: HttpUrl? = null,
         hasIdpSelector: Boolean = true,
         scope: String? = null,
+        hasRememberOrg: Boolean = true,
+        rememberOrg: Boolean = false,
     ): Response =
         loginWithUser(
             env = env,
@@ -160,6 +252,8 @@ object KcFlow {
             httpClient = httpClient,
             httpUrl = httpUrl,
             hasIdpSelector = hasIdpSelector,
+            hasRememberOrg = hasRememberOrg,
+            rememberOrg = rememberOrg,
             scope = scope,
             claims =
                 buildJsonObject {
@@ -183,6 +277,8 @@ object KcFlow {
         pid: String,
         httpClient: OkHttpClient? = null,
         hasIdpSelector: Boolean = false,
+        hasRememberOrg: Boolean = true,
+        rememberOrg: Boolean = false,
     ): Response =
         loginWithUser(
             env = env,
@@ -192,6 +288,8 @@ object KcFlow {
             username = pid,
             httpClient = httpClient,
             hasIdpSelector = hasIdpSelector,
+            hasRememberOrg = hasRememberOrg,
+            rememberOrg = rememberOrg,
             claims =
                 buildJsonObject {
                     put("pid", pid)

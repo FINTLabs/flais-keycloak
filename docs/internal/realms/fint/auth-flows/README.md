@@ -9,6 +9,7 @@ configured under **Authentication → Flows** in the Keycloak Admin UI.
 
 - [flais-browser](flais-browser.md)
     - Browser login flow with organization and IDP selection
+    - Per-client remembered organization preferences and Yes/No confirmation before IDP redirect
     - SSO cookie handling with organization context restoration
 
 - [flais-first-broker-login](flais-first-broker-login.md)

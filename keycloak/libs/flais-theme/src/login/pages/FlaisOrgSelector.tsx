@@ -25,8 +25,10 @@ const FlaisOrgSelectorComponent = ({
   kcContext,
   i18n,
 }: FlaisOrgSelectorProps) => {
-  const { organizations, url } = kcContext;
-  const [selectedOrg, setSelectedOrg] = useState("");
+  const { organizations, defaultSelectedOrg = "", url } = kcContext;
+  const [selectedOrg, setSelectedOrg] = useState(
+    EXCLUDED_ORG_ALIASES.includes(defaultSelectedOrg) ? "" : defaultSelectedOrg,
+  );
   const [showOrgError, setShowOrgError] = useState(false);
 
   const sortedOrganizations = useMemo(

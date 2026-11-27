@@ -71,6 +71,7 @@ object KcContextParser {
         val message: Message? = null,
         val organizations: List<Organization>? = null,
         val providers: List<Provider>? = null,
+        val defaultSelectedOrg: String? = null,
     )
 
     fun parseKcContext(html: String): KcContext {

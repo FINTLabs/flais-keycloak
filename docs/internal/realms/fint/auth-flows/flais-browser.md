@@ -13,12 +13,12 @@ This flow is the entry point for browser-based login.
 
 ## Top-level executions
 
-| Step / Subflow                      | Type           | Requirement | Notes                                      |
-| ----------------------------------- | -------------- | ----------- | ------------------------------------------ |
-| FLAIS Organization SSO Cookie       | execution      | Alternative | Custom SSO cookie check with org awareness |
-| flais-browser - Organization config | flow (subflow) | Alternative | Custom org/idp selection chain             |
+| Step / Subflow                | Type           | Requirement | Notes                                      |
+| ----------------------------- | -------------- | ----------- | ------------------------------------------ |
+| FLAIS Organization SSO Cookie | execution      | Alternative | Custom SSO cookie check with org awareness |
+| flais-browser - Organization  | flow (subflow) | Alternative | Custom org/idp selection chain             |
 
-## Subflow: flais-browser - Organization config
+## Subflow: flais-browser - Organization
 
 Executions (in order):
 
@@ -26,8 +26,38 @@ Executions (in order):
 | ----------------------------------------------- | ----------- | -------------------------------------------------------------- |
 | FLAIS Organization Selection                    | Required    | Select eligible organization (auto-select if only one)         |
 | FLAIS Organization Identity Provider Selection  | Required    | Determine eligible IDPs for org (prompt if multiple)           |
+| FLAIS Remember Organization Confirmation        | Required    | Remember or forget the selected org for this client            |
 | FLAIS Organization Session Commit               | Required    | Commit selected org into session, auth notes, and client notes |
 | FLAIS Organization Identity Provider Redirector | Required    | Redirect to chosen IDP                                         |
+
+## Configuration
+
+Configure execution settings under **Authentication → Flows**.
+The SSO cookie, IDP selection, session commit, and redirect executions have no
+custom settings.
+
+### FLAIS Organization Selection
+
+| Setting                           | Key                         | Default | Purpose                                                          |
+| --------------------------------- | --------------------------- | ------- | ---------------------------------------------------------------- |
+| Preselect remembered organization | `useRememberedOrganization` | `true`  | Preselect a remembered organization still allowed for the client |
+
+This setting does not change the remember confirmation execution.
+
+### FLAIS Remember Organization Confirmation
+
+| Setting                               | Key                | Default | Purpose                                       |
+| ------------------------------------- | ------------------ | ------- | --------------------------------------------- |
+| Remember organization lifetime (days) | `cookieMaxAgeDays` | `30`    | Lifetime of the saved organization preference |
+
+Accepts positive whole days from `1` to `24855`.
+
+### Notes
+
+- Remember confirmation runs after IDP selection and before session commit.
+- A matching remembered organization skips confirmation. Otherwise, Yes saves the selection and No clears it.
+- Preferences are separate for each client and must still satisfy the client's organization permissions.
+- Successful SSO skips the organization subflow, including remember confirmation.
 
 ## Execution sequence
 
@@ -41,6 +71,7 @@ sequenceDiagram
   participant OCA as OrgCookieAuthenticator
   participant OS as OrgSelectionUiAuthenticator
   participant OIP as OrgIdpSelectionUiAuthenticator
+  participant ORM as OrgRememberUiAuthenticator
   participant OSC as OrgSessionCommitAuthenticator
   participant OR as OrgRedirectorAuthenticator
   participant OP as OrganizationProvider
@@ -66,6 +97,7 @@ sequenceDiagram
     OCA->>KC: attempted()
   end
 
+  Note over KC,OS: Continue here only when SSO did not complete login
   KC->>OS: authenticate()
   OS->>OP: list organizations
   OS->>KC: filter eligible organizations (whitelist/blacklist)
@@ -74,7 +106,8 @@ sequenceDiagram
     OS->>OS: setAuthNote(ORG_ID)
     OS->>KC: success()
   else Multiple eligible orgs
-    OS->>U: show org selection form
+    OS->>OS: Resolve allowed remembered alias if preselection enabled
+    OS->>U: show org selection form with defaultSelectedOrg
     U->>KC: submit selected org
     KC->>OS: action()
     OS->>OS: setAuthNote(ORG_ID)
@@ -96,6 +129,24 @@ sequenceDiagram
     KC->>OIP: action()
     OIP->>OIP: setAuthNote(IDENTITY_PROVIDER)
     OIP->>KC: success()
+  end
+
+  KC->>ORM: authenticate()
+  ORM->>ORM: Validate selected org is still allowed
+  ORM->>ORM: Read remembered cookie for client
+  alt Cookie matches selected org
+    ORM->>KC: success()
+  else Cookie missing or selected org changed
+    ORM->>U: show remember organization confirmation
+    U->>KC: submit Yes or No
+    KC->>ORM: action()
+    ORM->>ORM: Revalidate org and parse boolean choice
+    alt Yes
+      ORM->>U: Set client cookie with configured lifetime
+    else No
+      ORM->>U: Expire client cookie
+    end
+    ORM->>KC: success()
   end
 
   KC->>OSC: authenticate()

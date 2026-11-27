@@ -5,10 +5,14 @@ import no.novari.test.common.environment.kc.KcEnvironmentExtension
 import no.novari.test.common.fixture.TestStrings.Clients
 import no.novari.test.common.fixture.TestStrings.Orgs
 import no.novari.test.common.fixture.TestStrings.Pages
+import no.novari.test.common.fixture.TestStrings.Realms
+import no.novari.test.common.utils.KcUrl
 import no.novari.test.integration.utils.KcContextParser
 import no.novari.test.integration.utils.KcFlow.continueFromOrgSelector
 import no.novari.test.integration.utils.KcFlow.openAuthUrl
 import no.novari.test.integration.utils.KcHttpClient
+import no.novari.utils.OrgRememberCookie.cookieName
+import okhttp3.Cookie
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Test
@@ -16,6 +20,30 @@ import org.junit.jupiter.api.extension.ExtendWith
 
 @ExtendWith(KcEnvironmentExtension::class)
 class OrgSelectionUiAuthenticatorTest {
+    @Test
+    fun `unknown remembered organization is not selected`(env: KcEnvironment) {
+        val client = KcHttpClient.create()
+        val url = KcUrl.authUrl(env, Clients.FLAIS_KEYCLOAK_DEMO).first
+        client.cookieJar.saveFromResponse(
+            url,
+            listOf(
+                Cookie
+                    .Builder()
+                    .name(cookieName(Clients.FLAIS_KEYCLOAK_DEMO))
+                    .value(Orgs.NON_EXISTING)
+                    .hostOnlyDomain(url.host)
+                    .path("/realms/${Realms.EXTERNAL}")
+                    .build(),
+            ),
+        )
+        openAuthUrl(httpUrl = url, httpClient = client).use { response ->
+            assertEquals(200, response.code)
+            val kc = KcContextParser.parseKcContext(response.body.string())
+            assertEquals(Pages.FLAIS_ORG_SELECTOR, kc.pageId)
+            assertEquals("", kc.defaultSelectedOrg)
+        }
+    }
+
     @Test
     fun `client returns page flais-org-selector`(env: KcEnvironment) {
         openAuthUrl(env = env, clientId = Clients.FLAIS_KEYCLOAK_DEMO).use { resp ->

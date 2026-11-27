@@ -1524,7 +1524,7 @@
           "userSetupAllowed": false
         },
         {
-          "authenticator": "org-session-commit-authenticator",
+          "authenticator": "org-remember-ui-authenticator",
           "authenticatorFlow": false,
           "requirement": "REQUIRED",
           "priority": 2,
@@ -1532,10 +1532,18 @@
           "userSetupAllowed": false
         },
         {
-          "authenticator": "org-redirector-authenticator",
+          "authenticator": "org-session-commit-authenticator",
           "authenticatorFlow": false,
           "requirement": "REQUIRED",
           "priority": 3,
+          "autheticatorFlow": false,
+          "userSetupAllowed": false
+        },
+        {
+          "authenticator": "org-redirector-authenticator",
+          "authenticatorFlow": false,
+          "requirement": "REQUIRED",
+          "priority": 4,
           "autheticatorFlow": false,
           "userSetupAllowed": false
         }

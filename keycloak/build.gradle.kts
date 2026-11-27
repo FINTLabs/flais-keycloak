@@ -220,6 +220,7 @@ testing {
             addSuiteSources("system")
 
             dependencies {
+                implementation(project(":libs:flais-provider"))
                 implementation(libs.testcontainers.k6)
             }
 

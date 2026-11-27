@@ -70,5 +70,6 @@ object TestStrings {
         const val ERROR = "error"
         const val FLAIS_ORG_IDP_SELECTOR = "flais-org-idp-selector"
         const val FLAIS_ORG_SELECTOR = "flais-org-selector"
+        const val FLAIS_ORG_REMEMBER = "flais-org-remember"
     }
 }
