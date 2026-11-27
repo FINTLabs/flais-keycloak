@@ -201,6 +201,10 @@ testing {
             commonTestSources()
             addSuiteSources("integration")
 
+            dependencies {
+                implementation(project(":libs:flais-provider"))
+            }
+
             targets {
                 all {
                     testTask.configure {

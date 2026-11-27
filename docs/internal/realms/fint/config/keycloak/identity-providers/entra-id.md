@@ -61,20 +61,20 @@ Some settings may differ depending on the vendor or specific integration.
 
 ### Advanced settings
 
-| Setting                   | Value                       |
-| ------------------------- | --------------------------- |
-| Store tokens              | Off                         |
-| Stored tokens readable    | Off                         |
-| Access Token is JWT       | Off                         |
-| Trust Email               | On                          |
-| Account linking only      | Off                         |
-| Hide on login page        | On                          |
-| Show in account console   | Always                      |
-| Verify essential claim    | Off                         |
-| First login flow override | Not confirmed in these docs |
-| Post login flow           | `flais-post-login-flow`     |
-| Sync mode                 | Force                       |
-| Case-sensitive username   | Off                         |
+| Setting                   | Value                   |
+| ------------------------- | ----------------------- |
+| Store tokens              | Off                     |
+| Stored tokens readable    | Off                     |
+| Access Token is JWT       | Off                     |
+| Trust Email               | On                      |
+| Account linking only      | Off                     |
+| Hide on login page        | On                      |
+| Show in account console   | Always                  |
+| Verify essential claim    | Off                     |
+| First login flow override |                         |
+| Post login flow           | `flais-post-login-flow` |
+| Sync mode                 | Force                   |
+| Case-sensitive username   | Off                     |
 
 > [!NOTE]
 > Set **Post login flow** to `flais-post-login-flow` for every IDP.
@@ -95,8 +95,6 @@ Some settings may differ depending on the vendor or specific integration.
 
 ### Attribute mapping
 
-| Name                             | Mapper type        | Claim   | Target attribute    | Sync mode |
-| -------------------------------- | ------------------ | ------- | ------------------- | --------- |
-| `map_roles_to_roles`             | Attribute Importer | `roles` | `roles`             | Inherit   |
-| `map_upn_to_user_principal_name` | Attribute Importer | `upn`   | `userPrincipalName` | Inherit   |
-| `map_oid_to_external_id`         | Attribute Importer | `oid`   | `externalId`        | Inherit   |
+| Name                 | Mapper type        | Claim   | Target attribute | Sync mode |
+| -------------------- | ------------------ | ------- | ---------------- | --------- |
+| `map_roles_to_roles` | Attribute Importer | `roles` | `roles`          | Inherit   |

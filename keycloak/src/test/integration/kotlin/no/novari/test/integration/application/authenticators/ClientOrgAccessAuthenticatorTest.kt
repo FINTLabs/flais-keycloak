@@ -1,16 +1,16 @@
 package no.novari.test.integration.application.authenticators
 
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.put
 import no.novari.test.common.environment.kc.KcEnvironment
 import no.novari.test.common.environment.kc.KcEnvironmentExtension
 import no.novari.test.common.fixture.TestStrings.Clients
 import no.novari.test.common.fixture.TestStrings.Idps
-import no.novari.test.common.fixture.TestStrings.Orgs
 import no.novari.test.common.fixture.TestStrings.Pages
-import no.novari.test.common.fixture.TestStrings.Users
+import no.novari.test.common.utils.ScimFlow.ScimUser
 import no.novari.test.integration.utils.KcContextParser
 import no.novari.test.integration.utils.KcFlow.continueFromIdpSelector
 import no.novari.test.integration.utils.KcFlow.continueFromMockIdp
-import no.novari.test.integration.utils.KcFlow.loginWithUser
 import no.novari.test.integration.utils.KcFlow.openAuthUrl
 import no.novari.test.integration.utils.KcHttpClient
 import okhttp3.Request
@@ -23,17 +23,14 @@ class ClientOrgAccessAuthenticatorTest {
     @Test
     fun `tampering broker login url to different idp is denied by post login flow with client-org-access-authenticator`(
         env: KcEnvironment,
+        scimUsers: List<ScimUser>,
     ) {
-        loginWithUser(
-            env = env,
-            clientId = Clients.FLAIS_KEYCLOAK_DEMO,
-            orgAlias = Orgs.ROGALAND,
-            idpAlias = Idps.ENTRA_ROGALAND,
-            username = Users.ALICE_ROGALAND,
-            hasIdpSelector = false,
-        ).use { resp ->
-            assertEquals(200, resp.code)
-        }
+        val user =
+            scimUsers.single { user ->
+                user.emails.orEmpty().any {
+                    it.value.endsWith("@rogaland.no")
+                }
+            }
 
         val client = KcHttpClient.create(followRedirects = false)
 
@@ -66,7 +63,15 @@ class ClientOrgAccessAuthenticatorTest {
                 client.newCall(req).execute().use { resp ->
                     assertEquals(200, resp.code)
 
-                    continueFromMockIdp(resp.request.url, Users.ALICE_ROGALAND, client).use { resp ->
+                    continueFromMockIdp(
+                        resp.request.url,
+                        user.userName,
+                        claims =
+                            buildJsonObject {
+                                put("oid", user.userName)
+                            },
+                        httpClient = client,
+                    ).use { resp ->
                         assertEquals(200, resp.code)
 
                         val html = resp.body.string()

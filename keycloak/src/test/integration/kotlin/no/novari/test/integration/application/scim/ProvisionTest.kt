@@ -14,39 +14,21 @@ import no.novari.test.common.utils.ScimFlow
 import no.novari.test.common.utils.ScimFlow.ScimUser
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
 
 @ExtendWith(KcEnvironmentExtension::class)
 class ProvisionTest {
-    private fun domainFor(orgAlias: String): String =
-        when (orgAlias) {
-            Orgs.TELEMARK -> "telemark.no"
-            Orgs.ROGALAND -> "rogaland.no"
-            else -> error("Unsupported organization: $orgAlias")
-        }
-
-    private fun usersFor(orgAlias: String): List<ScimUser> {
-        val domain = domainFor(orgAlias)
-        return listOf(
-            ScimFlow.randomUser(domain = domain),
-            ScimFlow.randomUser(domain = domain, email = null),
-            ScimFlow.randomUser(domain = domain, email = null).apply {
-                emails = emptyList()
-            },
-        )
-    }
-
     private fun assertEmailsMatch(
         user: ScimUser,
         resource: JsonObject,
     ) {
         val expectedEmails = user.emails
+
         if (expectedEmails.isNullOrEmpty()) {
-            assertFalse(
-                resource.containsKey("emails"),
-            )
+            assertFalse(resource.containsKey("emails"))
         } else {
             val actualEmails =
                 resource
@@ -57,6 +39,7 @@ class ProvisionTest {
                             .getValue("value")
                             .jsonPrimitive.content
                     }
+
             assertEquals(
                 expectedEmails.map { it.value }.sorted(),
                 actualEmails.sorted(),
@@ -71,16 +54,23 @@ class ProvisionTest {
         env: KcEnvironment,
         kcConfig: KcConfig,
     ) {
-        usersFor(orgAlias).forEach { user ->
-            ScimFlow
-                .createUser(
-                    "${env.keycloakServiceUrl()}/realms/external/scim/v2/${kcConfig.requireOrg(orgAlias).id}",
-                    "${env.flaisScimAuthUrl()}/token",
-                    user,
-                ).use { response ->
-                    val body = requireNotNull(response.body).string()
-                    assertEquals(201, response.code, body)
-                }
+        val users =
+            ScimFlow.provision(
+                env = env,
+                kcConfig = kcConfig,
+                orgAlias = orgAlias,
+                users =
+                    listOf(
+                        ScimFlow.randomUser(orgAlias = orgAlias),
+                        ScimFlow.randomUser(orgAlias = orgAlias, email = null),
+                        ScimFlow.randomUser(orgAlias = orgAlias, email = null).apply {
+                            emails = emptyList()
+                        },
+                    ),
+            )
+
+        users.forEach { user ->
+            assertNotNull(user.id)
         }
     }
 
@@ -94,27 +84,26 @@ class ProvisionTest {
         val baseUrl =
             "${env.keycloakServiceUrl()}/realms/external/scim/v2/${kcConfig.requireOrg(orgAlias).id}"
         val tokenUrl = "${env.flaisScimAuthUrl()}/token"
-        val user =
-            ScimFlow.randomUser(domain = domainFor(orgAlias)).apply {
-                emails = requireNotNull(emails).map { it.copy(type = "work") }
-            }
-        val updatedEmail = "updated-${requireNotNull(user.emails).single().value}"
 
-        val userId =
+        val user =
             ScimFlow
-                .createUser(
-                    baseUrl,
-                    tokenUrl,
-                    user,
-                ).use { response ->
-                    val body = requireNotNull(response.body).string()
-                    assertEquals(201, response.code, body)
-                    Json
-                        .parseToJsonElement(body)
-                        .jsonObject
-                        .getValue("id")
-                        .jsonPrimitive.content
-                }
+                .provision(
+                    env = env,
+                    kcConfig = kcConfig,
+                    orgAlias = orgAlias,
+                    users =
+                        listOf(
+                            ScimFlow.randomUser(orgAlias = orgAlias).apply {
+                                emails =
+                                    requireNotNull(emails).map {
+                                        it.copy(type = "work")
+                                    }
+                            },
+                        ),
+                ).single()
+
+        val userId = requireNotNull(user.id)
+        val updatedEmail = "updated-${requireNotNull(user.emails).single().value}"
 
         ScimFlow
             .patchUser(
@@ -139,8 +128,8 @@ class ProvisionTest {
 
         ScimFlow
             .listUsers(
-                baseUrl,
-                tokenUrl,
+                baseUrl = baseUrl,
+                tokenUrl = tokenUrl,
                 filter = """userName eq "${user.userName}"""",
             ).use { response ->
                 val body = requireNotNull(response.body).string()
@@ -154,6 +143,7 @@ class ProvisionTest {
                         .jsonArray
                         .single()
                         .jsonObject
+
                 val email =
                     resource
                         .getValue("emails")
@@ -178,23 +168,36 @@ class ProvisionTest {
             "${env.keycloakServiceUrl()}/realms/external/scim/v2/${kcConfig.requireOrg(orgAlias).id}"
         val tokenUrl = "${env.flaisScimAuthUrl()}/token"
 
-        usersFor(orgAlias).forEach { user ->
+        val users =
+            listOf(
+                ScimFlow.randomUser(orgAlias = orgAlias),
+                ScimFlow.randomUser(orgAlias = orgAlias, email = null),
+                ScimFlow.randomUser(orgAlias = orgAlias, email = null).apply {
+                    emails = emptyList()
+                },
+            )
+
+        users.forEach { user ->
             val userId =
                 ScimFlow
-                    .createUser(baseUrl, tokenUrl, user)
-                    .use { response ->
+                    .createUser(
+                        baseUrl = baseUrl,
+                        tokenUrl = tokenUrl,
+                        user = user,
+                    ).use { response ->
                         val body = requireNotNull(response.body).string()
                         assertEquals(201, response.code, body)
 
                         val resource = Json.parseToJsonElement(body).jsonObject
                         assertEmailsMatch(user, resource)
+
                         resource.getValue("id").jsonPrimitive.content
                     }
 
             ScimFlow
                 .listUsers(
-                    baseUrl,
-                    tokenUrl,
+                    baseUrl = baseUrl,
+                    tokenUrl = tokenUrl,
                     filter = """userName eq "${user.userName}"""",
                 ).use { response ->
                     val body = requireNotNull(response.body).string()
@@ -227,9 +230,9 @@ class ProvisionTest {
                 baseUrl =
                     "${env.keycloakServiceUrl()}/realms/external/scim/v2/${kcConfig.requireOrg(orgAlias).id}",
                 tokenUrl = "${env.flaisScimAuthUrl()}/token",
-                id = ScimFlow.randomUser().externalId,
+                id = ScimFlow.randomUser(orgAlias = orgAlias).externalId,
             ).use { response ->
-                val body = response.body.string()
+                val body = requireNotNull(response.body).string()
                 assertEquals(404, response.code, body)
             }
     }

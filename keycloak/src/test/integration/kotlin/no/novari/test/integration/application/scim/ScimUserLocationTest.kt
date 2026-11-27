@@ -199,12 +199,7 @@ class ScimUserLocationTest {
         val client = ScimHttpClient.create(tokenUrl)
         val user =
             ScimFlow.randomUser(
-                domain =
-                    when (orgAlias) {
-                        Orgs.TELEMARK -> "telemark.no"
-                        Orgs.ROGALAND -> "rogaland.no"
-                        else -> error("Unsupported organization: $orgAlias")
-                    },
+                orgAlias = orgAlias,
             )
         val response = ScimFlow.createUser(baseUrl, tokenUrl, user, client)
         val location = response.header("Location")
