@@ -24,11 +24,48 @@ updates:
       day: "sunday"
     open-pull-requests-limit: 15
     groups:
+      keycloak-major:
+        patterns:
+          - "org.keycloak:*"
+          - "org.keycloak.bom:*"
+        update-types:
+          - "major"
+      keycloak:
+        patterns:
+          - "org.keycloak:*"
+          - "org.keycloak.bom:*"
+        update-types:
+          - "minor"
+          - "patch"
+      transitive-overrides-major:
+        patterns:
+          - "io.netty:*"
+          - "com.google.protobuf:*"
+          - "io.opentelemetry:*"
+          - "com.fasterxml.jackson*:*"
+          - "ch.qos.logback:*"
+          - "org.codehaus.plexus:*"
+          - "org.apache.logging.log4j:*"
+        update-types:
+          - "major"
+      transitive-overrides:
+        patterns:
+          - "io.netty:*"
+          - "com.google.protobuf:*"
+          - "io.opentelemetry:*"
+          - "com.fasterxml.jackson*:*"
+          - "ch.qos.logback:*"
+          - "org.codehaus.plexus:*"
+          - "org.apache.logging.log4j:*"
+        update-types:
+          - "minor"
+          - "patch"
       backend:
         patterns:
           - "*"
-        # We wanna keep transitive overrides in individual PRs.
         exclude-patterns:
+          - "org.keycloak:*"
+          - "org.keycloak.bom:*"
           - "io.netty:*"
           - "com.google.protobuf:*"
           - "io.opentelemetry:*"
@@ -67,7 +104,7 @@ updates:
         patterns:
           - "*"
         exclude-patterns:
-          - "quay.io/keycloak/keycloak"
+          - "keycloak/keycloak"
         update-types:
           - "minor"
           - "patch"
