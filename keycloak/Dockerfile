@@ -1,9 +1,9 @@
-FROM quay.io/keycloak/keycloak:26.7.5@sha256:37dbaf6f0722c9ec246335f36e1ef8b2e6cb960f7c27e0d8c615121a3d475a85 AS keycloak-base
+FROM quay.io/keycloak/keycloak:26.8.2-3@sha256:7e66a96e4739239070aeaf72e4c5decf0f7f682cfc725b9f7ea2b336eaba38b3 AS keycloak-base
 
 # -----------------------------
 # Stage: FLAIS Keycloak builder
 # -----------------------------
-FROM gradle:9.9.1-jdk21@sha256:f1abc4161babd9c7adc0a66ec49275caa595c51c1593e37d7e2e97f5aee1ffdb AS flais-keycloak-builder
+FROM gradle:9.9.2-jdk21@sha256:f8c4f7de6ec4f367cbf7fc46db08129ea6a6e9487995bb705c61fbc20f3bc545 AS flais-keycloak-builder
 WORKDIR /flais-keycloak
 
 ENV GRADLE_USER_HOME=/home/gradle/.gradle
