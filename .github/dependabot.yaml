@@ -66,6 +66,8 @@ updates:
       docker-images:
         patterns:
           - "*"
+        exclude-patterns:
+          - "quay.io/keycloak/keycloak"
         update-types:
           - "minor"
           - "patch"
