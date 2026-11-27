@@ -1,11 +1,8 @@
 package no.novari.authenticator.org
 
-import jakarta.ws.rs.core.NewCookie
 import no.novari.flow.AuthenticationErrorHandler.failure
 import no.novari.provider.ClientOrgAccessProvider
-import no.novari.utils.OrgRememberCookie.cookieName
-import no.novari.utils.OrgRememberCookie.decodeValue
-import no.novari.utils.OrgRememberCookie.encodeValue
+import no.novari.utils.OrgRememberCookie
 import org.jboss.logging.Logger
 import org.keycloak.authentication.AuthenticationFlowContext
 import org.keycloak.authentication.Authenticator
@@ -14,8 +11,6 @@ import org.keycloak.models.KeycloakSession
 import org.keycloak.models.OrganizationModel
 import org.keycloak.models.RealmModel
 import org.keycloak.models.UserModel
-import org.keycloak.services.Urls
-import org.keycloak.utils.SecureContextResolver
 
 class OrgRememberUiAuthenticator : Authenticator {
     private val logger: Logger = Logger.getLogger(OrgRememberUiAuthenticator::class.java)
@@ -23,11 +18,7 @@ class OrgRememberUiAuthenticator : Authenticator {
     override fun authenticate(context: AuthenticationFlowContext) {
         val organization =
             selectedOrganization(context) ?: return context.failure("No permitted organization selected")
-        val cookieName = cookieName(context.authenticationSession.client.clientId)
-        val rememberedOrg =
-            context.httpRequest.httpHeaders.cookies[cookieName]
-                ?.value
-                ?.let(::decodeValue)
+        val rememberedOrg = OrgRememberCookie.read(context)
         if (rememberedOrg == organization.alias) {
             logger.debugf(
                 "Remembered organization matches selection, skipping confirmation. client=%s org=%s",
@@ -63,22 +54,12 @@ class OrgRememberUiAuthenticator : Authenticator {
             return
         }
 
-        val cookiePath =
-            Urls
-                .realmBase(context.uriInfo.baseUri)
-                .path("{realm}")
-                .build(context.realm.name)
-                .path
         val cookie =
-            NewCookie
-                .Builder(cookieName(context.authenticationSession.client.clientId))
-                .value(if (rememberOrg) encodeValue(organization.alias) else "")
-                .path(cookiePath)
-                .maxAge(if (rememberOrg) getCookieMaxAge(context) else 0)
-                .secure(SecureContextResolver.isSecureContext(context.session))
-                .httpOnly(true)
-                .sameSite(NewCookie.SameSite.LAX)
-                .build()
+            OrgRememberCookie.build(
+                context,
+                organizationAlias = if (rememberOrg) organization.alias else null,
+                maxAge = if (rememberOrg) getCookieMaxAge(context) else 0,
+            )
 
         context.session.context.httpResponse
             .setCookieIfAbsent(cookie)
