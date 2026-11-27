@@ -16,6 +16,7 @@ import no.novari.test.integration.utils.KcContextParser
 import no.novari.test.integration.utils.KcFlow.loginWithMicrosoftScimUser
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.assertNotNull
 import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.params.ParameterizedTest
@@ -111,19 +112,31 @@ class FlaisFirstBrokerLoginScimFlowTest {
                 List(2) { ScimFlow.randomUser(orgAlias) }
             }
 
-        users.getValue(orgAlias).forEach { user ->
-            loginWithMicrosoftScimUser(env, clientId, orgAlias, idpAlias, user, hasIdpSelector = orgAlias == Orgs.TELEMARK).use { resp ->
-                assertEquals(403, resp.code)
+        val (kc, realmRes) = KcAdminClient.connect(env, Realms.EXTERNAL)
 
-                val html = resp.body.string()
-                val kc = KcContextParser.parseKcContext(html)
+        kc.use {
+            users.getValue(orgAlias).forEach { user ->
+                loginWithMicrosoftScimUser(
+                    env,
+                    clientId,
+                    orgAlias,
+                    idpAlias,
+                    user,
+                    hasIdpSelector = orgAlias == Orgs.TELEMARK,
+                ).use { resp ->
+                    assertEquals(403, resp.code)
 
-                assertEquals(Pages.ERROR, kc.pageId)
-                assertEquals("error", kc.message!!.type)
-                assertEquals(
-                    "Your account has not yet been provisioned. It may take up to 1 hour for your account to become available after you have been added. Please contact your administrator.",
-                    kc.message.summary,
-                )
+                    val html = resp.body.string()
+                    val kc = KcContextParser.parseKcContext(html)
+
+                    assertEquals(Pages.ERROR, kc.pageId)
+                    assertEquals("error", kc.message!!.type)
+                    assertEquals(
+                        "Your account has not yet been provisioned. It may take up to 1 hour for your account to become available after you have been added. Please contact your administrator.",
+                        kc.message.summary,
+                    )
+                }
+                assertNull(KcAdminClient.findUserByUsername(realmRes, user.userName))
             }
         }
     }
