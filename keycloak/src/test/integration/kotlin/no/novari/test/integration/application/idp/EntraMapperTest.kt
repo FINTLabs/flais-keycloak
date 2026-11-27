@@ -10,6 +10,7 @@ import no.novari.test.common.utils.KcAdminClient
 import no.novari.test.common.utils.ScimFlow.ScimUser
 import no.novari.test.integration.utils.KcFlow.loginWithMicrosoftScimUser
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNotEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertNotNull
 import org.junit.jupiter.api.extension.ExtendWith
@@ -32,25 +33,24 @@ class EntraMapperTest {
                 }
             }
 
-        loginWithMicrosoftScimUser(env, clientId, orgAlias, idpAlias, scimUser).use { resp ->
-            assertEquals(200, resp.code)
+        val loginRoles = setOf("idp-reader", "idp-writer")
+        val loginUser = scimUser.copy(roles = loginRoles.map { ScimUser.Role(value = it) })
+        val (kc, realmRes) = KcAdminClient.connect(env, realm)
 
-            val (kc, realmRes) = KcAdminClient.connect(env, realm)
+        kc.use {
+            val provisionedUser = KcAdminClient.findUserByUsername(realmRes, scimUser.userName)
+            assertNotNull(provisionedUser)
+            assertNotEquals(loginRoles, provisionedUser.attributes["roles"].orEmpty().toSet())
 
-            kc.use {
+            loginWithMicrosoftScimUser(env, clientId, orgAlias, idpAlias, loginUser).use { resp ->
+                assertEquals(200, resp.code)
+
                 val user = KcAdminClient.findUserByUsername(realmRes, scimUser.userName)
                 assertNotNull(user)
 
                 val roles = user.attributes["roles"]
                 assertNotNull(roles)
-
-                assertEquals(
-                    scimUser.roles
-                        .orEmpty()
-                        .mapNotNull { it.value }
-                        .toSet(),
-                    roles.toSet(),
-                )
+                assertEquals(loginRoles, roles.toSet())
             }
         }
     }
