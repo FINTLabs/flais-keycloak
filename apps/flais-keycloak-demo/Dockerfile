@@ -12,7 +12,7 @@ RUN npm install && npm run build
 # -----------------------------
 # Stage: Runtime
 # -----------------------------
-FROM nginx:1.31.3-alpine-slim@sha256:45b82ed5f285b90d63df07ba70430fdd8f25624b416617d9e6dc93412b2006dc
+FROM nginx:1.31.9-alpine-slim@sha256:5bfced78d24d644270bedb0a9968697042e38d5c03fb6354603df025279c1cbe
 
 COPY --from=build /app/dist /usr/share/nginx/html
 COPY /nginx.conf /etc/nginx/conf.d/default.conf
